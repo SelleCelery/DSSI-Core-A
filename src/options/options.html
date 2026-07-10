@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DSSI Core A 設定</title>
+    <link rel="stylesheet" href="base.css" />
+  </head>
+  <body class="dssi-page">
+    <main class="panel">
+      <h1>DSSI Core A</h1>
+      <h2>設定とプライバシー</h2>
+      <p>
+        初期版は入力本文、パスワード、決済番号、クリップボード本文、送信本文を保存しません。
+        保存対象は設定と、本文を含まない観測メタデータだけです。
+      </p>
+      <fieldset>
+        <legend>ローカル機能</legend>
+        <label class="row">
+          <span>ローカル内容分類</span>
+          <input id="localClassificationEnabled" type="checkbox" />
+        </label>
+        <label class="row">
+          <span>ネットワーク補助観測</span>
+          <input id="networkObservationEnabled" type="checkbox" disabled />
+        </label>
+        <label class="row">
+          <span>永続履歴</span>
+          <input id="persistentHistoryEnabled" type="checkbox" disabled />
+        </label>
+      </fieldset>
+      <button id="save" type="button">保存</button>
+      <button id="clearSession" type="button">セッション観測ログを消去</button>
+      <p id="status" class="status" role="status"></p>
+      <h2>現在の死角</h2>
+      <p>
+        DSSI Core Aは、すべての通信内容を捕捉しません。警告が表示されていないことは、
+        安全であることを意味しません。
+      </p>
+    </main>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>

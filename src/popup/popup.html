@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DSSI Core A</title>
+    <link rel="stylesheet" href="base.css" />
+  </head>
+  <body class="dssi-page dssi-popup">
+    <main>
+      <h1>DSSI Core A</h1>
+      <p class="tagline">最後に止めるのではなく、最初に気づけるようにする。</p>
+      <label class="row">
+        <span>有効</span>
+        <input id="enabled" type="checkbox" />
+      </label>
+      <label class="field">
+        <span>粘性レベル</span>
+        <select id="viscosityLevel">
+          <option value="1">1 — Silent</option>
+          <option value="2">2 — Awareness</option>
+          <option value="3">3 — Sovereign</option>
+        </select>
+      </label>
+      <p id="status" class="status" role="status"></p>
+      <p class="small">観測件数（現在のブラウザセッション）: <strong id="count">0</strong></p>
+      <button id="openOptions" type="button">設定とプライバシー</button>
+    </main>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
