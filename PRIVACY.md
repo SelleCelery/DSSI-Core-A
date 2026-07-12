@@ -31,3 +31,11 @@ DSSI Core A does not guarantee complete visibility into every page, frame, shado
 ## User control
 
 Users can disable the extension, change viscosity level, and clear the current session observation log.
+
+## Sprint 1 input recognition
+
+Sprint 1 observes structural browser events and field metadata. It does not read field values for logging or classification.
+
+The implementation may inspect the field's type, autocomplete metadata, name, identifier, accessibility label, placeholder, associated label text, contenteditable state, and role. These structural strings are used locally to determine a category and are not stored in the observation log.
+
+Input-origin classification is conservative. Keyboard and paste events can be confirmed from event evidence; autofill or password-manager use is recorded only as suspected when the browser does not expose a definitive source.

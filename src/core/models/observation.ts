@@ -5,6 +5,7 @@ export type TriggerType =
   | 'payment_field_focus'
   | 'personal_info_field_focus'
   | 'free_text_surface_focus'
+  | 'unknown_input_surface_focus'
   | 'paste_into_field'
   | 'keyboard_input_started'
   | 'autofill_or_manager_suspected'
@@ -39,6 +40,15 @@ export type SurfaceType =
 export type ObservabilityState =
   'observable' | 'partially_observable' | 'high_uncertainty' | 'unobservable' | 'unsupported';
 
+export type InputOrigin =
+  | 'keyboard_confirmed'
+  | 'paste_confirmed'
+  | 'autofill_or_manager_suspected'
+  | 'script_or_unknown_update'
+  | 'unknown';
+
+export type ClassificationConfidence = 'explicit' | 'heuristic' | 'generic';
+
 export interface ObservationLogRecord {
   eventId: string;
   timestamp: number;
@@ -49,4 +59,6 @@ export interface ObservationLogRecord {
   observability: ObservabilityState;
   viscosityLevel: 1 | 2 | 3;
   cuePresented: boolean;
+  inputOrigin?: InputOrigin;
+  classificationConfidence?: ClassificationConfidence;
 }

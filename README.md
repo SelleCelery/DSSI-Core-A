@@ -8,19 +8,21 @@ The extension is designed to present observable facts and observation limits bef
 
 ## Status
 
-Sprint 0 — Foundation
+Sprint 1 — Input Recognition
 
 This repository currently provides:
 
 - Manifest V3 extension scaffold
 - TypeScript and esbuild build pipeline
-- popup and options foundations
-- local settings
-- session-only metadata log
+- password / email-ID / payment / personal-information / free-text classification
+- focus, keyboard, paste, input, and dynamically-added field observation
+- conservative input-origin inference
+- viscosity-controlled factual chips
+- local settings and session-only metadata log
 - privacy-safe logger with prohibited raw-data guards
 - lint, format, typecheck, test, and build commands
 
-Input-surface detection begins in Sprint 1.
+Sprint 1 establishes the first product loop: an action surface is touched, classified, logged as metadata, and—when policy permits—explained by a short factual chip.
 
 ## Requirements
 
@@ -57,7 +59,7 @@ The initial build does not persist:
 
 The session log stores structural metadata only and can be cleared from the options page.
 
-See [PRIVACY.md](./PRIVACY.md) and the product documents under [docs/product](./docs/product).
+See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](./docs/SPRINT1_IMPLEMENTATION_GUIDE.md), and the product documents under [docs/product](./docs/product).
 
 ## License
 

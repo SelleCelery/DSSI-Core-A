@@ -11,13 +11,13 @@
 
 ## Sprint 1 — Input Recognition
 
-- [ ] content script event capture
-- [ ] MutationObserver delta scanning
-- [ ] input, textarea, contenteditable detection
-- [ ] password / email-ID / payment / free-text classification
-- [ ] input-origin inference
-- [ ] passive factual chip
-- [ ] fixture pages and integration tests
+- [x] content script event capture
+- [x] MutationObserver delta scanning
+- [x] input, textarea, contenteditable detection
+- [x] password / email-ID / payment / free-text classification
+- [x] input-origin inference
+- [x] passive factual chip
+- [x] fixture page and core classification tests
 
 ## Sprint 2 and later
 
