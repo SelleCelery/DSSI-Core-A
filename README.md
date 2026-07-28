@@ -68,3 +68,7 @@ See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](./docs/SPRIN
 ## License
 
 GNU General Public License v3.0 or later. See [LICENSE](./LICENSE).
+
+## Sprint 2: submission boundary
+
+DSSI now observes standard HTML form submission surfaces and records only declared metadata: method, encoding, and destination relation/host. It distinguishes submit-control activation, Enter-key candidates, and trusted submit events. It does not read form values, query values, request bodies, fetch/XHR traffic, service-worker traffic, or server receipt.

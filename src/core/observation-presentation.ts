@@ -41,7 +41,9 @@ const TRIGGER_LABELS: Readonly<Record<TriggerType, string>> = {
   keyboard_input_started: 'キー入力開始を確認',
   autofill_or_manager_suspected: '自動入力または入力支援の可能性',
   script_or_unknown_value_change: '入力経路を特定できない更新',
-  submit_attempt: '送信操作を検出',
+  submit_attempt: 'フォーム送信イベントを観測',
+  submitter_activation_observed: '送信操作面の起動を観測',
+  enter_submit_candidate: 'Enterによる送信候補を観測',
   external_domain_click: '外部ドメインへの遷移を検出',
   download_attempt: 'ダウンロード操作を検出',
   consent_control_focus: '同意操作面へフォーカス',
@@ -62,6 +64,8 @@ const INPUT_ORIGIN_LABELS: Readonly<Record<InputOrigin, string>> = {
 
 const OBSERVATION_SCOPE_LABELS: Readonly<Record<ObservationScope, string>> = {
   input_surface_and_dom_events: '入力面・DOMイベントを観測',
+  declared_submission_boundary: 'フォーム宣言上の送信境界を観測',
+  submission_boundary_partial: '送信境界を部分観測',
   page_surface_partial: 'ページ面を部分観測',
   unobservable: '観測不能',
   unsupported: '未対応',
@@ -139,4 +143,27 @@ export function observationActionLabel(record: ObservationLogRecord): string {
 
 export function isUserInputObservation(record: ObservationLogRecord): boolean {
   return record.triggerType !== 'page_observation_started';
+}
+
+export function submissionMethodLabel(record: ObservationLogRecord): string {
+  return record.submissionMethod ?? '—';
+}
+
+export function submissionDestinationLabel(record: ObservationLogRecord): string {
+  if (record.destinationRelation === undefined) return '—';
+  const relation = {
+    same_origin: '同一オリジン',
+    cross_origin: '別オリジン',
+    non_http: 'HTTP以外',
+    unknown: '不明',
+  }[record.destinationRelation];
+  const host =
+    record.destinationHost && record.destinationHost !== 'unknown'
+      ? ` · ${record.destinationHost}`
+      : '';
+  return `${relation}${host}`;
+}
+
+export function submissionEncodingLabel(record: ObservationLogRecord): string {
+  return record.submissionEncoding ?? '—';
 }

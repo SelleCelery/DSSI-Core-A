@@ -1,5 +1,6 @@
 import type { InputOrigin, SurfaceType } from '../core/models/observation';
 import type { ViscosityLevel } from '../core/models/settings';
+import type { SubmissionDescriptor } from '../core/models/submission';
 import { inputOriginLabel, surfaceTypeLabel } from '../core/observation-presentation';
 
 const HOST_ID = 'dssi-core-a-fact-chip-host';
@@ -93,6 +94,28 @@ export class FactChipPresenter {
     this.#render(
       inputOriginLabel(inputOrigin),
       `${surfaceTypeLabel(surfaceType)}として観測しました。入力内容は取得していません。`,
+      viscosityLevel,
+    );
+  }
+
+  public showSubmission(
+    descriptor: SubmissionDescriptor,
+    viscosityLevel: ViscosityLevel,
+    confirmed: boolean,
+  ): void {
+    const relation =
+      descriptor.destinationRelation === 'same_origin'
+        ? '同一オリジン'
+        : descriptor.destinationRelation === 'cross_origin'
+          ? '別オリジン'
+          : descriptor.destinationRelation === 'non_http'
+            ? 'HTTP以外'
+            : '送信先不明';
+    const title = confirmed ? 'フォーム送信イベントを観測' : '送信操作の候補を観測';
+    const host = descriptor.destinationHost === 'unknown' ? '' : ` · ${descriptor.destinationHost}`;
+    this.#render(
+      title,
+      `${descriptor.method} · ${relation}${host}。実際の通信成立やサーバー到達は未確認です。`,
       viscosityLevel,
     );
   }

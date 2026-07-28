@@ -3,7 +3,7 @@
   "name": "DSSI Core A (Development)",
   "short_name": "DSSI Core A",
   "description": "操作面に触れた早い段階で、観測可能な事実と観測限界を提示します。",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "minimum_chrome_version": "120",
   "permissions": ["storage"],
   "background": {

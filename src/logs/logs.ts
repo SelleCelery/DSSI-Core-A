@@ -4,6 +4,9 @@ import {
   observationScopeLabel,
   operationEvidenceLabel,
   surfaceTypeLabel,
+  submissionDestinationLabel,
+  submissionEncodingLabel,
+  submissionMethodLabel,
 } from '../core/observation-presentation';
 import type { ObservationLogRecord } from '../core/models/observation';
 import { clearSessionRecords, getSessionRecords } from '../storage/session-buffer';
@@ -48,6 +51,9 @@ function render(records: ObservationLogRecord[]): void {
       makeCell(operationEvidenceLabel(record.operationEvidence)),
       makeCell(classificationConfidenceLabel(record.classificationConfidence)),
       makeCell(observationScopeLabel(record)),
+      makeCell(submissionMethodLabel(record)),
+      makeCell(submissionDestinationLabel(record)),
+      makeCell(submissionEncodingLabel(record)),
       makeCell(record.cuePresented ? '表示' : '非表示'),
     );
     body.append(row);

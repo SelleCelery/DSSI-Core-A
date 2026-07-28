@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 - Sprint 2
+
+- Added form submission boundary observation.
+- Separated submit-control activation, Enter-key candidates, and confirmed submit events.
+- Added declared method, encoding, destination relation, scheme, and host metadata.
+- Strips query strings, fragments, user information, and all form values from logs.
+- Explicitly leaves fetch/XHR, service-worker interception, actual network transmission, and server receipt unobserved.
+
 ## 0.2.2 - Sprint 1.2 Evidence and Boundary Separation
 
 - Split operation evidence, input-surface classification confidence, and boundary observation scope into independent log dimensions.

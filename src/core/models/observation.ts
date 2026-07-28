@@ -13,6 +13,8 @@ export type TriggerType =
   | 'autofill_or_manager_suspected'
   | 'script_or_unknown_value_change'
   | 'submit_attempt'
+  | 'submitter_activation_observed'
+  | 'enter_submit_candidate'
   | 'external_domain_click'
   | 'download_attempt'
   | 'consent_control_focus'
@@ -45,7 +47,12 @@ export type SurfaceType =
  * or safety property has been observed.
  */
 export type ObservationScope =
-  'input_surface_and_dom_events' | 'page_surface_partial' | 'unobservable' | 'unsupported';
+  | 'input_surface_and_dom_events'
+  | 'declared_submission_boundary'
+  | 'submission_boundary_partial'
+  | 'page_surface_partial'
+  | 'unobservable'
+  | 'unsupported';
 
 /** How the operation claim was supported. */
 export type OperationEvidence =
@@ -68,8 +75,15 @@ export type ClassificationConfidence = 'explicit' | 'heuristic' | 'generic' | 'u
 export type LegacyObservabilityState =
   'observable' | 'partially_observable' | 'high_uncertainty' | 'unobservable' | 'unsupported';
 
+import type {
+  DestinationRelation,
+  SubmissionEncoding,
+  SubmissionMechanism,
+  SubmissionMethod,
+} from './submission';
+
 export interface ObservationLogRecord {
-  schemaVersion?: 1 | 2;
+  schemaVersion?: 1 | 2 | 3;
   eventId: string;
   timestamp: number;
   sessionId: string;
@@ -84,4 +98,11 @@ export interface ObservationLogRecord {
   cuePresented: boolean;
   inputOrigin?: InputOrigin;
   classificationConfidence?: ClassificationConfidence;
+  submissionMethod?: SubmissionMethod;
+  submissionEncoding?: SubmissionEncoding;
+  destinationRelation?: DestinationRelation;
+  destinationScheme?: string;
+  destinationHost?: string;
+  submissionMechanism?: SubmissionMechanism;
+  declaredDestinationObservable?: boolean;
 }

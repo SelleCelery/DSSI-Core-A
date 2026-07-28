@@ -57,15 +57,16 @@ function triggerForInputOrigin(origin: InputOrigin): TriggerType {
 
 export class InputSurfaceObserver {
   readonly #settings: DssiSettings;
-  readonly #sessionId = crypto.randomUUID();
+  readonly #sessionId: string;
   readonly #domainKey = location.hostname || 'unknown';
   readonly #presenter = new FactChipPresenter();
   readonly #knownSurfaces = new WeakSet<Element>();
   readonly #runtime = new WeakMap<Element, SurfaceRuntimeState>();
   #mutationObserver: MutationObserver | undefined;
 
-  public constructor(settings: DssiSettings) {
+  public constructor(settings: DssiSettings, sessionId: string) {
     this.#settings = settings;
+    this.#sessionId = sessionId;
   }
 
   public start(): void {

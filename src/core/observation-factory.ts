@@ -7,6 +7,7 @@ import type {
   SurfaceType,
   TriggerType,
 } from './models/observation';
+import type { SubmissionDescriptor } from './models/submission';
 import type { ViscosityLevel } from './models/settings';
 
 export interface ObservationFactoryContext {
@@ -23,6 +24,7 @@ export interface ObservationRecordInput {
   cuePresented: boolean;
   inputOrigin?: InputOrigin;
   classificationConfidence?: ClassificationConfidence;
+  submission?: SubmissionDescriptor;
 }
 
 export function createObservationRecord(
@@ -30,7 +32,7 @@ export function createObservationRecord(
   input: ObservationRecordInput,
 ): ObservationLogRecord {
   const record: ObservationLogRecord = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     eventId: crypto.randomUUID(),
     timestamp: Date.now(),
     sessionId: context.sessionId,
@@ -49,6 +51,16 @@ export function createObservationRecord(
 
   if (input.classificationConfidence !== undefined) {
     record.classificationConfidence = input.classificationConfidence;
+  }
+
+  if (input.submission !== undefined) {
+    record.submissionMethod = input.submission.method;
+    record.submissionEncoding = input.submission.encoding;
+    record.destinationRelation = input.submission.destinationRelation;
+    record.destinationScheme = input.submission.destinationScheme;
+    record.destinationHost = input.submission.destinationHost;
+    record.submissionMechanism = input.submission.mechanism;
+    record.declaredDestinationObservable = input.submission.declaredDestinationObservable;
   }
 
   return record;
