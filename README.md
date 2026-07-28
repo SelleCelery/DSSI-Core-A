@@ -8,7 +8,7 @@ The extension is designed to present observable facts and observation limits bef
 
 ## Status
 
-Sprint 2.1 — Frame and Submission Correlation
+Sprint 2.2 — Activity and Diagnostic Log Separation
 
 This repository currently provides:
 
@@ -18,17 +18,17 @@ This repository currently provides:
 - focus, keyboard, paste, input, and dynamically-added field observation
 - trusted-event correlation and conservative input-origin inference
 - viscosity-controlled factual chips
-- local settings and session-only metadata log
+- local settings and separate session-only activity / diagnostic metadata logs
 - popup summary and complete observation-log viewer
 - separate operation evidence, classification confidence, and boundary observation scope
 - two-stage paste observation: event observed and reflection confirmed
-- top-frame / iframe context with subframe start-noise suppression
+- top-frame / embedded-frame context with start-noise suppression
 - same-form correlation between submit candidates and later submit events
 - Level 3 factual chips for inferred input route
 - privacy-safe logger with prohibited raw-data guards
 - lint, format, typecheck, test, and build commands
 
-Sprint 2.1 additionally distinguishes main-page and iframe activity, suppresses iframe initialization noise, and separates DOM-level submit controls from submit events correlated on the same form. It still does not claim network transmission or server receipt.
+Sprint 2.2 separates user-facing activity records from implementation diagnostics. Page-start records are kept out of the normal activity log, short-window duplicate top-frame starts are suppressed, and unknown input surfaces expose only privacy-safe structural metadata. It still does not claim network transmission or server receipt.
 
 ## Requirements
 
@@ -65,7 +65,7 @@ The initial build does not persist:
 
 The session log stores structural metadata only and can be cleared from the options page.
 
-See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](./docs/SPRINT1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.1 implementation guide](./docs/SPRINT1_1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.2 implementation guide](./docs/SPRINT1_2_IMPLEMENTATION_GUIDE.md), [the Sprint 2 implementation guide](./docs/SPRINT2_IMPLEMENTATION_GUIDE.md), [the Sprint 2.1 implementation guide](./docs/SPRINT2_1_IMPLEMENTATION_GUIDE.md), and the product documents under [docs/product](./docs/product).
+See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](./docs/SPRINT1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.1 implementation guide](./docs/SPRINT1_1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.2 implementation guide](./docs/SPRINT1_2_IMPLEMENTATION_GUIDE.md), [the Sprint 2 implementation guide](./docs/SPRINT2_IMPLEMENTATION_GUIDE.md), [the Sprint 2.1 implementation guide](./docs/SPRINT2_1_IMPLEMENTATION_GUIDE.md), [the Sprint 2.2 implementation guide](./docs/SPRINT2_2_IMPLEMENTATION_GUIDE.md), and the product documents under [docs/product](./docs/product).
 
 ## License
 
@@ -78,3 +78,7 @@ DSSI now observes standard HTML form submission surfaces and records only declar
 ## Sprint 2.1: real-page refinement
 
 Real-page tests showed that embedded frames and DOM submit associations needed separate treatment. Sprint 2.1 records top-frame and iframe context, suppresses iframe page-start-only noise, and identifies whether a submit event was correlated with a prior trusted click or Enter candidate on the same form.
+
+## Sprint 2.2: log-layer separation
+
+The normal activity log now contains only observations relevant to user actions and judgment. Content-script page-start records are stored separately as diagnostics. Unknown input surfaces may include only tag, normalized input type, safe role token, contenteditable state, and safe autocomplete tokens; labels, placeholders, IDs, names, and values remain excluded.

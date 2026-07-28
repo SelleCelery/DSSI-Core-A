@@ -1,4 +1,7 @@
-import type { InputSurfaceDescriptor } from '../core/models/input-surface';
+import type {
+  InputSurfaceDescriptor,
+  SafeInputSurfaceStructure,
+} from '../core/models/input-surface';
 
 const SUPPORTED_SELECTOR =
   'input, textarea, [contenteditable]:not([contenteditable="false"]), [role="textbox"]';
@@ -68,4 +71,20 @@ export function findInputSurfaces(root: ParentNode): Element[] {
     matches.unshift(root);
   }
   return matches;
+}
+
+const SAFE_STRUCTURE_TOKEN = /^[a-z0-9-]{1,64}$/;
+
+export function describeSafeInputSurfaceStructure(
+  descriptor: InputSurfaceDescriptor,
+): SafeInputSurfaceStructure {
+  return {
+    tagName: descriptor.tagName.slice(0, 32),
+    inputType: descriptor.inputType.slice(0, 64),
+    role: SAFE_STRUCTURE_TOKEN.test(descriptor.role) ? descriptor.role : '',
+    isContentEditable: descriptor.isContentEditable,
+    autocompleteTokens: descriptor.autocompleteTokens
+      .filter((token) => SAFE_STRUCTURE_TOKEN.test(token))
+      .slice(0, 8),
+  };
 }

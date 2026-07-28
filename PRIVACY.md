@@ -39,3 +39,9 @@ Sprint 1 observes structural browser events and field metadata. It does not read
 The implementation may inspect the field's type, autocomplete metadata, name, identifier, accessibility label, placeholder, associated label text, contenteditable state, and role. These structural strings are used locally to determine a category and are not stored in the observation log.
 
 Input-origin classification is conservative. Keyboard and paste events can be confirmed from event evidence; autofill or password-manager use is recorded only as suspected when the browser does not expose a definitive source.
+
+## Sprint 2.2 diagnostic separation
+
+DSSI separates user-facing activity records from implementation diagnostic records. Page-start diagnostics are session-local and are not presented as evidence of user input or transmission.
+
+For an unclassified input surface, DSSI may retain only limited structural metadata: tag name, normalized input type, a syntactically safe role token, contenteditable state, and syntactically safe autocomplete tokens. It does not retain the element name, ID, label text, placeholder text, or field value for this purpose.

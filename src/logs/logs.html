@@ -10,13 +10,19 @@
     <main class="panel panel-wide">
       <h1>DSSI Core A 観測ログ</h1>
       <p>
-        現在のブラウザセッションで保存された観測メタデータです。入力本文、パスワード、
-        決済番号、クリップボード本文は含まれません。
+        通常ログには利用者の操作と判断に関係する観測メタデータだけを表示します。
+        診断ログには拡張機能の起動など、実装確認用の記録を分離して表示します。
+        入力本文、パスワード、決済番号、クリップボード本文は含まれません。
       </p>
-      <p class="small">観測件数: <strong id="count">0</strong></p>
+      <div class="log-tabs" role="tablist" aria-label="ログ種別">
+        <button id="showActivity" type="button" role="tab" aria-selected="true">通常ログ</button>
+        <button id="showDiagnostic" type="button" role="tab" aria-selected="false">診断ログ</button>
+      </div>
+      <p class="small"><span id="viewLabel">通常ログ</span>件数: <strong id="count">0</strong></p>
       <div class="button-row">
         <button id="refresh" type="button">更新</button>
-        <button id="clear" type="button">ログを消去</button>
+        <button id="clearCurrent" type="button">表示中のログを消去</button>
+        <button id="clearAll" type="button">すべてのログを消去</button>
       </div>
       <p id="status" class="status" role="status"></p>
       <p id="empty">観測ログはありません。</p>
@@ -28,6 +34,7 @@
               <th scope="col">観測フレーム</th>
               <th scope="col">フレーム関係</th>
               <th scope="col">入力面</th>
+              <th scope="col">安全な構造情報</th>
               <th scope="col">観測事実</th>
               <th scope="col">操作証拠</th>
               <th scope="col">入力面分類根拠</th>
@@ -44,17 +51,21 @@
       </div>
       <h2>読み方</h2>
       <p>
-        「主ページ」はブラウザタブの最上位文書です。「iframe」は主ページ内に埋め込まれた別文書です。
-        iframeの開始ログはノイズ抑制のため保存せず、iframe内で実際の入力や送信候補が観測された場合だけ記録します。
+        「トップフレーム」はブラウザタブの最上位文書です。「埋め込みフレーム」はその中に置かれた別文書です。
+        埋め込みフレームの開始ログは保存せず、実際の入力や送信候補が観測された場合だけ通常ログへ記録します。
       </p>
       <p>
-        「フォーム関連submit要素」は、HTML上でフォームに属するsubmit要素への操作です。
+        「安全な構造情報」は、種類不明の入力面を調査するためのタグ名、標準的なtype、role、contenteditable、
+        autocompleteトークンだけです。name、id、ラベル、placeholder、入力値は保存しません。
+      </p>
+      <p>
+        診断ログの「ページ観測を開始」はcontent scriptが起動したという実装上の記録です。
+        利用者が何かを入力・送信したことを意味しません。同一タブ・同一ドメインの短時間重複は抑制します。
+      </p>
+      <p>
+        「フォーム関連submit要素」はHTML上でフォームに属するsubmit要素への操作です。
         「同一フォームでsubmit成立と相関」は、その操作またはEnter候補の直後に同じフォームのsubmitイベントを観測した記録です。
         どちらも実際の通信成立やサーバー到達を意味しません。
-      </p>
-      <p>
-        「入力面・DOMイベントを観測」は、入力欄とブラウザイベントを観測できたという意味です。
-        送信先、通信、保存、安全性まで確認したという意味ではありません。
       </p>
     </main>
     <script type="module" src="logs.js"></script>

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.2 - Sprint 2.2
+
+- Separated user-facing activity logs from implementation diagnostic logs.
+- Moved page observation start records to the diagnostic layer.
+- Suppressed repeated top-frame page-start records within a short window.
+- Renamed main-page/iframe labels to top-frame/embedded-frame terminology.
+- Added privacy-safe structural metadata for unknown input surfaces.
+- Added independent clear controls for activity and diagnostic logs.
+
 ## 0.3.1 - Sprint 2.1
 
 - Added top-frame and iframe context to observation records.

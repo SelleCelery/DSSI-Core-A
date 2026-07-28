@@ -51,6 +51,16 @@
 - [x] separate DOM submit-control association from user-intent claims
 - [ ] propagate settings changes to active tabs without page reload
 
+## Sprint 2.2 — Activity and Diagnostic Log Separation
+
+- [x] separate user-facing activity logs from implementation diagnostics
+- [x] move page-start records to the diagnostic layer
+- [x] suppress short-window duplicate top-frame page starts
+- [x] rename frame labels to top-frame / embedded-frame terminology
+- [x] add privacy-safe structural metadata for unknown input surfaces
+- [x] add independent log clearing controls
+- [ ] complete v0.3 understanding-recovery review before Sprint 3
+
 ## Sprint 3 and later
 
 Follow `docs/product/DSSI_Core_A_Functional_Specification.md`.

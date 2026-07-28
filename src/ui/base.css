@@ -134,3 +134,15 @@ button {
   top: 0;
   background: Canvas;
 }
+
+.log-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0 8px;
+}
+
+.log-tabs button[aria-selected='true'] {
+  font-weight: 700;
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}

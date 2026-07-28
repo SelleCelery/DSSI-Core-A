@@ -170,14 +170,14 @@ export function submissionEncodingLabel(record: ObservationLogRecord): string {
 
 export function frameContextLabel(record: ObservationLogRecord): string {
   if (record.frameType === undefined) return '旧形式';
-  if (record.frameType === 'top') return '主ページ';
+  if (record.frameType === 'top') return 'トップフレーム';
   const top =
     record.topLevelDomain && record.topLevelDomain !== 'unknown'
       ? record.topLevelDomain
-      : '主ページ不明';
+      : 'トップフレーム不明';
   const frame =
     record.frameDomain && record.frameDomain !== 'unknown' ? record.frameDomain : record.domainKey;
-  return `iframe · ${top} → ${frame}`;
+  return `埋め込みフレーム · ${top} → ${frame}`;
 }
 
 export function submissionAssociationLabel(record: ObservationLogRecord): string {
@@ -193,4 +193,21 @@ export function submissionAssociationLabel(record: ObservationLogRecord): string
     default:
       return record.submissionMethod === undefined ? '—' : '旧形式（相関情報なし）';
   }
+}
+
+export function surfaceStructureLabel(record: ObservationLogRecord): string {
+  if (record.surfaceTagName === undefined) return '—';
+
+  const parts = [`<${record.surfaceTagName}>`];
+  if (record.surfaceInputType) parts.push(`type=${record.surfaceInputType}`);
+  if (record.surfaceRole) parts.push(`role=${record.surfaceRole}`);
+  if (record.surfaceIsContentEditable) parts.push('contenteditable');
+  if (record.surfaceAutocompleteTokens && record.surfaceAutocompleteTokens.length > 0) {
+    parts.push(`autocomplete=${record.surfaceAutocompleteTokens.join(',')}`);
+  }
+  return parts.join(' · ');
+}
+
+export function logLayerLabel(record: ObservationLogRecord): string {
+  return (record.logLayer ?? 'activity') === 'diagnostic' ? '診断' : '通常';
 }

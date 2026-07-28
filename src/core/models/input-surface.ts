@@ -13,3 +13,11 @@ export interface InputSurfaceClassification {
   surfaceType: SurfaceType;
   confidence: ClassificationConfidence;
 }
+
+export interface SafeInputSurfaceStructure {
+  tagName: string;
+  inputType: string;
+  role: string;
+  isContentEditable: boolean;
+  autocompleteTokens: string[];
+}

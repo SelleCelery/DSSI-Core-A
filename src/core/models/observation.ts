@@ -58,6 +58,8 @@ export type OperationEvidence =
 
 export type FrameType = 'top' | 'iframe';
 
+export type LogLayer = 'activity' | 'diagnostic';
+
 export type InputOrigin =
   | 'keyboard_confirmed'
   | 'paste_confirmed'
@@ -79,11 +81,12 @@ import type {
 } from './submission';
 
 export interface ObservationLogRecord {
-  schemaVersion?: 1 | 2 | 3 | 4;
+  schemaVersion?: 1 | 2 | 3 | 4 | 5;
   eventId: string;
   timestamp: number;
   sessionId: string;
   domainKey: string;
+  logLayer?: LogLayer;
   frameType?: FrameType;
   topLevelDomain?: string;
   frameDomain?: string;
@@ -105,4 +108,9 @@ export interface ObservationLogRecord {
   submissionMechanism?: SubmissionMechanism;
   submissionAssociation?: SubmissionAssociation;
   declaredDestinationObservable?: boolean;
+  surfaceTagName?: string;
+  surfaceInputType?: string;
+  surfaceRole?: string;
+  surfaceIsContentEditable?: boolean;
+  surfaceAutocompleteTokens?: string[];
 }

@@ -5,8 +5,10 @@ import type {
   ObservationScope,
   OperationEvidence,
   SurfaceType,
+  LogLayer,
   TriggerType,
 } from './models/observation';
+import type { SafeInputSurfaceStructure } from './models/input-surface';
 import type { SubmissionDescriptor } from './models/submission';
 import type { ViscosityLevel } from './models/settings';
 
@@ -25,6 +27,8 @@ export interface ObservationRecordInput {
   inputOrigin?: InputOrigin;
   classificationConfidence?: ClassificationConfidence;
   submission?: SubmissionDescriptor;
+  logLayer?: LogLayer;
+  surfaceStructure?: SafeInputSurfaceStructure;
 }
 
 export function createObservationRecord(
@@ -32,11 +36,12 @@ export function createObservationRecord(
   input: ObservationRecordInput,
 ): ObservationLogRecord {
   const record: ObservationLogRecord = {
-    schemaVersion: 4,
+    schemaVersion: 5,
     eventId: crypto.randomUUID(),
     timestamp: Date.now(),
     sessionId: context.sessionId,
     domainKey: context.domainKey,
+    logLayer: input.logLayer ?? 'activity',
     surfaceType: input.surfaceType,
     triggerType: input.triggerType,
     observationScope: input.observationScope,
@@ -51,6 +56,14 @@ export function createObservationRecord(
 
   if (input.classificationConfidence !== undefined) {
     record.classificationConfidence = input.classificationConfidence;
+  }
+
+  if (input.surfaceStructure !== undefined) {
+    record.surfaceTagName = input.surfaceStructure.tagName;
+    record.surfaceInputType = input.surfaceStructure.inputType;
+    record.surfaceRole = input.surfaceStructure.role;
+    record.surfaceIsContentEditable = input.surfaceStructure.isContentEditable;
+    record.surfaceAutocompleteTokens = [...input.surfaceStructure.autocompleteTokens];
   }
 
   if (input.submission !== undefined) {

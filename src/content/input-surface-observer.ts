@@ -11,7 +11,12 @@ import type { DssiSettings } from '../core/models/settings';
 import { createObservationRecord } from '../core/observation-factory';
 import { classifyInputSurface } from '../core/surface-classifier';
 import { FactChipPresenter } from '../ui/fact-chip';
-import { describeInputSurface, findInputSurfaces, resolveInputSurface } from './surface-descriptor';
+import {
+  describeInputSurface,
+  describeSafeInputSurfaceStructure,
+  findInputSurfaces,
+  resolveInputSurface,
+} from './surface-descriptor';
 
 interface SurfaceRuntimeState {
   lastKeyboardAt?: number;
@@ -150,6 +155,7 @@ export class InputSurfaceObserver {
           observationScope: 'page_surface_partial',
           operationEvidence: 'extension_observation',
           cuePresented: false,
+          logLayer: 'diagnostic',
         },
       ),
     );
@@ -162,7 +168,9 @@ export class InputSurfaceObserver {
     inputOrigin?: InputOrigin,
     observationScope: ObservationScope = 'input_surface_and_dom_events',
   ): void {
-    const classification = this.#classificationFor(surface);
+    const descriptor = describeInputSurface(surface);
+    const classification = classifyInputSurface(descriptor);
+    this.#knownSurfaces.add(surface);
     const isFocusCue =
       triggerType.endsWith('_field_focus') ||
       triggerType === 'free_text_surface_focus' ||
@@ -199,6 +207,9 @@ export class InputSurfaceObserver {
           cuePresented,
           ...(inputOrigin === undefined ? {} : { inputOrigin }),
           classificationConfidence: classification.confidence,
+          ...(classification.surfaceType === 'unknown'
+            ? { surfaceStructure: describeSafeInputSurfaceStructure(descriptor) }
+            : {}),
         },
       ),
     );

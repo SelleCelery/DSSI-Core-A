@@ -21,6 +21,9 @@ interface CountLogMessage {
 
 type RuntimeMessage = ObservationMessage | ClearLogMessage | CountLogMessage;
 
+const PAGE_START_DEDUP_WINDOW_MS = 5000;
+const recentPageStarts = new Map<string, number>();
+
 chrome.runtime.onInstalled.addListener(() => {
   void ensureDefaultSettings();
 });
@@ -36,6 +39,25 @@ function hostnameFromUrl(url: string | undefined): string {
   } catch {
     return 'unknown';
   }
+}
+
+function shouldSuppressTopPageStart(
+  record: ObservationLogRecord,
+  sender: chrome.runtime.MessageSender,
+): boolean {
+  if (record.frameType !== 'top' || record.triggerType !== 'page_observation_started') return false;
+
+  const tabId = sender.tab?.id ?? -1;
+  const key = `${tabId}:${record.topLevelDomain ?? record.domainKey}`;
+  const now = Date.now();
+  const previous = recentPageStarts.get(key);
+  recentPageStarts.set(key, now);
+
+  for (const [candidate, observedAt] of recentPageStarts) {
+    if (now - observedAt > PAGE_START_DEDUP_WINDOW_MS * 3) recentPageStarts.delete(candidate);
+  }
+
+  return previous !== undefined && now - previous <= PAGE_START_DEDUP_WINDOW_MS;
 }
 
 function enrichFrameContext(
@@ -65,6 +87,11 @@ chrome.runtime.onMessage.addListener(
       // subframe interactions, but suppress page-start-only records.
       if (enriched.frameType === 'iframe' && enriched.triggerType === 'page_observation_started') {
         sendResponse({ ok: true, suppressed: true });
+        return false;
+      }
+
+      if (shouldSuppressTopPageStart(enriched, sender)) {
+        sendResponse({ ok: true, suppressed: true, reason: 'duplicate-page-start' });
         return false;
       }
 

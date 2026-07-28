@@ -8,6 +8,7 @@ import {
   observationScopeLabel,
   operationEvidenceLabel,
   submissionAssociationLabel,
+  surfaceStructureLabel,
   surfaceTypeLabel,
   triggerTypeLabel,
 } from '../../src/core/observation-presentation';
@@ -81,8 +82,26 @@ describe('observation presentation', () => {
       submissionAssociation: 'correlated_submit_event',
     });
 
-    expect(frameContextLabel(record)).toBe('iframe · example.test → widget.test');
+    expect(frameContextLabel(record)).toBe('埋め込みフレーム · example.test → widget.test');
     expect(submissionAssociationLabel(record)).toBe('同一フォームでsubmit成立と相関');
+  });
+
+  it('labels top frames with technical terminology', () => {
+    expect(frameContextLabel(makeRecord({ frameType: 'top' }))).toBe('トップフレーム');
+  });
+
+  it('renders only privacy-safe structure metadata for unknown surfaces', () => {
+    const record = makeRecord({
+      surfaceType: 'unknown',
+      surfaceTagName: 'input',
+      surfaceInputType: 'date',
+      surfaceRole: '',
+      surfaceIsContentEditable: false,
+      surfaceAutocompleteTokens: ['bday'],
+    });
+
+    expect(surfaceStructureLabel(record)).toBe('<input> · type=date · autocomplete=bday');
+    expect(surfaceStructureLabel(makeRecord())).toBe('—');
   });
 
   it('separates page-start records from user-input observations', () => {
