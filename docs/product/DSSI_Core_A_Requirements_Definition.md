@@ -254,7 +254,8 @@ payment_field_focus
 personal_info_field_focus
 free_text_surface_focus
 ai_prompt_surface_focus
-paste_into_field
+paste_event_observed
+paste_reflected_in_field
 keyboard_input_started
 autofill_or_manager_suspected
 script_or_unknown_value_change
@@ -345,16 +346,18 @@ unknown
 
 ## 10. 観測状態要件
 
-すべての Action Surface は、次のいずれかの観測状態を持つ。
+すべての Action Surface は、境界全体について次のいずれかの観測状態を持つ。
+この状態は、入力面の分類確度や、操作イベントの証拠強度とは別軸である。
 
-| State                  | 定義                                                         |
-| ---------------------- | ------------------------------------------------------------ |
-| `observable`           | 具体的な構造または事実を提示できる                           |
-| `partially_observable` | 一部を観測できるが、送信・同期等を確定できない               |
-| `high_uncertainty`     | AI入力、チャット、クラウドエディタ等、送信前同期が起きうる面 |
-| `unobservable`         | 必要な構造を十分に取得できない                               |
-| `unsupported`          | ブラウザ仕様、権限、対象形式が Core A の対応外               |
+| State                  | 定義                                                                   |
+| ---------------------- | ---------------------------------------------------------------------- |
+| `observable`           | 対象とする境界構造または事実を具体的に提示できる                       |
+| `partially_observable` | 一部を観測できるが、送信・同期等を確定できない                         |
+| `high_uncertainty`     | 送信前同期等の可能性を示す構造的根拠はあるが、境界挙動を確定できない面 |
+| `unobservable`         | 必要な構造を十分に取得できない                                         |
+| `unsupported`          | ブラウザ仕様、権限、対象形式が Core A の対応外                         |
 
+自由記述欄、AI入力欄、チャット欄等の種類だけを根拠に `high_uncertainty` としてはならない。
 警告がないことは、`observable` または安全を意味しない。
 
 ---
@@ -427,12 +430,15 @@ Silent Mode を含む全モードで、現在のブラウザセッション内�
 - surface type
 - trigger type
 - input origin estimate
+- operation evidence
 - field category labels
+- input-surface classification confidence
+- observation scope
 - submit destination state
 - submit method state
 - submit encoding state
 - network activity correlation state
-- observability state
+- boundary observability state
 - viscosity level
 - cue presented
 - user action after cue

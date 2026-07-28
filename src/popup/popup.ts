@@ -1,27 +1,60 @@
+import {
+  isUserInputObservation,
+  observationActionLabel,
+  surfaceTypeLabel,
+} from '../core/observation-presentation';
+import type { ObservationLogRecord } from '../core/models/observation';
 import { loadSettings, saveSettings } from '../storage/settings-store';
+import { getSessionRecords } from '../storage/session-buffer';
 import { requiredElement } from '../ui/required-element';
+
+const MAX_RECENT_RECORDS = 5;
 
 const enabled = requiredElement<HTMLInputElement>('#enabled');
 const viscosity = requiredElement<HTMLSelectElement>('#viscosityLevel');
 const status = requiredElement<HTMLElement>('#status');
 const count = requiredElement<HTMLElement>('#count');
+const recentList = requiredElement<HTMLUListElement>('#recentList');
+const recentEmpty = requiredElement<HTMLElement>('#recentEmpty');
+const openLog = requiredElement<HTMLButtonElement>('#openLog');
 const openOptions = requiredElement<HTMLButtonElement>('#openOptions');
 
+function formatTime(timestamp: number): string {
+  return new Date(timestamp).toLocaleTimeString('ja-JP', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+}
+
+function renderRecent(records: ObservationLogRecord[]): void {
+  recentList.replaceChildren();
+
+  const recent = records.filter(isUserInputObservation).slice(-MAX_RECENT_RECORDS).reverse();
+
+  recentEmpty.hidden = recent.length > 0;
+
+  for (const record of recent) {
+    const item = document.createElement('li');
+    item.className = 'observation-item';
+
+    const action = document.createElement('strong');
+    action.textContent = observationActionLabel(record);
+
+    const detail = document.createElement('span');
+    detail.textContent = `${formatTime(record.timestamp)} · ${surfaceTypeLabel(record.surfaceType)} · ${record.domainKey}`;
+
+    item.append(action, detail);
+    recentList.append(item);
+  }
+}
+
 async function refresh(): Promise<void> {
-  const settings = await loadSettings();
+  const [settings, records] = await Promise.all([loadSettings(), getSessionRecords()]);
   enabled.checked = settings.enabled;
   viscosity.value = String(settings.viscosityLevel);
-  const rawResponse: unknown = await chrome.runtime.sendMessage({
-    type: 'DSSI_GET_SESSION_LOG_COUNT',
-  });
-  const responseCount =
-    typeof rawResponse === 'object' &&
-    rawResponse !== null &&
-    'count' in rawResponse &&
-    typeof rawResponse.count === 'number'
-      ? rawResponse.count
-      : 0;
-  count.textContent = String(responseCount);
+  count.textContent = String(records.length);
+  renderRecent(records);
 }
 
 async function persist(): Promise<void> {
@@ -36,6 +69,13 @@ async function persist(): Promise<void> {
 
 enabled.addEventListener('change', () => void persist());
 viscosity.addEventListener('change', () => void persist());
+openLog.addEventListener('click', () => {
+  void chrome.tabs.create({ url: chrome.runtime.getURL('logs.html') });
+});
 openOptions.addEventListener('click', () => void chrome.runtime.openOptionsPage());
+
+chrome.storage.onChanged.addListener((_changes, areaName) => {
+  if (areaName === 'session') void refresh();
+});
 
 void refresh();

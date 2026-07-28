@@ -1,5 +1,6 @@
-import type { SurfaceType } from '../core/models/observation';
+import type { InputOrigin, SurfaceType } from '../core/models/observation';
 import type { ViscosityLevel } from '../core/models/settings';
+import { inputOriginLabel, surfaceTypeLabel } from '../core/observation-presentation';
 
 const HOST_ID = 'dssi-core-a-fact-chip-host';
 
@@ -81,6 +82,22 @@ export class FactChipPresenter {
   #hideTimer: number | undefined;
 
   public show(surfaceType: SurfaceType, viscosityLevel: ViscosityLevel): void {
+    this.#render(SURFACE_MESSAGES[surfaceType], detailForCurrentPage(), viscosityLevel);
+  }
+
+  public showInputOrigin(
+    inputOrigin: InputOrigin,
+    surfaceType: SurfaceType,
+    viscosityLevel: ViscosityLevel,
+  ): void {
+    this.#render(
+      inputOriginLabel(inputOrigin),
+      `${surfaceTypeLabel(surfaceType)}として観測しました。入力内容は取得していません。`,
+      viscosityLevel,
+    );
+  }
+
+  #render(titleText: string, detailText: string, viscosityLevel: ViscosityLevel): void {
     const root = ensureHost();
     root.querySelector('.chip')?.remove();
 
@@ -91,11 +108,11 @@ export class FactChipPresenter {
 
     const title = document.createElement('span');
     title.className = 'title';
-    title.textContent = SURFACE_MESSAGES[surfaceType];
+    title.textContent = titleText;
 
     const detail = document.createElement('span');
     detail.className = 'detail';
-    detail.textContent = detailForCurrentPage();
+    detail.textContent = detailText;
 
     chip.append(title, detail);
     root.append(chip);

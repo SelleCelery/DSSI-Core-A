@@ -19,6 +19,23 @@
 - [x] passive factual chip
 - [x] fixture page and core classification tests
 
+## Sprint 1.1 — Observation Feedback
+
+- [x] popup recent-observation summary
+- [x] complete session-log viewer
+- [x] Level 3 input-route chips
+- [x] user-facing Japanese labels
+
+## Sprint 1.2 — Evidence and Boundary Separation
+
+- [x] separate operation evidence from input-surface classification confidence
+- [x] separate boundary observation scope from semantic classification uncertainty
+- [x] split paste-event observation from paste-reflection confirmation
+- [x] require trusted events for confirmed keyboard and paste paths
+- [x] preserve legacy Sprint 1/1.1 session-log rendering
+- [x] add blocked-paste and synthetic-event fixture cases
+- [ ] propagate settings changes to active tabs without page reload
+
 ## Sprint 2 and later
 
 Follow `docs/product/DSSI_Core_A_Functional_Specification.md`.

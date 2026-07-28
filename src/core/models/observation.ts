@@ -6,7 +6,9 @@ export type TriggerType =
   | 'personal_info_field_focus'
   | 'free_text_surface_focus'
   | 'unknown_input_surface_focus'
+  | 'paste_event_observed'
   | 'paste_into_field'
+  | 'paste_reflected_in_field'
   | 'keyboard_input_started'
   | 'autofill_or_manager_suspected'
   | 'script_or_unknown_value_change'
@@ -37,8 +39,21 @@ export type SurfaceType =
   | 'external_navigation'
   | 'unknown';
 
-export type ObservabilityState =
-  'observable' | 'partially_observable' | 'high_uncertainty' | 'unobservable' | 'unsupported';
+/**
+ * The scope DSSI can currently inspect for this record.
+ * This does not assert that a destination, transmission, storage behavior,
+ * or safety property has been observed.
+ */
+export type ObservationScope =
+  'input_surface_and_dom_events' | 'page_surface_partial' | 'unobservable' | 'unsupported';
+
+/** How the operation claim was supported. */
+export type OperationEvidence =
+  | 'extension_observation'
+  | 'direct_trusted_event'
+  | 'correlated_trusted_events'
+  | 'inferred_from_trusted_event'
+  | 'untrusted_or_unknown';
 
 export type InputOrigin =
   | 'keyboard_confirmed'
@@ -47,16 +62,24 @@ export type InputOrigin =
   | 'script_or_unknown_update'
   | 'unknown';
 
-export type ClassificationConfidence = 'explicit' | 'heuristic' | 'generic';
+export type ClassificationConfidence = 'explicit' | 'heuristic' | 'generic' | 'unknown';
+
+/** Legacy Sprint 1/1.1 field retained only for session-log compatibility. */
+export type LegacyObservabilityState =
+  'observable' | 'partially_observable' | 'high_uncertainty' | 'unobservable' | 'unsupported';
 
 export interface ObservationLogRecord {
+  schemaVersion?: 1 | 2;
   eventId: string;
   timestamp: number;
   sessionId: string;
   domainKey: string;
   surfaceType: SurfaceType;
   triggerType: TriggerType;
-  observability: ObservabilityState;
+  observationScope?: ObservationScope;
+  operationEvidence?: OperationEvidence;
+  /** @deprecated Sprint 1/1.1 compatibility only. */
+  observability?: LegacyObservabilityState;
   viscosityLevel: 1 | 2 | 3;
   cuePresented: boolean;
   inputOrigin?: InputOrigin;

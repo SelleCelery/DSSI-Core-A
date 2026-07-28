@@ -142,7 +142,8 @@ export type TriggerType =
   | 'personal_info_field_focus'
   | 'free_text_surface_focus'
   | 'ai_prompt_surface_focus'
-  | 'paste_into_field'
+  | 'paste_event_observed'
+  | 'paste_reflected_in_field'
   | 'keyboard_input_started'
   | 'autofill_or_manager_suspected'
   | 'script_or_unknown_value_change'
@@ -170,6 +171,10 @@ export interface BoundaryEvent {
   userInitiated: boolean | 'unknown';
 }
 ```
+
+Sprint 1.2 の実装では、`paste_event_observed` と `paste_reflected_in_field` を分離する。
+前者は貼り付けイベントの直接観測、後者は信頼済み入力イベントとの相関または
+貼り付けを明示する信頼済み入力イベントに基づく反映確認である。
 
 ### 3.2 ActionSurface
 
@@ -250,12 +255,30 @@ export interface ObservationFact {
 }
 ```
 
-### 3.5 Observability
+### 3.5 Observation Scope / Evidence / Observability
+
+Sprint 1.2 以降、次の三軸を分離する。
 
 ```ts
+export type ObservationScope =
+  'input_surface_and_dom_events' | 'page_surface_partial' | 'unobservable' | 'unsupported';
+
+export type OperationEvidence =
+  | 'extension_observation'
+  | 'direct_trusted_event'
+  | 'correlated_trusted_events'
+  | 'inferred_from_trusted_event'
+  | 'untrusted_or_unknown';
+
 export type ObservabilityState =
   'observable' | 'partially_observable' | 'high_uncertainty' | 'unobservable' | 'unsupported';
 ```
+
+`ObservationScope` は、DSSI が実際に観測した技術層を示す。`OperationEvidence` は、
+操作に関する主張が直接観測、イベント相関、推定のどれに基づくかを示す。
+`ObservabilityState` は送信、同期、通信、保存等を含む境界全体の評価に用い、
+入力面の分類確度とは混同しない。自由記述欄であることだけを根拠に
+`high_uncertainty` としてはならない。
 
 ### 3.6 AwarenessTransition
 
@@ -638,9 +661,10 @@ JavaScriptやサーバーによる自動遷移は、事前UIを保証しない�
 
 `high_uncertainty`:
 
-- AI、チャット、クラウドエディタ、Webメール等
-- 持続通信や自動保存の可能性がある
-- JavaScript制御で送信境界が曖昧
+- AI、チャット、クラウドエディタ、Webメール等であることに加え、持続通信、
+  自動保存、JavaScript制御等の構造的根拠がある
+- 送信前同期の可能性は高いが、入力内容との関係または送信境界を確定できない
+- 入力面の種類だけでは、この状態に分類しない
 
 `unobservable`:
 
@@ -768,15 +792,19 @@ export interface MessageDefinition {
 
 ```ts
 export interface ObservationLogRecord {
+  schemaVersion: 2;
   eventId: string;
   timestamp: number;
   sessionId: string;
   domainKey: string;
   surfaceType: SurfaceType;
   triggerType: TriggerType;
-  inputOrigin: InputOrigin;
-  facts: FactCode[];
-  observability: ObservabilityState;
+  inputOrigin?: InputOrigin;
+  facts?: FactCode[];
+  operationEvidence: OperationEvidence;
+  classificationConfidence?: 'explicit' | 'heuristic' | 'generic' | 'unknown';
+  observationScope: ObservationScope;
+  boundaryObservability?: ObservabilityState;
   viscosityLevel: 1 | 2 | 3;
   cuePresented: boolean;
   userResponse?: UserResponse;

@@ -8,7 +8,7 @@ The extension is designed to present observable facts and observation limits bef
 
 ## Status
 
-Sprint 1 — Input Recognition
+Sprint 1.2 — Evidence and Boundary Separation
 
 This repository currently provides:
 
@@ -16,13 +16,17 @@ This repository currently provides:
 - TypeScript and esbuild build pipeline
 - password / email-ID / payment / personal-information / free-text classification
 - focus, keyboard, paste, input, and dynamically-added field observation
-- conservative input-origin inference
+- trusted-event correlation and conservative input-origin inference
 - viscosity-controlled factual chips
 - local settings and session-only metadata log
+- popup summary and complete observation-log viewer
+- separate operation evidence, classification confidence, and boundary observation scope
+- two-stage paste observation: event observed and reflection confirmed
+- Level 3 factual chips for inferred input route
 - privacy-safe logger with prohibited raw-data guards
 - lint, format, typecheck, test, and build commands
 
-Sprint 1 establishes the first product loop: an action surface is touched, classified, logged as metadata, and—when policy permits—explained by a short factual chip.
+Sprint 1.2 separates what was directly observed, what was correlated, what was inferred, how an input surface was classified, and which technical boundary was actually visible. It does not treat generic free text as evidence of global boundary uncertainty.
 
 ## Requirements
 
@@ -59,7 +63,7 @@ The initial build does not persist:
 
 The session log stores structural metadata only and can be cleared from the options page.
 
-See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](./docs/SPRINT1_IMPLEMENTATION_GUIDE.md), and the product documents under [docs/product](./docs/product).
+See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](./docs/SPRINT1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.1 implementation guide](./docs/SPRINT1_1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.2 implementation guide](./docs/SPRINT1_2_IMPLEMENTATION_GUIDE.md), and the product documents under [docs/product](./docs/product).
 
 ## License
 

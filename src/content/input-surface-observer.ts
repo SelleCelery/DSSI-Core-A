@@ -1,7 +1,12 @@
 import { shouldPresentCue } from '../core/cue-policy';
-import { inferInputOrigin } from '../core/input-origin';
+import { assessInputOrigin } from '../core/input-origin';
 import type { InputSurfaceClassification } from '../core/models/input-surface';
-import type { InputOrigin, TriggerType } from '../core/models/observation';
+import type {
+  InputOrigin,
+  ObservationScope,
+  OperationEvidence,
+  TriggerType,
+} from '../core/models/observation';
 import type { DssiSettings } from '../core/models/settings';
 import { createObservationRecord } from '../core/observation-factory';
 import { classifyInputSurface } from '../core/surface-classifier';
@@ -10,10 +15,12 @@ import { describeInputSurface, findInputSurfaces, resolveInputSurface } from './
 
 interface SurfaceRuntimeState {
   lastKeyboardAt?: number;
+  lastKeyboardTrusted?: boolean;
   lastPasteAt?: number;
+  lastPasteTrusted?: boolean;
+  lastPasteReflectionLoggedAt?: number;
   lastInputType?: string;
   keyboardLogged: boolean;
-  pasteLogged: boolean;
   inferredOrigins: Set<InputOrigin>;
 }
 
@@ -39,7 +46,7 @@ function triggerForInputOrigin(origin: InputOrigin): TriggerType {
     case 'keyboard_confirmed':
       return 'keyboard_input_started';
     case 'paste_confirmed':
-      return 'paste_into_field';
+      return 'paste_reflected_in_field';
     case 'autofill_or_manager_suspected':
       return 'autofill_or_manager_suspected';
     case 'script_or_unknown_update':
@@ -117,7 +124,6 @@ export class InputSurfaceObserver {
 
     const created: SurfaceRuntimeState = {
       keyboardLogged: false,
-      pasteLogged: false,
       inferredOrigins: new Set<InputOrigin>(),
     };
     this.#runtime.set(surface, created);
@@ -140,24 +146,41 @@ export class InputSurfaceObserver {
         {
           surfaceType: 'page',
           triggerType: 'page_observation_started',
-          observability: 'partially_observable',
+          observationScope: 'page_surface_partial',
+          operationEvidence: 'extension_observation',
           cuePresented: false,
         },
       ),
     );
   }
 
-  #reportSurfaceEvent(surface: Element, triggerType: TriggerType, inputOrigin?: InputOrigin): void {
+  #reportSurfaceEvent(
+    surface: Element,
+    triggerType: TriggerType,
+    operationEvidence: OperationEvidence,
+    inputOrigin?: InputOrigin,
+    observationScope: ObservationScope = 'input_surface_and_dom_events',
+  ): void {
     const classification = this.#classificationFor(surface);
-    const cuePresented =
+    const isFocusCue =
       triggerType.endsWith('_field_focus') ||
       triggerType === 'free_text_surface_focus' ||
-      triggerType === 'unknown_input_surface_focus'
-        ? shouldPresentCue(this.#settings.viscosityLevel, classification.surfaceType)
-        : false;
+      triggerType === 'unknown_input_surface_focus';
+    const surfaceCuePresented = isFocusCue
+      ? shouldPresentCue(this.#settings.viscosityLevel, classification.surfaceType)
+      : false;
+    const inputOriginCuePresented =
+      inputOrigin !== undefined && this.#settings.viscosityLevel === 3;
+    const cuePresented = surfaceCuePresented || inputOriginCuePresented;
 
-    if (cuePresented) {
+    if (surfaceCuePresented) {
       this.#presenter.show(classification.surfaceType, this.#settings.viscosityLevel);
+    } else if (inputOriginCuePresented && inputOrigin !== undefined) {
+      this.#presenter.showInputOrigin(
+        inputOrigin,
+        classification.surfaceType,
+        this.#settings.viscosityLevel,
+      );
     }
 
     void this.#sendRecord(
@@ -170,7 +193,8 @@ export class InputSurfaceObserver {
         {
           surfaceType: classification.surfaceType,
           triggerType,
-          observability: classification.observability,
+          observationScope,
+          operationEvidence,
           cuePresented,
           ...(inputOrigin === undefined ? {} : { inputOrigin }),
           classificationConfidence: classification.confidence,
@@ -196,7 +220,11 @@ export class InputSurfaceObserver {
     if (!surface) return;
 
     const classification = this.#classificationFor(surface);
-    this.#reportSurfaceEvent(surface, focusTrigger(classification));
+    this.#reportSurfaceEvent(
+      surface,
+      focusTrigger(classification),
+      event.isTrusted ? 'direct_trusted_event' : 'untrusted_or_unknown',
+    );
   };
 
   readonly #onFocusOut = (event: FocusEvent): void => {
@@ -205,7 +233,12 @@ export class InputSurfaceObserver {
 
     const state = this.#stateFor(surface);
     state.keyboardLogged = false;
-    state.pasteLogged = false;
+    delete state.lastKeyboardAt;
+    delete state.lastKeyboardTrusted;
+    delete state.lastPasteAt;
+    delete state.lastPasteTrusted;
+    delete state.lastPasteReflectionLoggedAt;
+    delete state.lastInputType;
     state.inferredOrigins.clear();
   };
 
@@ -215,6 +248,7 @@ export class InputSurfaceObserver {
 
     const state = this.#stateFor(surface);
     state.lastKeyboardAt = performance.now();
+    state.lastKeyboardTrusted = event.isTrusted;
   };
 
   readonly #onPaste = (event: ClipboardEvent): void => {
@@ -223,12 +257,13 @@ export class InputSurfaceObserver {
 
     const state = this.#stateFor(surface);
     state.lastPasteAt = performance.now();
+    state.lastPasteTrusted = event.isTrusted;
 
-    if (!state.pasteLogged) {
-      state.pasteLogged = true;
-      state.inferredOrigins.add('paste_confirmed');
-      this.#reportSurfaceEvent(surface, 'paste_into_field', 'paste_confirmed');
-    }
+    this.#reportSurfaceEvent(
+      surface,
+      'paste_event_observed',
+      event.isTrusted ? 'direct_trusted_event' : 'untrusted_or_unknown',
+    );
   };
 
   readonly #onBeforeInput = (event: InputEvent): void => {
@@ -244,22 +279,45 @@ export class InputSurfaceObserver {
 
     const state = this.#stateFor(surface);
     const inputEvent = event instanceof InputEvent ? event : undefined;
-    const origin = inferInputOrigin({
-      now: performance.now(),
+    const now = performance.now();
+    const assessment = assessInputOrigin({
+      now,
       ...(state.lastKeyboardAt === undefined ? {} : { lastKeyboardAt: state.lastKeyboardAt }),
+      ...(state.lastKeyboardTrusted === undefined
+        ? {}
+        : { lastKeyboardTrusted: state.lastKeyboardTrusted }),
       ...(state.lastPasteAt === undefined ? {} : { lastPasteAt: state.lastPasteAt }),
+      ...(state.lastPasteTrusted === undefined ? {} : { lastPasteTrusted: state.lastPasteTrusted }),
       ...(inputEvent?.inputType === undefined && state.lastInputType === undefined
         ? {}
         : { inputType: inputEvent?.inputType ?? state.lastInputType }),
       isTrusted: event.isTrusted,
     });
+    const { origin, operationEvidence } = assessment;
+    delete state.lastInputType;
 
     if (origin === 'keyboard_confirmed' && state.keyboardLogged) return;
-    if (origin === 'paste_confirmed' && state.pasteLogged) return;
-    if (state.inferredOrigins.has(origin)) return;
+    if (
+      origin === 'paste_confirmed' &&
+      state.lastPasteReflectionLoggedAt !== undefined &&
+      now - state.lastPasteReflectionLoggedAt <= 200
+    ) {
+      return;
+    }
+    if (origin !== 'paste_confirmed' && state.inferredOrigins.has(origin)) return;
 
-    if (origin === 'keyboard_confirmed') state.keyboardLogged = true;
-    state.inferredOrigins.add(origin);
-    this.#reportSurfaceEvent(surface, triggerForInputOrigin(origin), origin);
+    if (origin === 'keyboard_confirmed') {
+      state.keyboardLogged = true;
+      delete state.lastKeyboardAt;
+      delete state.lastKeyboardTrusted;
+    }
+    if (origin === 'paste_confirmed') {
+      state.lastPasteReflectionLoggedAt = now;
+      delete state.lastPasteAt;
+      delete state.lastPasteTrusted;
+    }
+    if (origin !== 'paste_confirmed') state.inferredOrigins.add(origin);
+
+    this.#reportSurfaceEvent(surface, triggerForInputOrigin(origin), operationEvidence, origin);
   };
 }

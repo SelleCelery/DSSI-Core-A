@@ -1,4 +1,4 @@
-import type { ClassificationConfidence, ObservabilityState, SurfaceType } from './observation';
+import type { ClassificationConfidence, SurfaceType } from './observation';
 
 export interface InputSurfaceDescriptor {
   tagName: string;
@@ -12,5 +12,4 @@ export interface InputSurfaceDescriptor {
 export interface InputSurfaceClassification {
   surfaceType: SurfaceType;
   confidence: ClassificationConfidence;
-  observability: ObservabilityState;
 }

@@ -14,6 +14,7 @@ await build({
     content: resolve(root, 'src/content/bootstrap.ts'),
     popup: resolve(root, 'src/popup/popup.ts'),
     options: resolve(root, 'src/options/options.ts'),
+    logs: resolve(root, 'src/logs/logs.ts'),
   },
   outdir: dist,
   bundle: true,
@@ -28,6 +29,7 @@ const copyTargets = [
   ['src/manifest/manifest.json', 'manifest.json'],
   ['src/popup/popup.html', 'popup.html'],
   ['src/options/options.html', 'options.html'],
+  ['src/logs/logs.html', 'logs.html'],
   ['src/ui/base.css', 'base.css'],
 ];
 

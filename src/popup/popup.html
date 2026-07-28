@@ -24,7 +24,17 @@
       </label>
       <p id="status" class="status" role="status"></p>
       <p class="small">観測件数（現在のブラウザセッション）: <strong id="count">0</strong></p>
-      <button id="openOptions" type="button">設定とプライバシー</button>
+
+      <section aria-labelledby="recentHeading">
+        <h2 id="recentHeading">最新の観測</h2>
+        <p id="recentEmpty" class="small">入力面に関する観測はまだありません。</p>
+        <ul id="recentList" class="observation-list" aria-live="polite"></ul>
+      </section>
+
+      <div class="button-row">
+        <button id="openLog" type="button">観測ログを表示</button>
+        <button id="openOptions" type="button">設定とプライバシー</button>
+      </div>
     </main>
     <script type="module" src="popup.js"></script>
   </body>

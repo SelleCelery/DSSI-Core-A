@@ -119,7 +119,6 @@ export function classifyInputSurface(
     return {
       surfaceType: 'password',
       confidence: 'explicit',
-      observability: 'observable',
     };
   }
 
@@ -132,7 +131,6 @@ export function classifyInputSurface(
       confidence: hasAutocompleteToken(descriptor, PAYMENT_AUTOCOMPLETE_TOKENS)
         ? 'explicit'
         : 'heuristic',
-      observability: 'observable',
     };
   }
 
@@ -150,7 +148,6 @@ export function classifyInputSurface(
         descriptor.autocompleteTokens.includes('username')
           ? 'explicit'
           : 'heuristic',
-      observability: 'observable',
     };
   }
 
@@ -165,7 +162,6 @@ export function classifyInputSurface(
         inputType === 'tel' || hasAutocompleteToken(descriptor, PERSONAL_AUTOCOMPLETE_TOKENS)
           ? 'explicit'
           : 'heuristic',
-      observability: 'observable',
     };
   }
 
@@ -178,13 +174,11 @@ export function classifyInputSurface(
     return {
       surfaceType: 'free_text',
       confidence: 'generic',
-      observability: 'high_uncertainty',
     };
   }
 
   return {
     surfaceType: 'unknown',
-    confidence: 'generic',
-    observability: 'partially_observable',
+    confidence: 'unknown',
   };
 }

@@ -19,7 +19,6 @@ describe('input surface classifier', () => {
     expect(classifyInputSurface(descriptor({ inputType: 'password' }))).toEqual({
       surfaceType: 'password',
       confidence: 'explicit',
-      observability: 'observable',
     });
   });
 
@@ -46,19 +45,17 @@ describe('input surface classifier', () => {
     });
   });
 
-  it('treats textareas as high-uncertainty free text', () => {
+  it('classifies textareas as generic free text without assigning boundary uncertainty', () => {
     expect(classifyInputSurface(descriptor({ tagName: 'textarea' }))).toEqual({
       surfaceType: 'free_text',
       confidence: 'generic',
-      observability: 'high_uncertainty',
     });
   });
 
-  it('keeps unsupported input types as partially observable unknowns', () => {
+  it('keeps unsupported input types as unknown classifications', () => {
     expect(classifyInputSurface(descriptor({ inputType: 'file' }))).toEqual({
       surfaceType: 'unknown',
-      confidence: 'generic',
-      observability: 'partially_observable',
+      confidence: 'unknown',
     });
   });
 });

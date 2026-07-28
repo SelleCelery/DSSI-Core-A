@@ -77,3 +77,60 @@ button {
 .small {
   font-size: 0.9rem;
 }
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.observation-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.observation-item {
+  display: grid;
+  gap: 2px;
+  padding: 9px 10px;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-radius: 8px;
+}
+
+.observation-item span {
+  font-size: 0.82rem;
+  opacity: 0.78;
+}
+
+.panel-wide {
+  max-width: 1180px;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.observation-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.observation-table th,
+.observation-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.observation-table th {
+  position: sticky;
+  top: 0;
+  background: Canvas;
+}

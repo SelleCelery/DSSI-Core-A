@@ -7,13 +7,15 @@ import {
 import type { ObservationLogRecord } from '../../src/core/models/observation';
 
 const validRecord: ObservationLogRecord = {
+  schemaVersion: 2,
   eventId: 'event-1',
   timestamp: 1,
   sessionId: 'session-1',
   domainKey: 'example.test',
   surfaceType: 'page',
   triggerType: 'page_observation_started',
-  observability: 'partially_observable',
+  observationScope: 'page_surface_partial',
+  operationEvidence: 'extension_observation',
   viscosityLevel: 1,
   cuePresented: false,
 };

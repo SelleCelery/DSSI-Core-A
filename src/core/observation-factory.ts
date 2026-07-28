@@ -2,7 +2,8 @@ import type {
   ClassificationConfidence,
   InputOrigin,
   ObservationLogRecord,
-  ObservabilityState,
+  ObservationScope,
+  OperationEvidence,
   SurfaceType,
   TriggerType,
 } from './models/observation';
@@ -17,7 +18,8 @@ export interface ObservationFactoryContext {
 export interface ObservationRecordInput {
   surfaceType: SurfaceType;
   triggerType: TriggerType;
-  observability: ObservabilityState;
+  observationScope: ObservationScope;
+  operationEvidence: OperationEvidence;
   cuePresented: boolean;
   inputOrigin?: InputOrigin;
   classificationConfidence?: ClassificationConfidence;
@@ -28,13 +30,15 @@ export function createObservationRecord(
   input: ObservationRecordInput,
 ): ObservationLogRecord {
   const record: ObservationLogRecord = {
+    schemaVersion: 2,
     eventId: crypto.randomUUID(),
     timestamp: Date.now(),
     sessionId: context.sessionId,
     domainKey: context.domainKey,
     surfaceType: input.surfaceType,
     triggerType: input.triggerType,
-    observability: input.observability,
+    observationScope: input.observationScope,
+    operationEvidence: input.operationEvidence,
     viscosityLevel: context.viscosityLevel,
     cuePresented: input.cuePresented,
   };
