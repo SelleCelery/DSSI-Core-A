@@ -1,12 +1,14 @@
 import {
   classificationConfidenceLabel,
+  frameContextLabel,
   observationActionLabel,
   observationScopeLabel,
   operationEvidenceLabel,
-  surfaceTypeLabel,
+  submissionAssociationLabel,
   submissionDestinationLabel,
   submissionEncodingLabel,
   submissionMethodLabel,
+  surfaceTypeLabel,
 } from '../core/observation-presentation';
 import type { ObservationLogRecord } from '../core/models/observation';
 import { clearSessionRecords, getSessionRecords } from '../storage/session-buffer';
@@ -46,11 +48,13 @@ function render(records: ObservationLogRecord[]): void {
     row.append(
       makeCell(formatTimestamp(record.timestamp)),
       makeCell(record.domainKey),
+      makeCell(frameContextLabel(record)),
       makeCell(surfaceTypeLabel(record.surfaceType)),
       makeCell(observationActionLabel(record)),
       makeCell(operationEvidenceLabel(record.operationEvidence)),
       makeCell(classificationConfidenceLabel(record.classificationConfidence)),
       makeCell(observationScopeLabel(record)),
+      makeCell(submissionAssociationLabel(record)),
       makeCell(submissionMethodLabel(record)),
       makeCell(submissionDestinationLabel(record)),
       makeCell(submissionEncodingLabel(record)),
@@ -75,8 +79,10 @@ clearButton.addEventListener('click', () => {
   });
 });
 
-chrome.storage.onChanged.addListener((_changes, areaName) => {
-  if (areaName === 'session') void refresh();
-});
+chrome.storage.onChanged.addListener(
+  (_changes: Record<string, chrome.storage.StorageChange>, areaName: string) => {
+    if (areaName === 'session') void refresh();
+  },
+);
 
 void refresh();

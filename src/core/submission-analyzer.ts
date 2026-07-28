@@ -1,5 +1,6 @@
 import type {
   DestinationRelation,
+  SubmissionAssociation,
   SubmissionDescriptor,
   SubmissionEncoding,
   SubmissionMechanism,
@@ -12,6 +13,7 @@ export interface FormSubmissionSnapshot {
   encoding: string;
   currentUrl: string;
   mechanism: SubmissionMechanism;
+  association: SubmissionAssociation;
 }
 
 function normalizeMethod(method: string): SubmissionMethod {
@@ -52,6 +54,7 @@ export function analyzeSubmission(snapshot: FormSubmissionSnapshot): SubmissionD
       destinationScheme: destination.protocol.replace(':', ''),
       destinationHost: destination.host,
       mechanism: snapshot.mechanism,
+      association: snapshot.association,
       declaredDestinationObservable: true,
     };
   } catch {
@@ -62,6 +65,7 @@ export function analyzeSubmission(snapshot: FormSubmissionSnapshot): SubmissionD
       destinationScheme: 'unknown',
       destinationHost: 'unknown',
       mechanism: snapshot.mechanism,
+      association: snapshot.association,
       declaredDestinationObservable: false,
     };
   }

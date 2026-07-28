@@ -42,7 +42,7 @@ const TRIGGER_LABELS: Readonly<Record<TriggerType, string>> = {
   autofill_or_manager_suspected: '自動入力または入力支援の可能性',
   script_or_unknown_value_change: '入力経路を特定できない更新',
   submit_attempt: 'フォーム送信イベントを観測',
-  submitter_activation_observed: '送信操作面の起動を観測',
+  submitter_activation_observed: 'フォーム関連submit操作面を観測',
   enter_submit_candidate: 'Enterによる送信候補を観測',
   external_domain_click: '外部ドメインへの遷移を検出',
   download_attempt: 'ダウンロード操作を検出',
@@ -166,4 +166,31 @@ export function submissionDestinationLabel(record: ObservationLogRecord): string
 
 export function submissionEncodingLabel(record: ObservationLogRecord): string {
   return record.submissionEncoding ?? '—';
+}
+
+export function frameContextLabel(record: ObservationLogRecord): string {
+  if (record.frameType === undefined) return '旧形式';
+  if (record.frameType === 'top') return '主ページ';
+  const top =
+    record.topLevelDomain && record.topLevelDomain !== 'unknown'
+      ? record.topLevelDomain
+      : '主ページ不明';
+  const frame =
+    record.frameDomain && record.frameDomain !== 'unknown' ? record.frameDomain : record.domainKey;
+  return `iframe · ${top} → ${frame}`;
+}
+
+export function submissionAssociationLabel(record: ObservationLogRecord): string {
+  switch (record.submissionAssociation) {
+    case 'declared_submit_control':
+      return 'フォーム関連submit要素';
+    case 'enter_key_candidate':
+      return 'Enter候補';
+    case 'correlated_submit_event':
+      return '同一フォームでsubmit成立と相関';
+    case 'submit_event_without_prior_candidate':
+      return 'submitイベント単独観測';
+    default:
+      return record.submissionMethod === undefined ? '—' : '旧形式（相関情報なし）';
+  }
 }

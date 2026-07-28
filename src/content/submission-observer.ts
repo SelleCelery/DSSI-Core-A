@@ -1,12 +1,23 @@
 import type { DssiSettings } from '../core/models/settings';
-import type { SubmissionDescriptor, SubmissionMechanism } from '../core/models/submission';
+import type {
+  SubmissionAssociation,
+  SubmissionDescriptor,
+  SubmissionMechanism,
+} from '../core/models/submission';
 import { createObservationRecord } from '../core/observation-factory';
 import { analyzeSubmission } from '../core/submission-analyzer';
 import { FactChipPresenter } from '../ui/fact-chip';
 
+const SUBMIT_CORRELATION_WINDOW_MS = 1500;
+
+interface PendingSubmissionCandidate {
+  observedAt: number;
+  trusted: boolean;
+  mechanism: 'submitter_activation' | 'enter_key_candidate';
+}
+
 function resolveSubmitControl(event: Event): HTMLElement | undefined {
-  const path = event.composedPath();
-  for (const target of path) {
+  for (const target of event.composedPath()) {
     if (!(target instanceof HTMLElement)) continue;
     if (target instanceof HTMLButtonElement && (target.type || 'submit') === 'submit')
       return target;
@@ -31,6 +42,7 @@ function resolveFormFromEvent(event: Event): HTMLFormElement | undefined {
 function descriptorFor(
   form: HTMLFormElement,
   mechanism: SubmissionMechanism,
+  association: SubmissionAssociation,
 ): SubmissionDescriptor {
   return analyzeSubmission({
     action: form.getAttribute('action') ?? location.href,
@@ -38,6 +50,7 @@ function descriptorFor(
     encoding: form.getAttribute('enctype') ?? 'application/x-www-form-urlencoded',
     currentUrl: location.href,
     mechanism,
+    association,
   });
 }
 
@@ -46,6 +59,7 @@ export class SubmissionObserver {
   readonly #sessionId: string;
   readonly #domainKey = location.hostname || 'unknown';
   readonly #presenter = new FactChipPresenter();
+  readonly #pending = new WeakMap<HTMLFormElement, PendingSubmissionCandidate>();
 
   public constructor(settings: DssiSettings, sessionId: string) {
     this.#settings = settings;
@@ -69,7 +83,11 @@ export class SubmissionObserver {
   #report(
     descriptor: SubmissionDescriptor,
     triggerType: 'submit_attempt' | 'submitter_activation_observed' | 'enter_submit_candidate',
-    evidence: 'direct_trusted_event' | 'inferred_from_trusted_event' | 'untrusted_or_unknown',
+    evidence:
+      | 'direct_trusted_event'
+      | 'correlated_trusted_events'
+      | 'inferred_from_trusted_event'
+      | 'untrusted_or_unknown',
     confirmed: boolean,
   ): void {
     const cuePresented = this.#shouldPresent(descriptor, confirmed);
@@ -102,10 +120,26 @@ export class SubmissionObserver {
   readonly #onSubmit = (event: SubmitEvent): void => {
     const form = resolveFormFromEvent(event);
     if (!form) return;
+
+    const pending = this.#pending.get(form);
+    const isCorrelated =
+      event.isTrusted &&
+      pending?.trusted === true &&
+      performance.now() - pending.observedAt <= SUBMIT_CORRELATION_WINDOW_MS;
+    this.#pending.delete(form);
+
     this.#report(
-      descriptorFor(form, 'form_submit_event'),
+      descriptorFor(
+        form,
+        'form_submit_event',
+        isCorrelated ? 'correlated_submit_event' : 'submit_event_without_prior_candidate',
+      ),
       'submit_attempt',
-      event.isTrusted ? 'direct_trusted_event' : 'untrusted_or_unknown',
+      isCorrelated
+        ? 'correlated_trusted_events'
+        : event.isTrusted
+          ? 'direct_trusted_event'
+          : 'untrusted_or_unknown',
       true,
     );
   };
@@ -118,8 +152,15 @@ export class SubmissionObserver {
         ? control.form
         : null;
     if (!form) return;
+
+    this.#pending.set(form, {
+      observedAt: performance.now(),
+      trusted: event.isTrusted,
+      mechanism: 'submitter_activation',
+    });
+
     this.#report(
-      descriptorFor(form, 'submitter_activation'),
+      descriptorFor(form, 'submitter_activation', 'declared_submit_control'),
       'submitter_activation_observed',
       event.isTrusted ? 'direct_trusted_event' : 'untrusted_or_unknown',
       false,
@@ -130,8 +171,15 @@ export class SubmissionObserver {
     if (event.key !== 'Enter' || event.isComposing) return;
     const form = resolveFormFromEvent(event);
     if (!form) return;
+
+    this.#pending.set(form, {
+      observedAt: performance.now(),
+      trusted: event.isTrusted,
+      mechanism: 'enter_key_candidate',
+    });
+
     this.#report(
-      descriptorFor(form, 'enter_key_candidate'),
+      descriptorFor(form, 'enter_key_candidate', 'enter_key_candidate'),
       'enter_submit_candidate',
       event.isTrusted ? 'inferred_from_trusted_event' : 'untrusted_or_unknown',
       false,

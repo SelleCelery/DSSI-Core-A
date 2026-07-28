@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   classificationConfidenceLabel,
+  frameContextLabel,
   inputOriginLabel,
   isUserInputObservation,
   observationActionLabel,
   observationScopeLabel,
   operationEvidenceLabel,
+  submissionAssociationLabel,
   surfaceTypeLabel,
   triggerTypeLabel,
 } from '../../src/core/observation-presentation';
@@ -68,6 +70,19 @@ describe('observation presentation', () => {
 
     expect(observationScopeLabel(legacy)).toBe('旧形式（用途不明と境界不明が混在）');
     expect(operationEvidenceLabel(legacy.operationEvidence)).toBe('旧形式（証拠未分離）');
+  });
+
+  it('labels frame context and submission correlation independently', () => {
+    const record = makeRecord({
+      frameType: 'iframe',
+      topLevelDomain: 'example.test',
+      frameDomain: 'widget.test',
+      submissionMethod: 'POST',
+      submissionAssociation: 'correlated_submit_event',
+    });
+
+    expect(frameContextLabel(record)).toBe('iframe · example.test → widget.test');
+    expect(submissionAssociationLabel(record)).toBe('同一フォームでsubmit成立と相関');
   });
 
   it('separates page-start records from user-input observations', () => {

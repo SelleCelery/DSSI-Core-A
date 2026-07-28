@@ -29,27 +29,65 @@ chrome.runtime.onStartup.addListener(() => {
   void ensureDefaultSettings();
 });
 
-chrome.runtime.onMessage.addListener((message: RuntimeMessage, _sender, sendResponse) => {
-  if (message.type === 'DSSI_OBSERVATION_RECORD') {
-    void appendSessionRecord(message.record)
-      .then(() => sendResponse({ ok: true }))
-      .catch(() => sendResponse({ ok: false }));
-    return true;
+function hostnameFromUrl(url: string | undefined): string {
+  if (!url) return 'unknown';
+  try {
+    return new URL(url).hostname || 'unknown';
+  } catch {
+    return 'unknown';
   }
+}
 
-  if (message.type === 'DSSI_CLEAR_SESSION_LOG') {
-    void clearSessionRecords()
-      .then(() => sendResponse({ ok: true }))
-      .catch(() => sendResponse({ ok: false }));
-    return true;
-  }
+function enrichFrameContext(
+  record: ObservationLogRecord,
+  sender: chrome.runtime.MessageSender,
+): ObservationLogRecord {
+  const frameType = sender.frameId === 0 ? 'top' : 'iframe';
+  const topLevelDomain = hostnameFromUrl(sender.tab?.url);
+  return {
+    ...record,
+    frameType,
+    topLevelDomain,
+    frameDomain: record.domainKey,
+  };
+}
 
-  if (message.type === 'DSSI_GET_SESSION_LOG_COUNT') {
-    void getSessionRecordCount()
-      .then((count) => sendResponse({ ok: true, count }))
-      .catch(() => sendResponse({ ok: false, count: 0 }));
-    return true;
-  }
+chrome.runtime.onMessage.addListener(
+  (
+    message: RuntimeMessage,
+    sender: chrome.runtime.MessageSender,
+    sendResponse: (response?: unknown) => void,
+  ) => {
+    if (message.type === 'DSSI_OBSERVATION_RECORD') {
+      const enriched = enrichFrameContext(message.record, sender);
 
-  return false;
-});
+      // Subframe initialization is extremely noisy on real pages. Keep actual
+      // subframe interactions, but suppress page-start-only records.
+      if (enriched.frameType === 'iframe' && enriched.triggerType === 'page_observation_started') {
+        sendResponse({ ok: true, suppressed: true });
+        return false;
+      }
+
+      void appendSessionRecord(enriched)
+        .then(() => sendResponse({ ok: true }))
+        .catch(() => sendResponse({ ok: false }));
+      return true;
+    }
+
+    if (message.type === 'DSSI_CLEAR_SESSION_LOG') {
+      void clearSessionRecords()
+        .then(() => sendResponse({ ok: true }))
+        .catch(() => sendResponse({ ok: false }));
+      return true;
+    }
+
+    if (message.type === 'DSSI_GET_SESSION_LOG_COUNT') {
+      void getSessionRecordCount()
+        .then((count) => sendResponse({ ok: true, count }))
+        .catch(() => sendResponse({ ok: false, count: 0 }));
+      return true;
+    }
+
+    return false;
+  },
+);

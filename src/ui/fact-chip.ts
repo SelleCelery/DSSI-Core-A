@@ -111,7 +111,13 @@ export class FactChipPresenter {
           : descriptor.destinationRelation === 'non_http'
             ? 'HTTP以外'
             : '送信先不明';
-    const title = confirmed ? 'フォーム送信イベントを観測' : '送信操作の候補を観測';
+    const title = confirmed
+      ? descriptor.association === 'correlated_submit_event'
+        ? 'フォーム操作とsubmitイベントを相関'
+        : 'フォームsubmitイベントを観測'
+      : descriptor.association === 'declared_submit_control'
+        ? 'フォーム関連submit要素を観測'
+        : 'Enterによる送信候補を観測';
     const host = descriptor.destinationHost === 'unknown' ? '' : ` · ${descriptor.destinationHost}`;
     this.#render(
       title,

@@ -32,7 +32,7 @@ export function createObservationRecord(
   input: ObservationRecordInput,
 ): ObservationLogRecord {
   const record: ObservationLogRecord = {
-    schemaVersion: 3,
+    schemaVersion: 4,
     eventId: crypto.randomUUID(),
     timestamp: Date.now(),
     sessionId: context.sessionId,
@@ -60,6 +60,7 @@ export function createObservationRecord(
     record.destinationScheme = input.submission.destinationScheme;
     record.destinationHost = input.submission.destinationHost;
     record.submissionMechanism = input.submission.mechanism;
+    record.submissionAssociation = input.submission.association;
     record.declaredDestinationObservable = input.submission.declaredDestinationObservable;
   }
 

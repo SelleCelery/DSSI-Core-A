@@ -10,6 +10,7 @@ describe('submission analyzer', () => {
         encoding: 'multipart/form-data',
         currentUrl: 'https://example.test/form',
         mechanism: 'form_submit_event',
+        association: 'correlated_submit_event',
       }),
     ).toEqual({
       method: 'POST',
@@ -18,6 +19,7 @@ describe('submission analyzer', () => {
       destinationScheme: 'https',
       destinationHost: 'example.test',
       mechanism: 'form_submit_event',
+      association: 'correlated_submit_event',
       declaredDestinationObservable: true,
     });
   });
@@ -30,6 +32,7 @@ describe('submission analyzer', () => {
         encoding: 'application/x-www-form-urlencoded',
         currentUrl: 'https://example.test/form',
         mechanism: 'submitter_activation',
+        association: 'declared_submit_control',
       }).destinationRelation,
     ).toBe('cross_origin');
   });
@@ -42,6 +45,7 @@ describe('submission analyzer', () => {
         encoding: 'text/plain',
         currentUrl: 'https://example.test/form',
         mechanism: 'form_submit_event',
+        association: 'submit_event_without_prior_candidate',
       }).destinationRelation,
     ).toBe('non_http');
   });
@@ -54,6 +58,7 @@ describe('submission analyzer', () => {
         encoding: 'custom',
         currentUrl: 'not a url',
         mechanism: 'enter_key_candidate',
+        association: 'enter_key_candidate',
       }),
     ).toMatchObject({
       method: 'UNKNOWN',

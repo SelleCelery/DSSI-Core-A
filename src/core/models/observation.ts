@@ -41,11 +41,6 @@ export type SurfaceType =
   | 'external_navigation'
   | 'unknown';
 
-/**
- * The scope DSSI can currently inspect for this record.
- * This does not assert that a destination, transmission, storage behavior,
- * or safety property has been observed.
- */
 export type ObservationScope =
   | 'input_surface_and_dom_events'
   | 'declared_submission_boundary'
@@ -54,13 +49,14 @@ export type ObservationScope =
   | 'unobservable'
   | 'unsupported';
 
-/** How the operation claim was supported. */
 export type OperationEvidence =
   | 'extension_observation'
   | 'direct_trusted_event'
   | 'correlated_trusted_events'
   | 'inferred_from_trusted_event'
   | 'untrusted_or_unknown';
+
+export type FrameType = 'top' | 'iframe';
 
 export type InputOrigin =
   | 'keyboard_confirmed'
@@ -71,23 +67,26 @@ export type InputOrigin =
 
 export type ClassificationConfidence = 'explicit' | 'heuristic' | 'generic' | 'unknown';
 
-/** Legacy Sprint 1/1.1 field retained only for session-log compatibility. */
 export type LegacyObservabilityState =
   'observable' | 'partially_observable' | 'high_uncertainty' | 'unobservable' | 'unsupported';
 
 import type {
   DestinationRelation,
+  SubmissionAssociation,
   SubmissionEncoding,
   SubmissionMechanism,
   SubmissionMethod,
 } from './submission';
 
 export interface ObservationLogRecord {
-  schemaVersion?: 1 | 2 | 3;
+  schemaVersion?: 1 | 2 | 3 | 4;
   eventId: string;
   timestamp: number;
   sessionId: string;
   domainKey: string;
+  frameType?: FrameType;
+  topLevelDomain?: string;
+  frameDomain?: string;
   surfaceType: SurfaceType;
   triggerType: TriggerType;
   observationScope?: ObservationScope;
@@ -104,5 +103,6 @@ export interface ObservationLogRecord {
   destinationScheme?: string;
   destinationHost?: string;
   submissionMechanism?: SubmissionMechanism;
+  submissionAssociation?: SubmissionAssociation;
   declaredDestinationObservable?: boolean;
 }

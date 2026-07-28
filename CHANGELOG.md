@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1 - Sprint 2.1
+
+- Added top-frame and iframe context to observation records.
+- Suppressed iframe page-start-only records while preserving actual iframe interactions.
+- Separated form-associated submit controls, Enter candidates, correlated submit events, and standalone submit events.
+- Changed submit-control wording so a DOM association is not presented as user-intent confirmation.
+- Added frame-context and submission-association columns to the observation log.
+
 ## 0.3.0 - Sprint 2
 
 - Added form submission boundary observation.

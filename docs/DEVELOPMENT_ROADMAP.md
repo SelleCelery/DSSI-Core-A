@@ -36,6 +36,21 @@
 - [x] add blocked-paste and synthetic-event fixture cases
 - [ ] propagate settings changes to active tabs without page reload
 
-## Sprint 2 and later
+## Sprint 2 — Declared Form Submission Boundary
+
+- [x] observe standard form submit events
+- [x] separate submit-control activation and Enter candidates
+- [x] expose declared method, encoding, and destination relation
+- [x] avoid logging form values, URL query, fragment, path, and request bodies
+
+## Sprint 2.1 — Frame and Submission Correlation
+
+- [x] distinguish top-frame and iframe observations
+- [x] suppress iframe page-start noise while retaining iframe interactions
+- [x] correlate submit candidates with later submit events on the same form
+- [x] separate DOM submit-control association from user-intent claims
+- [ ] propagate settings changes to active tabs without page reload
+
+## Sprint 3 and later
 
 Follow `docs/product/DSSI_Core_A_Functional_Specification.md`.
