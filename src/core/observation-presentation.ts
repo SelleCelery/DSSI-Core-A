@@ -49,7 +49,7 @@ const TRIGGER_LABELS: Readonly<Record<TriggerType, string>> = {
   consent_control_focus: '同意操作面へフォーカス',
   consent_control_checked: '同意操作を検出',
   live_sync_surface_detected: 'ライブ同期入力面を検出',
-  network_activity_during_input: '入力中の通信活動を検出',
+  network_activity_during_input: '入力操作と近接した通信開始を観測',
   partially_observable_surface: '部分的に観測可能な面を検出',
   unobservable_surface: '観測できない面を検出',
 };
@@ -66,6 +66,7 @@ const OBSERVATION_SCOPE_LABELS: Readonly<Record<ObservationScope, string>> = {
   input_surface_and_dom_events: '入力面・DOMイベントを観測',
   declared_submission_boundary: 'フォーム宣言上の送信境界を観測',
   submission_boundary_partial: '送信境界を部分観測',
+  network_metadata_only: '通信開始メタデータのみを観測',
   page_surface_partial: 'ページ面を部分観測',
   unobservable: '観測不能',
   unsupported: '未対応',
@@ -75,6 +76,7 @@ const OPERATION_EVIDENCE_LABELS: Readonly<Record<OperationEvidence, string>> = {
   extension_observation: '拡張機能が直接観測',
   direct_trusted_event: '信頼済みイベントを直接観測',
   correlated_trusted_events: '信頼済みイベント列を相関',
+  browser_network_api_observation: 'ブラウザ通信APIの通知を観測',
   inferred_from_trusted_event: '信頼済みイベントから推定',
   untrusted_or_unknown: '非信頼イベントまたは根拠不足',
 };
@@ -146,7 +148,7 @@ export function isUserInputObservation(record: ObservationLogRecord): boolean {
 }
 
 export function submissionMethodLabel(record: ObservationLogRecord): string {
-  return record.submissionMethod ?? '—';
+  return record.networkMethod ?? record.submissionMethod ?? '—';
 }
 
 export function submissionDestinationLabel(record: ObservationLogRecord): string {
@@ -193,6 +195,33 @@ export function submissionAssociationLabel(record: ObservationLogRecord): string
     default:
       return record.submissionMethod === undefined ? '—' : '旧形式（相関情報なし）';
   }
+}
+
+export function networkMechanismLabel(record: ObservationLogRecord): string {
+  switch (record.networkMechanism) {
+    case 'fetch_or_xhr':
+      return 'fetch/XHR系';
+    case 'beacon_or_ping':
+      return 'Beacon/Ping系';
+    default:
+      return '—';
+  }
+}
+
+export function networkCorrelationLabel(record: ObservationLogRecord): string {
+  return record.networkCorrelation === 'recent_input_activity'
+    ? '入力操作から2.5秒以内の時間相関'
+    : '—';
+}
+
+export function networkPayloadObservationLabel(record: ObservationLogRecord): string {
+  return record.networkPayloadObservation === 'not_requested' ? '本文を要求していない' : '—';
+}
+
+export function boundarySourceLabel(record: ObservationLogRecord): string {
+  if (record.networkMechanism !== undefined) return 'ブラウザ通信メタデータ';
+  if (record.submissionMethod !== undefined) return '標準form宣言';
+  return '—';
 }
 
 export function surfaceStructureLabel(record: ObservationLogRecord): string {

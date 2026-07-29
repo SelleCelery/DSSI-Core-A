@@ -45,6 +45,7 @@ export type ObservationScope =
   | 'input_surface_and_dom_events'
   | 'declared_submission_boundary'
   | 'submission_boundary_partial'
+  | 'network_metadata_only'
   | 'page_surface_partial'
   | 'unobservable'
   | 'unsupported';
@@ -53,6 +54,7 @@ export type OperationEvidence =
   | 'extension_observation'
   | 'direct_trusted_event'
   | 'correlated_trusted_events'
+  | 'browser_network_api_observation'
   | 'inferred_from_trusted_event'
   | 'untrusted_or_unknown';
 
@@ -79,9 +81,15 @@ import type {
   SubmissionMechanism,
   SubmissionMethod,
 } from './submission';
+import type {
+  NetworkCorrelation,
+  NetworkMechanism,
+  NetworkMethod,
+  NetworkPayloadObservation,
+} from './network';
 
 export interface ObservationLogRecord {
-  schemaVersion?: 1 | 2 | 3 | 4 | 5;
+  schemaVersion?: 1 | 2 | 3 | 4 | 5 | 6;
   eventId: string;
   timestamp: number;
   sessionId: string;
@@ -108,6 +116,10 @@ export interface ObservationLogRecord {
   submissionMechanism?: SubmissionMechanism;
   submissionAssociation?: SubmissionAssociation;
   declaredDestinationObservable?: boolean;
+  networkMethod?: NetworkMethod;
+  networkMechanism?: NetworkMechanism;
+  networkCorrelation?: NetworkCorrelation;
+  networkPayloadObservation?: NetworkPayloadObservation;
   surfaceTagName?: string;
   surfaceInputType?: string;
   surfaceRole?: string;

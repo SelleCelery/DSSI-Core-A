@@ -5,6 +5,7 @@ import type {
   SubmissionMechanism,
 } from '../core/models/submission';
 import { createObservationRecord } from '../core/observation-factory';
+import { createPrivacySafeRecord } from '../core/privacy-safe-logger';
 import { analyzeSubmission } from '../core/submission-analyzer';
 import { FactChipPresenter } from '../ui/fact-chip';
 
@@ -112,9 +113,12 @@ export class SubmissionObserver {
       },
     );
 
-    void chrome.runtime.sendMessage({ type: 'DSSI_OBSERVATION_RECORD', record }).catch(() => {
-      // Navigation can destroy the extension context. Do not interfere with the page action.
-    });
+    const safeRecord = createPrivacySafeRecord(record);
+    void chrome.runtime
+      .sendMessage({ type: 'DSSI_OBSERVATION_RECORD', record: safeRecord })
+      .catch(() => {
+        // Navigation can destroy the extension context. Do not interfere with the page action.
+      });
   }
 
   readonly #onSubmit = (event: SubmitEvent): void => {

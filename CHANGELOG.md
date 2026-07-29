@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0 - Sprint 3
+
+- Added an explicit transient-evidence, reduction, persistence, and purge lifecycle.
+- Changed the privacy-safe logger to a closed record schema with unknown-field and nested-payload rejection.
+- Added validation before Content Script messaging, after Service Worker receipt, and before session storage persistence.
+- Added optional `webRequest` and optional HTTP/HTTPS host permissions.
+- Added opt-in request-start observation for `xmlhttprequest` and `ping` resource classes.
+- Correlates request starts with input activity in the same tab/frame within 2500ms.
+- Retains only method, scheme, host, origin relation, mechanism, and payload-not-requested state.
+- Does not request request bodies or headers and does not persist URL path, query, fragment, or credentials.
+- Added network metadata chips, log columns, tests, glossary, ADR, and data-lifecycle documentation.
+
 ## 0.3.2 - Sprint 2.2
 
 - Separated user-facing activity logs from implementation diagnostic logs.

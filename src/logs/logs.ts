@@ -1,7 +1,11 @@
 import {
+  boundarySourceLabel,
   classificationConfidenceLabel,
   frameContextLabel,
   observationActionLabel,
+  networkCorrelationLabel,
+  networkMechanismLabel,
+  networkPayloadObservationLabel,
   observationScopeLabel,
   operationEvidenceLabel,
   submissionAssociationLabel,
@@ -69,10 +73,14 @@ function render(records: ObservationLogRecord[]): void {
       makeCell(operationEvidenceLabel(record.operationEvidence)),
       makeCell(classificationConfidenceLabel(record.classificationConfidence)),
       makeCell(observationScopeLabel(record)),
+      makeCell(boundarySourceLabel(record)),
       makeCell(submissionAssociationLabel(record)),
       makeCell(submissionMethodLabel(record)),
       makeCell(submissionDestinationLabel(record)),
       makeCell(submissionEncodingLabel(record)),
+      makeCell(networkMechanismLabel(record)),
+      makeCell(networkCorrelationLabel(record)),
+      makeCell(networkPayloadObservationLabel(record)),
       makeCell(record.cuePresented ? '表示' : '非表示'),
     );
     body.append(row);

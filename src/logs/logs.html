@@ -39,10 +39,14 @@
               <th scope="col">操作証拠</th>
               <th scope="col">入力面分類根拠</th>
               <th scope="col">境界観測範囲</th>
+              <th scope="col">境界種別</th>
               <th scope="col">送信関連づけ</th>
               <th scope="col">method</th>
-              <th scope="col">宣言送信先</th>
+              <th scope="col">送信先／通信先</th>
               <th scope="col">encoding</th>
+              <th scope="col">通信方式</th>
+              <th scope="col">入力相関</th>
+              <th scope="col">本文観測</th>
               <th scope="col">チップ</th>
             </tr>
           </thead>
@@ -66,6 +70,13 @@
         「フォーム関連submit要素」はHTML上でフォームに属するsubmit要素への操作です。
         「同一フォームでsubmit成立と相関」は、その操作またはEnter候補の直後に同じフォームのsubmitイベントを観測した記録です。
         どちらも実際の通信成立やサーバー到達を意味しません。
+      </p>
+      <p>
+        「ブラウザ通信メタデータ」は、任意権限を有効にした場合にChromeのwebRequest
+        APIから受け取った通信開始情報です。
+        DSSIは入力操作から2.5秒以内のfetch/XHR系またはBeacon/Ping系通信だけを通常ログへ残します。
+        これは時間相関であり、その通信に入力内容が含まれたこと、通信が完了したこと、サーバーが受信したことを意味しません。
+        request bodyとheadersは要求せず、URLのpath・query・fragmentは保存しません。
       </p>
     </main>
     <script type="module" src="logs.js"></script>

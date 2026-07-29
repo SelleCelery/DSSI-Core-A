@@ -9,6 +9,7 @@ import type {
   TriggerType,
 } from './models/observation';
 import type { SafeInputSurfaceStructure } from './models/input-surface';
+import type { NetworkDescriptor } from './models/network';
 import type { SubmissionDescriptor } from './models/submission';
 import type { ViscosityLevel } from './models/settings';
 
@@ -27,6 +28,7 @@ export interface ObservationRecordInput {
   inputOrigin?: InputOrigin;
   classificationConfidence?: ClassificationConfidence;
   submission?: SubmissionDescriptor;
+  network?: NetworkDescriptor;
   logLayer?: LogLayer;
   surfaceStructure?: SafeInputSurfaceStructure;
 }
@@ -36,7 +38,7 @@ export function createObservationRecord(
   input: ObservationRecordInput,
 ): ObservationLogRecord {
   const record: ObservationLogRecord = {
-    schemaVersion: 5,
+    schemaVersion: 6,
     eventId: crypto.randomUUID(),
     timestamp: Date.now(),
     sessionId: context.sessionId,
@@ -75,6 +77,16 @@ export function createObservationRecord(
     record.submissionMechanism = input.submission.mechanism;
     record.submissionAssociation = input.submission.association;
     record.declaredDestinationObservable = input.submission.declaredDestinationObservable;
+  }
+
+  if (input.network !== undefined) {
+    record.networkMethod = input.network.method;
+    record.destinationRelation = input.network.destinationRelation;
+    record.destinationScheme = input.network.destinationScheme;
+    record.destinationHost = input.network.destinationHost;
+    record.networkMechanism = input.network.mechanism;
+    record.networkCorrelation = input.network.correlation;
+    record.networkPayloadObservation = input.network.payloadObservation;
   }
 
   return record;

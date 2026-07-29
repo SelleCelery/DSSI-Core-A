@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  boundarySourceLabel,
   classificationConfidenceLabel,
   frameContextLabel,
   inputOriginLabel,
+  networkCorrelationLabel,
+  networkMechanismLabel,
+  networkPayloadObservationLabel,
   isUserInputObservation,
   observationActionLabel,
   observationScopeLabel,
@@ -17,9 +21,9 @@ import type { ObservationLogRecord } from '../../src/core/models/observation';
 function makeRecord(overrides: Partial<ObservationLogRecord> = {}): ObservationLogRecord {
   return {
     schemaVersion: 2,
-    eventId: 'event-1',
+    eventId: '123e4567-e89b-42d3-a456-426614174000',
     timestamp: 1,
-    sessionId: 'session-1',
+    sessionId: '123e4567-e89b-42d3-a456-426614174000',
     domainKey: 'example.test',
     surfaceType: 'free_text',
     triggerType: 'free_text_surface_focus',
@@ -109,5 +113,27 @@ describe('observation presentation', () => {
       false,
     );
     expect(isUserInputObservation(makeRecord())).toBe(true);
+  });
+  it('labels network metadata without implying payload transmission', () => {
+    const record = makeRecord({
+      triggerType: 'network_activity_during_input',
+      observationScope: 'network_metadata_only',
+      operationEvidence: 'browser_network_api_observation',
+      networkMethod: 'POST',
+      networkMechanism: 'fetch_or_xhr',
+      networkCorrelation: 'recent_input_activity',
+      networkPayloadObservation: 'not_requested',
+      destinationRelation: 'cross_origin',
+      destinationScheme: 'https',
+      destinationHost: 'api.example.test',
+    });
+
+    expect(triggerTypeLabel(record.triggerType)).toBe('入力操作と近接した通信開始を観測');
+    expect(observationScopeLabel(record)).toBe('通信開始メタデータのみを観測');
+    expect(operationEvidenceLabel(record.operationEvidence)).toBe('ブラウザ通信APIの通知を観測');
+    expect(boundarySourceLabel(record)).toBe('ブラウザ通信メタデータ');
+    expect(networkMechanismLabel(record)).toBe('fetch/XHR系');
+    expect(networkCorrelationLabel(record)).toBe('入力操作から2.5秒以内の時間相関');
+    expect(networkPayloadObservationLabel(record)).toBe('本文を要求していない');
   });
 });

@@ -9,6 +9,7 @@ import type {
 } from '../core/models/observation';
 import type { DssiSettings } from '../core/models/settings';
 import { createObservationRecord } from '../core/observation-factory';
+import { createPrivacySafeRecord } from '../core/privacy-safe-logger';
 import { classifyInputSurface } from '../core/surface-classifier';
 import { FactChipPresenter } from '../ui/fact-chip';
 import {
@@ -68,10 +69,16 @@ export class InputSurfaceObserver {
   readonly #knownSurfaces = new WeakSet<Element>();
   readonly #runtime = new WeakMap<Element, SurfaceRuntimeState>();
   #mutationObserver: MutationObserver | undefined;
+  #networkPulseEnabled: boolean;
 
   public constructor(settings: DssiSettings, sessionId: string) {
     this.#settings = settings;
     this.#sessionId = sessionId;
+    this.#networkPulseEnabled = settings.networkObservationEnabled;
+  }
+
+  public setNetworkObservationEnabled(enabled: boolean): void {
+    this.#networkPulseEnabled = enabled;
   }
 
   public start(): void {
@@ -192,6 +199,8 @@ export class InputSurfaceObserver {
       );
     }
 
+    this.#sendInputActivityPulse(classification);
+
     void this.#sendRecord(
       createObservationRecord(
         {
@@ -215,11 +224,31 @@ export class InputSurfaceObserver {
     );
   }
 
+  #sendInputActivityPulse(classification: InputSurfaceClassification): void {
+    if (!this.#networkPulseEnabled) return;
+
+    void chrome.runtime
+      .sendMessage({
+        type: 'DSSI_INPUT_ACTIVITY_PULSE',
+        pulse: {
+          sessionId: this.#sessionId,
+          domainKey: this.#domainKey,
+          surfaceType: classification.surfaceType,
+          classificationConfidence: classification.confidence,
+          viscosityLevel: this.#settings.viscosityLevel,
+        },
+      })
+      .catch(() => {
+        // A pulse is transient metadata. Failure must not affect the page action.
+      });
+  }
+
   async #sendRecord(record: ReturnType<typeof createObservationRecord>): Promise<void> {
     try {
+      const safeRecord = createPrivacySafeRecord(record);
       await chrome.runtime.sendMessage({
         type: 'DSSI_OBSERVATION_RECORD',
-        record,
+        record: safeRecord,
       });
     } catch {
       // The extension context can disappear while a page is reloading.

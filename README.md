@@ -8,7 +8,7 @@ The extension is designed to present observable facts and observation limits bef
 
 ## Status
 
-Sprint 2.2 — Activity and Diagnostic Log Separation
+Sprint 3 — Data Lifecycle and Optional Network Metadata Observation
 
 This repository currently provides:
 
@@ -25,10 +25,11 @@ This repository currently provides:
 - top-frame / embedded-frame context with start-noise suppression
 - same-form correlation between submit candidates and later submit events
 - Level 3 factual chips for inferred input route
-- privacy-safe logger with prohibited raw-data guards
+- closed-schema privacy boundary with three-stage validation
+- optional browser network metadata observation for input-near fetch/XHR and Beacon/Ping requests
 - lint, format, typecheck, test, and build commands
 
-Sprint 2.2 separates user-facing activity records from implementation diagnostics. Page-start records are kept out of the normal activity log, short-window duplicate top-frame starts are suppressed, and unknown input surfaces expose only privacy-safe structural metadata. It still does not claim network transmission or server receipt.
+Sprint 3 formalizes transient evidence, reduced metadata, persistent records, and future user-preserved records as separate data states. Optional `webRequest` observation can record request-start metadata near recent input activity, but request bodies and headers are not requested, full URL paths and queries are not persisted, and no payload relation or server receipt is claimed.
 
 ## Requirements
 
@@ -61,11 +62,12 @@ The initial build does not persist:
 - payment numbers
 - clipboard contents
 - prompt, comment, email, or message bodies
-- raw request bodies
+- raw request bodies or headers
+- URL paths, queries, fragments, or credentials in observation records
 
 The session log stores structural metadata only and can be cleared from the options page.
 
-See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](docs/SPRINT1_0_IMPLEMENTATION_GUIDE.md), [the Sprint 1.1 implementation guide](./docs/SPRINT1_1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.2 implementation guide](./docs/SPRINT1_2_IMPLEMENTATION_GUIDE.md), [the Sprint 2 implementation guide](docs/SPRINT2_0_IMPLEMENTATION_GUIDE.md), [the Sprint 2.1 implementation guide](./docs/SPRINT2_1_IMPLEMENTATION_GUIDE.md), [the Sprint 2.2 implementation guide](./docs/SPRINT2_2_IMPLEMENTATION_GUIDE.md), and the product documents under [docs/product](./docs/product).
+See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](./docs/SPRINT1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.1 implementation guide](./docs/SPRINT1_1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.2 implementation guide](./docs/SPRINT1_2_IMPLEMENTATION_GUIDE.md), [the Sprint 2 implementation guide](./docs/SPRINT2_IMPLEMENTATION_GUIDE.md), [the Sprint 2.1 implementation guide](./docs/SPRINT2_1_IMPLEMENTATION_GUIDE.md), [the Sprint 2.2 implementation guide](./docs/SPRINT2_2_IMPLEMENTATION_GUIDE.md), [the Sprint 3 implementation guide](./docs/SPRINT3_IMPLEMENTATION_GUIDE.md), [the data lifecycle and purge boundary](./docs/DATA_LIFECYCLE_AND_PURGE_BOUNDARY_v0.4.ja.md), [the operational glossary](./docs/DSSI_Core_A_Operational_Glossary.ja.md), and the product documents under [docs/product](./docs/product).
 
 ## License
 
@@ -82,3 +84,9 @@ Real-page tests showed that embedded frames and DOM submit associations needed s
 ## Sprint 2.2: log-layer separation
 
 The normal activity log now contains only observations relevant to user actions and judgment. Content-script page-start records are stored separately as diagnostics. Unknown input surfaces may include only tag, normalized input type, safe role token, contenteditable state, and safe autocomplete tokens; labels, placeholders, IDs, names, and values remain excluded.
+
+## Sprint 3: transient evidence and optional communication metadata
+
+Network metadata observation is disabled by default. When the user enables it, the options page requests optional `webRequest` and HTTP/HTTPS host permissions. DSSI records only supported request-start metadata that occurs within 2.5 seconds of an input-surface event in the same tab, frame, and document when a document identifier is available.
+
+The browser API temporarily supplies a complete request URL, but DSSI reduces it immediately to scheme, host, method, resource-class-derived mechanism, and same/cross-origin relation. Path, query, fragment, credentials, request body, headers, response body, and server receipt are not persisted or claimed.

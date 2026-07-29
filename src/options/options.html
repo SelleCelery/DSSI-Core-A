@@ -21,9 +21,14 @@
           <input id="localClassificationEnabled" type="checkbox" />
         </label>
         <label class="row">
-          <span>ネットワーク補助観測</span>
-          <input id="networkObservationEnabled" type="checkbox" disabled />
+          <span>通信メタデータ補助観測（任意権限）</span>
+          <input id="networkObservationEnabled" type="checkbox" />
         </label>
+        <p class="small">
+          有効化時だけ、ChromeのwebRequest権限とHTTP/HTTPSサイトへの追加アクセスを求めます。
+          観測対象は入力操作から2.5秒以内に始まったfetch/XHR系またはBeacon/Ping系の通信です。
+          request bodyとheadersは要求せず、URLのpath・query・fragmentは保存しません。
+        </p>
         <label class="row">
           <span>永続履歴</span>
           <input id="persistentHistoryEnabled" type="checkbox" disabled />
@@ -34,8 +39,10 @@
       <p id="status" class="status" role="status"></p>
       <h2>現在の死角</h2>
       <p>
-        DSSI Core Aは、すべての通信内容を捕捉しません。警告が表示されていないことは、
-        安全であることを意味しません。
+        DSSI Core Aは、通信本文、レスポンス、WebSocket確立後のメッセージ、Service
+        Worker内部の因果関係を捕捉しません。
+        通信メタデータが観測されても、その通信に入力内容が含まれたとは断定しません。
+        警告が表示されていないことは、安全であることを意味しません。
       </p>
     </main>
     <script type="module" src="options.js"></script>

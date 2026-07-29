@@ -13,7 +13,19 @@ function keyFor(layer: LogLayer): string {
 async function readRecords(layer: LogLayer): Promise<ObservationLogRecord[]> {
   const key = keyFor(layer);
   const result = await chrome.storage.session.get(key);
-  return (result[key] as ObservationLogRecord[] | undefined) ?? [];
+  const stored = result[key];
+  if (!Array.isArray(stored)) return [];
+
+  const safeRecords: ObservationLogRecord[] = [];
+  for (const candidate of stored) {
+    try {
+      safeRecords.push(createPrivacySafeRecord(candidate as ObservationLogRecord));
+    } catch {
+      // Malformed or privacy-unsafe stored records are not returned to the UI
+      // and are omitted on the next successful append.
+    }
+  }
+  return safeRecords;
 }
 
 export async function appendSessionRecord(record: ObservationLogRecord): Promise<void> {

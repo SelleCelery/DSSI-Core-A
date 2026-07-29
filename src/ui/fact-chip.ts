@@ -1,3 +1,4 @@
+import type { NetworkDescriptor } from '../core/models/network';
 import type { InputOrigin, SurfaceType } from '../core/models/observation';
 import type { ViscosityLevel } from '../core/models/settings';
 import type { SubmissionDescriptor } from '../core/models/submission';
@@ -29,44 +30,52 @@ function ensureHost(): ShadowRoot {
 
   const host = document.createElement('div');
   host.id = HOST_ID;
+
   host.style.setProperty('all', 'initial');
   host.style.setProperty('position', 'fixed');
-  host.style.setProperty('right', '16px');
-  host.style.setProperty('bottom', '16px');
+  host.style.setProperty('right', '10px');
+  host.style.setProperty('bottom', '10px');
   host.style.setProperty('z-index', '2147483647');
   host.style.setProperty('pointer-events', 'none');
 
   const root = host.attachShadow({ mode: 'open' });
   const style = document.createElement('style');
+
   style.textContent = `
     .chip {
       box-sizing: border-box;
       max-width: min(360px, calc(100vw - 32px));
-      padding: 11px 13px;
-      border: 1px solid rgba(100, 116, 139, 0.45);
-      border-radius: 10px;
-      background: rgba(15, 23, 42, 0.96);
-      color: #f8fafc;
-      font: 13px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 6px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
+      background: rgba(64, 64, 64, 0.32);
+      color: rgba(255, 255, 255, 0.9);
+      font: 12px/1.35 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       letter-spacing: normal;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.28);
+      box-shadow: none;
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
       opacity: 0;
       transform: translateY(8px);
       transition: opacity 120ms ease, transform 120ms ease;
     }
+
     .chip[data-visible="true"] {
       opacity: 1;
       transform: translateY(0);
     }
+
     .title {
       display: block;
-      margin-bottom: 3px;
-      font-weight: 700;
+      margin-bottom: 2px;
+      font-weight: 600;
     }
+
     .detail {
-      color: #cbd5e1;
+      color: rgba(255, 255, 255, 0.68);
     }
   `;
+
   root.append(style);
   document.documentElement.append(host);
   return root;
@@ -94,6 +103,24 @@ export class FactChipPresenter {
     this.#render(
       inputOriginLabel(inputOrigin),
       `${surfaceTypeLabel(surfaceType)}として観測しました。入力内容は取得していません。`,
+      viscosityLevel,
+    );
+  }
+
+  public showNetwork(descriptor: NetworkDescriptor, viscosityLevel: ViscosityLevel): void {
+    const relation =
+      descriptor.destinationRelation === 'same_origin'
+        ? '同一オリジン'
+        : descriptor.destinationRelation === 'cross_origin'
+          ? '別オリジン'
+          : descriptor.destinationRelation === 'non_http'
+            ? 'HTTP以外'
+            : '通信先関係不明';
+    const host = descriptor.destinationHost === 'unknown' ? '' : ` · ${descriptor.destinationHost}`;
+    const mechanism = descriptor.mechanism === 'fetch_or_xhr' ? 'fetch/XHR系' : 'Beacon/Ping系';
+    this.#render(
+      '入力操作と近接した通信開始を観測',
+      `${mechanism} · ${descriptor.method} · ${relation}${host}。本文は取得せず、入力内容との因果関係も確認していません。`,
       viscosityLevel,
     );
   }

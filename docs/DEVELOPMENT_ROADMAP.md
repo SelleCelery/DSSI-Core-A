@@ -59,8 +59,23 @@
 - [x] rename frame labels to top-frame / embedded-frame terminology
 - [x] add privacy-safe structural metadata for unknown input surfaces
 - [x] add independent log clearing controls
-- [ ] complete v0.3 understanding-recovery review before Sprint 3
+- [x] complete v0.3 understanding-recovery review before Sprint 3
 
-## Sprint 3 and later
+## Sprint 3 — Data Lifecycle and Optional Network Metadata
 
-Follow `docs/product/DSSI_Core_A_Functional_Specification.md`.
+- [x] distinguish transient raw evidence, correlation state, safe metadata, and persistent records
+- [x] enforce a closed ObservationRecord persistence schema
+- [x] validate records at Content Script, Service Worker, and storage boundaries
+- [x] add optional `webRequest` and optional HTTP/HTTPS host permissions
+- [x] observe `xmlhttprequest` and `ping` request starts without body/header access
+- [x] correlate network activity with input activity in the same tab/frame
+- [x] retain only method, scheme, host, relation, mechanism, and payload-not-requested state
+- [x] add operational glossary and purge-boundary documentation
+- [ ] run the full maintainer `npm run check` and real-browser acceptance test
+- [ ] add browser integration tests
+
+The original product functional specification placed the network metadata spike later. It was advanced after the v0.3 understanding-recovery review exposed data-lifecycle and persistence-boundary requirements. Network observation remains auxiliary rather than the primary Core A boundary.
+
+## Sprint 4 and later
+
+Continue from `docs/product/DSSI_Core_A_Functional_Specification.md`, reconciling the original sequence with verified implementation history.

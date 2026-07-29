@@ -126,7 +126,9 @@
       <button type="submit">GET送信</button>
     </form>
 
-    <button type="button" id="custom-fetch-button">JavaScript通信（Sprint 2では未観測）</button>
+    <button type="button" id="custom-fetch-button">
+      JavaScript通信（Sprint 3通信メタデータ試験）
+    </button>
 
     <script>
       for (const form of document.querySelectorAll('form')) {
@@ -134,7 +136,10 @@
       }
 
       document.querySelector('#custom-fetch-button').addEventListener('click', () => {
-        console.info('Sprint 2 intentionally does not observe fetch/XHR.');
+        void fetch('/dssi-sprint3-probe/private-path?token=must-not-be-logged', {
+          method: 'POST',
+          body: 'test-body-that-dssi-must-not-request',
+        }).catch(() => undefined);
       });
 
       document.querySelector('#paste-blocked').addEventListener('paste', (event) => {

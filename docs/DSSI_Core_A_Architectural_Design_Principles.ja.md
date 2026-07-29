@@ -442,6 +442,6 @@ DSSI Core A の規範的モデルは、次の一文に要約できる。
 
 ---
 
-**Document status:** Core A v0.3 architectural baseline  
-**Primary language:** Japanese  
+**Document status:** Core A v0.3 architectural baseline
+**Primary language:** Japanese
 **Scope:** DSSI Core A design principles; not a legal, security-audit, or certification document

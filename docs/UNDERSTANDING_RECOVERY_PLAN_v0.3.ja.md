@@ -160,7 +160,6 @@ paste
 
 > コードをすべて自力で書けることではなく、コードがどの境界へ触れ、何を持ち帰り、何を持ち帰らないかを説明できることを、実装理解の基準とする。
 
-
 ### 付録
 
 以下は、DSSI Core A v0.3.2の実装を前提にした説明です。単なる一般論ではなく、現在のコードがどこまで実現しているか、何をまだ保証していないかまで分けます。
@@ -338,9 +337,7 @@ DSSIでは、`isTrusted`がtrueなら、
 実装例は次です。
 
 ```ts
-event.isTrusted
-  ? 'direct_trusted_event'
-  : 'untrusted_or_unknown'
+event.isTrusted ? 'direct_trusted_event' : 'untrusted_or_unknown';
 ```
 
 ただし、`isTrusted`が証明するのは限定的です。
@@ -455,7 +452,7 @@ trusted inputType=insertFromPasteのみ
 また、同じ貼り付け反映が短時間に重複記録されないよう、200ミリ秒以内の再記録を抑制しています。
 
 ```ts
-now - state.lastPasteReflectionLoggedAt <= 200
+now - state.lastPasteReflectionLoggedAt <= 200;
 ```
 
 300msという値は絶対的な真理ではありません。一般的なブラウザイベント列で過剰に広げず、通常の反映を拾うための暫定値です。
@@ -903,7 +900,7 @@ src/background/service-worker.ts
 判定は、
 
 ```ts
-sender.frameId === 0 ? 'top' : 'iframe'
+sender.frameId === 0 ? 'top' : 'iframe';
 ```
 
 です。
@@ -1438,7 +1435,7 @@ Webページ上の要素や文書は、`EventTarget`という仕組みを持っ�
 たとえば、貼り付けイベントを監視するなら、概念的には次です。
 
 ```ts
-document.addEventListener("paste", handlePaste);
+document.addEventListener('paste', handlePaste);
 ```
 
 意味は、
@@ -1485,7 +1482,7 @@ DSSIが用意するのは、
 次のコードを分解します。
 
 ```ts
-document.addEventListener("paste", handlePaste);
+document.addEventListener('paste', handlePaste);
 ```
 
 ### `document`
@@ -1505,12 +1502,12 @@ document.addEventListener("paste", handlePaste);
 ほかにも、
 
 ```ts
-"focusin"
-"keydown"
-"beforeinput"
-"input"
-"click"
-"submit"
+'focusin';
+'keydown';
+'beforeinput';
+'input';
+'click';
+'submit';
 ```
 
 などがあります。
@@ -1636,13 +1633,13 @@ body
 `addEventListener`の第3引数で、どの段階で受け取るかを指定できます。
 
 ```ts
-document.addEventListener("paste", handlePaste, true);
+document.addEventListener('paste', handlePaste, true);
 ```
 
 または、
 
 ```ts
-document.addEventListener("paste", handlePaste, {
+document.addEventListener('paste', handlePaste, {
   capture: true,
 });
 ```
@@ -1650,7 +1647,7 @@ document.addEventListener("paste", handlePaste, {
 ならキャプチャ段階です。
 
 ```ts
-document.addEventListener("paste", handlePaste);
+document.addEventListener('paste', handlePaste);
 ```
 
 なら通常はバブリング段階です。
@@ -1662,9 +1659,9 @@ DSSIのような観測拡張では、ページ側の処理より先にイベン�
 入力欄へ直接付けるなら、こう書けます。
 
 ```ts
-const input = document.querySelector("input");
+const input = document.querySelector('input');
 
-input?.addEventListener("paste", handlePaste);
+input?.addEventListener('paste', handlePaste);
 ```
 
 しかし現代のWebアプリでは、入力欄が後から追加・削除・再生成されます。
@@ -1676,7 +1673,7 @@ input?.addEventListener("paste", handlePaste);
 文書全体へ登録すれば、
 
 ```ts
-document.addEventListener("paste", handlePaste);
+document.addEventListener('paste', handlePaste);
 ```
 
 後から追加された入力欄で起きたイベントも、伝播してくれば受け取れます。
