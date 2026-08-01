@@ -38,7 +38,7 @@ export function createObservationRecord(
   input: ObservationRecordInput,
 ): ObservationLogRecord {
   const record: ObservationLogRecord = {
-    schemaVersion: 8,
+    schemaVersion: 9,
     eventId: crypto.randomUUID(),
     timestamp: Date.now(),
     sessionId: context.sessionId,

@@ -51,6 +51,8 @@ const TRIGGER_LABELS: Readonly<Record<TriggerType, string>> = {
   live_sync_surface_detected: 'ライブ同期入力面を検出',
   network_activity_during_input: '入力操作と近接した通信開始を観測（旧形式）',
   network_activity_after_content_edit: '内容変更操作と近接した通信開始を観測',
+  network_activity_after_submit_operation: '送信操作と近接した通信開始を観測',
+  network_activity_without_correlated_operation: '通信開始を観測（相関可能な利用者操作は未確認）',
   partially_observable_surface: '部分的に観測可能な面を検出',
   unobservable_surface: '観測できない面を検出',
 };
@@ -210,13 +212,20 @@ export function networkMechanismLabel(record: ObservationLogRecord): string {
 }
 
 export function networkCorrelationLabel(record: ObservationLogRecord): string {
-  if (record.networkCorrelation === 'recent_content_edit') {
-    return '内容変更操作から2.5秒以内の時間相関';
+  switch (record.networkCorrelation) {
+    case 'recent_content_edit':
+      return '内容変更操作から2.5秒以内の時間相関';
+    case 'recent_submit_operation':
+      return '標準form送信操作から2秒以内の時間相関';
+    case 'no_correlated_user_operation':
+      return '相関可能な利用者操作を確認していない';
+    case 'correlation_unavailable':
+      return '操作相関を判定できない';
+    case 'recent_input_activity':
+      return '入力操作から2.5秒以内の時間相関（旧形式）';
+    default:
+      return '—';
   }
-  if (record.networkCorrelation === 'recent_input_activity') {
-    return '入力操作から2.5秒以内の時間相関（旧形式）';
-  }
-  return '—';
 }
 
 export function networkPayloadObservationLabel(record: ObservationLogRecord): string {

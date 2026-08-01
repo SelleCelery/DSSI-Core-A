@@ -8,7 +8,7 @@ import type {
   OperationEvidence,
   TriggerType,
 } from '../core/models/observation';
-import type { DssiSettings } from '../core/models/settings';
+import { effectiveCueLevel, type DssiSettings } from '../core/models/settings';
 import { createObservationRecord } from '../core/observation-factory';
 import { createPrivacySafeRecord } from '../core/privacy-safe-logger';
 import { classifyInputSurface } from '../core/surface-classifier';
@@ -49,7 +49,7 @@ export class InputSurfaceObserver {
   readonly #settings: DssiSettings;
   readonly #sessionId: string;
   readonly #domainKey = location.hostname || 'unknown';
-  readonly #presenter = new FactChipPresenter();
+  readonly #presenter: FactChipPresenter;
   readonly #knownSurfaces = new WeakSet<Element>();
   readonly #runtime = new WeakMap<Element, SurfaceRuntimeState>();
   #mutationObserver: MutationObserver | undefined;
@@ -58,6 +58,7 @@ export class InputSurfaceObserver {
   public constructor(settings: DssiSettings, sessionId: string) {
     this.#settings = settings;
     this.#sessionId = sessionId;
+    this.#presenter = new FactChipPresenter(settings.factChipPosition);
     this.#networkPulseEnabled = settings.networkObservationEnabled;
   }
 
@@ -162,14 +163,11 @@ export class InputSurfaceObserver {
     const descriptor = describeInputSurface(surface);
     const classification = classifyInputSurface(descriptor);
     this.#knownSurfaces.add(surface);
-    const cuePresented = inputOrigin !== undefined && this.#settings.viscosityLevel === 3;
+    const cueLevel = effectiveCueLevel(this.#settings);
+    const cuePresented = inputOrigin !== undefined && cueLevel === 3;
 
     if (cuePresented && inputOrigin !== undefined) {
-      this.#presenter.showInputOrigin(
-        inputOrigin,
-        classification.surfaceType,
-        this.#settings.viscosityLevel,
-      );
+      this.#presenter.showInputOrigin(inputOrigin, classification.surfaceType, cueLevel);
     }
 
     void this.#sendRecord(
@@ -233,8 +231,9 @@ export class InputSurfaceObserver {
     if (!surface || !event.isTrusted) return;
 
     const classification = this.#classificationFor(surface);
-    if (shouldPresentFocusCue(this.#settings.viscosityLevel, classification.surfaceType)) {
-      this.#presenter.show(classification.surfaceType, this.#settings.viscosityLevel);
+    const cueLevel = effectiveCueLevel(this.#settings);
+    if (shouldPresentFocusCue(cueLevel, classification.surfaceType)) {
+      this.#presenter.show(classification.surfaceType, cueLevel);
     }
   };
 

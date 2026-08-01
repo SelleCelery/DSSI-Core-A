@@ -7,7 +7,7 @@ import {
 import type { ObservationLogRecord } from '../../src/core/models/observation';
 
 const validRecord: ObservationLogRecord = {
-  schemaVersion: 8,
+  schemaVersion: 9,
   eventId: '123e4567-e89b-42d3-a456-426614174000',
   timestamp: 1,
   sessionId: '123e4567-e89b-42d3-a456-426614174000',
@@ -118,6 +118,27 @@ describe('privacy-safe logger', () => {
       }),
     ).toThrow(PrivacyBoundaryError);
   });
+  it('accepts MAX diagnostic communication only through the closed schema-9 categories', () => {
+    expect(() =>
+      assertPrivacySafePayload({
+        ...validRecord,
+        triggerType: 'network_activity_without_correlated_operation',
+        observationScope: 'network_metadata_only',
+        operationEvidence: 'browser_network_api_observation',
+        networkMethod: 'GET',
+        networkMechanism: 'fetch_or_xhr',
+        networkCorrelation: 'no_correlated_user_operation',
+        networkPayloadObservation: 'not_requested',
+        cookieHeaderDetection: 'not_detected',
+        pageObservationTiming: 'unknown',
+        destinationRelation: 'same_origin',
+        destinationScheme: 'https',
+        destinationHost: 'example.test',
+        logLayer: 'diagnostic',
+      }),
+    ).not.toThrow();
+  });
+
   it('rejects arbitrary Cookie or page-timing values while accepting the closed states', () => {
     expect(() =>
       assertPrivacySafePayload({

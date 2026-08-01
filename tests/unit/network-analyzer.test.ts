@@ -98,4 +98,16 @@ describe('network analyzer', () => {
       pageObservationTiming: 'within_5s_of_page_observation',
     });
   });
+
+  it('retains only the supplied closed correlation category', () => {
+    expect(
+      analyzeNetworkRequest({
+        requestUrl: 'https://example.test/api',
+        method: 'POST',
+        initiator: 'https://example.test',
+        resourceType: 'xmlhttprequest',
+        correlation: 'no_correlated_user_operation',
+      }),
+    ).toMatchObject({ correlation: 'no_correlated_user_operation' });
+  });
 });

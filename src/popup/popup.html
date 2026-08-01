@@ -22,6 +22,16 @@
           <option value="3">3 — Sovereign</option>
         </select>
       </label>
+      <label class="field">
+        <span>報告モード</span>
+        <select id="reportingMode">
+          <option value="standard">標準</option>
+          <option value="max_coverage">MAX — 診断と観測限界を最大限表示</option>
+        </select>
+      </label>
+      <p class="small">
+        MAXはLevel 4ではなく、現在の観測範囲と死角を学習的に可視化する特別モードです。
+      </p>
       <p id="status" class="status" role="status"></p>
       <p class="small">観測件数（現在のブラウザセッション）: <strong id="count">0</strong></p>
 

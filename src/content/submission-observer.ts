@@ -1,4 +1,5 @@
-import type { DssiSettings } from '../core/models/settings';
+import type { UserActionType } from '../core/models/network';
+import { effectiveCueLevel, type DssiSettings } from '../core/models/settings';
 import type {
   SubmissionAssociation,
   SubmissionDescriptor,
@@ -59,12 +60,19 @@ export class SubmissionObserver {
   readonly #settings: DssiSettings;
   readonly #sessionId: string;
   readonly #domainKey = location.hostname || 'unknown';
-  readonly #presenter = new FactChipPresenter();
+  readonly #presenter: FactChipPresenter;
   readonly #pending = new WeakMap<HTMLFormElement, PendingSubmissionCandidate>();
+  #networkPulseEnabled: boolean;
 
   public constructor(settings: DssiSettings, sessionId: string) {
     this.#settings = settings;
     this.#sessionId = sessionId;
+    this.#presenter = new FactChipPresenter(settings.factChipPosition);
+    this.#networkPulseEnabled = settings.networkObservationEnabled;
+  }
+
+  public setNetworkObservationEnabled(enabled: boolean): void {
+    this.#networkPulseEnabled = enabled;
   }
 
   public start(): void {
@@ -74,11 +82,30 @@ export class SubmissionObserver {
   }
 
   #shouldPresent(descriptor: SubmissionDescriptor, confirmed: boolean): boolean {
-    if (!confirmed) return this.#settings.viscosityLevel === 3;
-    if (this.#settings.viscosityLevel >= 2) return true;
+    const cueLevel = effectiveCueLevel(this.#settings);
+    if (!confirmed) return cueLevel === 3;
+    if (cueLevel >= 2) return true;
     return (
       descriptor.destinationRelation === 'cross_origin' || descriptor.destinationScheme === 'http'
     );
+  }
+
+  #sendActionPulse(actionType: UserActionType): void {
+    if (!this.#networkPulseEnabled) return;
+    void chrome.runtime
+      .sendMessage({
+        type: 'DSSI_USER_ACTION_PULSE',
+        pulse: {
+          sessionId: this.#sessionId,
+          domainKey: this.#domainKey,
+          viscosityLevel: this.#settings.viscosityLevel,
+          actionType,
+          observedAt: Date.now(),
+        },
+      })
+      .catch(() => {
+        // Transient correlation metadata must not interfere with the page action.
+      });
   }
 
   #report(
@@ -92,8 +119,9 @@ export class SubmissionObserver {
     confirmed: boolean,
   ): void {
     const cuePresented = this.#shouldPresent(descriptor, confirmed);
-    if (cuePresented)
-      this.#presenter.showSubmission(descriptor, this.#settings.viscosityLevel, confirmed);
+    if (cuePresented) {
+      this.#presenter.showSubmission(descriptor, effectiveCueLevel(this.#settings), confirmed);
+    }
 
     const record = createObservationRecord(
       {
@@ -124,6 +152,8 @@ export class SubmissionObserver {
   readonly #onSubmit = (event: SubmitEvent): void => {
     const form = resolveFormFromEvent(event);
     if (!form) return;
+
+    if (event.isTrusted) this.#sendActionPulse('form_submit');
 
     const pending = this.#pending.get(form);
     const isCorrelated =
@@ -157,6 +187,8 @@ export class SubmissionObserver {
         : null;
     if (!form) return;
 
+    if (event.isTrusted) this.#sendActionPulse('submit_control');
+
     this.#pending.set(form, {
       observedAt: performance.now(),
       trusted: event.isTrusted,
@@ -175,6 +207,8 @@ export class SubmissionObserver {
     if (event.key !== 'Enter' || event.isComposing) return;
     const form = resolveFormFromEvent(event);
     if (!form) return;
+
+    if (event.isTrusted) this.#sendActionPulse('enter_candidate');
 
     this.#pending.set(form, {
       observedAt: performance.now(),

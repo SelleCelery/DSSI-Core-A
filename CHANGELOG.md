@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.2 - Sprint 3.2
+
+- Added MAX as a reporting mode separate from viscosity Levels 1-3.
+- Added diagnostic recording for supported network activity when DSSI cannot correlate a recent content edit or trusted standard-form operation.
+- Added transient standard-form action pulses and a two-second action-to-network correlation path for delayed submit scenarios.
+- Added aggregated MAX diagnostic chips so short communication bursts are shown as one cognitive cue while diagnostic records remain individual.
+- Added a dynamic Coverage Manifest that separates observed, observed-then-reduced, not-observed-by-design, currently-unobservable, and unknown-residual regions.
+- Added explicit permission-state reporting without treating permission-excluded traffic as blocked traffic.
+- Added top, left, bottom, and right chip positions with a small interactive move handle; the chip body remains pointer-transparent.
+- Added settings persistence for reporting mode and chip position.
+- Kept request bodies, Cookie values, saved-Cookie inspection, page-main-world memory inspection, and established-stream messages outside Core A.
+- Advanced the privacy-safe observation schema to version 9.
+
 ## 0.4.1 - Sprint 3.1
 
 - Removed input-surface focus from the normal activity log and from network-correlation pulses.

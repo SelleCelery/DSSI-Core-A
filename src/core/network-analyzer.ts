@@ -1,5 +1,6 @@
 import type {
   CookieHeaderDetection,
+  NetworkCorrelation,
   NetworkDescriptor,
   NetworkMechanism,
   NetworkMethod,
@@ -12,6 +13,7 @@ export interface NetworkRequestSnapshot {
   method: string;
   initiator?: string;
   resourceType: string;
+  correlation?: NetworkCorrelation;
   cookieHeaderDetection?: CookieHeaderDetection;
   pageObservationTiming?: PageObservationTiming;
 }
@@ -54,8 +56,9 @@ function relationFor(destination: URL, initiator: string | undefined): Destinati
 
 function observationContext(
   snapshot: NetworkRequestSnapshot,
-): Pick<NetworkDescriptor, 'cookieHeaderDetection' | 'pageObservationTiming'> {
+): Pick<NetworkDescriptor, 'cookieHeaderDetection' | 'pageObservationTiming' | 'correlation'> {
   return {
+    correlation: snapshot.correlation ?? 'recent_content_edit',
     cookieHeaderDetection: snapshot.cookieHeaderDetection ?? 'not_observed',
     pageObservationTiming: snapshot.pageObservationTiming ?? 'unknown',
   };
@@ -81,7 +84,6 @@ export function analyzeNetworkRequest(
       destinationScheme: destination.protocol.replace(':', ''),
       destinationHost: destination.host || 'unknown',
       mechanism,
-      correlation: 'recent_content_edit',
       payloadObservation: 'not_requested',
       ...context,
     };
@@ -92,7 +94,6 @@ export function analyzeNetworkRequest(
       destinationScheme: 'unknown',
       destinationHost: 'unknown',
       mechanism,
-      correlation: 'recent_content_edit',
       payloadObservation: 'not_requested',
       ...context,
     };

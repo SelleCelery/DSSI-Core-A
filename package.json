@@ -1,6 +1,6 @@
 {
   "name": "dssi-core-a",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
   "description": "DSSI Core A - awareness-first cognitive safety layer for Chromium browsers",
   "license": "GPL-3.0-or-later",

@@ -10,7 +10,7 @@ DSSI Core A 0.4.0
 
 Sprint 3 adds two related boundaries:
 
-1. A formal lifecycle for transient classification evidence, reduced metadata, and persistent records.
+1. A formal lifecycle for tr0ansient classification evidence, reduced metadata, and persistent records.
 2. Optional browser-level observation of fetch/XHR and Beacon/Ping request starts near recent input activity.
 
 It does not inspect request payloads and does not claim that input content was sent.

@@ -110,6 +110,8 @@ const ENUM_FIELDS: Readonly<Partial<Record<keyof ObservationLogRecord, ReadonlyS
     'live_sync_surface_detected',
     'network_activity_during_input',
     'network_activity_after_content_edit',
+    'network_activity_after_submit_operation',
+    'network_activity_without_correlated_operation',
     'partially_observable_surface',
     'unobservable_surface',
   ]),
@@ -177,7 +179,13 @@ const ENUM_FIELDS: Readonly<Partial<Record<keyof ObservationLogRecord, ReadonlyS
     'UNKNOWN',
   ]),
   networkMechanism: new Set(['fetch_or_xhr', 'beacon_or_ping']),
-  networkCorrelation: new Set(['recent_input_activity', 'recent_content_edit']),
+  networkCorrelation: new Set([
+    'recent_input_activity',
+    'recent_content_edit',
+    'recent_submit_operation',
+    'no_correlated_user_operation',
+    'correlation_unavailable',
+  ]),
   networkPayloadObservation: new Set(['not_requested']),
   cookieHeaderDetection: new Set(['detected', 'not_detected', 'not_observed', 'unavailable']),
   pageObservationTiming: new Set([
@@ -279,7 +287,7 @@ function assertEnumField(
 function assertScalarFields(payload: ObservationLogRecord): void {
   if (
     payload.schemaVersion !== undefined &&
-    ![1, 2, 3, 4, 5, 6, 7, 8].includes(payload.schemaVersion)
+    ![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(payload.schemaVersion)
   ) {
     throw new PrivacyBoundaryError('Unsupported observation schema version.');
   }

@@ -1,15 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_SETTINGS } from '../../src/core/models/settings';
+import { DEFAULT_SETTINGS, effectiveCueLevel } from '../../src/core/models/settings';
 
 describe('default settings', () => {
-  it('starts in silent mode with optional analysis disabled', () => {
+  it('starts in silent standard mode with optional analysis disabled', () => {
     expect(DEFAULT_SETTINGS).toEqual({
       enabled: true,
       viscosityLevel: 1,
+      reportingMode: 'standard',
+      factChipPosition: 'right',
       localClassificationEnabled: false,
       networkObservationEnabled: false,
       downloadObservationEnabled: false,
       persistentHistoryEnabled: false,
     });
+  });
+
+  it('treats MAX as a reporting mode that includes Level 3 cues without creating Level 4', () => {
+    expect(effectiveCueLevel({ viscosityLevel: 1, reportingMode: 'standard' })).toBe(1);
+    expect(effectiveCueLevel({ viscosityLevel: 1, reportingMode: 'max_coverage' })).toBe(3);
+    expect(effectiveCueLevel({ viscosityLevel: 3, reportingMode: 'max_coverage' })).toBe(3);
   });
 });

@@ -8,7 +8,7 @@ The extension is designed to present observable facts and observation limits bef
 
 ## Status
 
-Sprint 3.1 — Content-Edit Correlation and Header-Name Detection
+Sprint 3.2 — MAX Coverage Reporting and Observation-Boundary Manifest
 
 This repository currently provides:
 
@@ -26,10 +26,13 @@ This repository currently provides:
 - same-form correlation between submit candidates and later submit events
 - Level 3 factual chips for inferred input route
 - closed-schema privacy boundary with three-stage validation
-- optional browser network metadata observation for content-edit-near fetch/XHR and Beacon/Ping requests
+- optional browser network metadata observation for content-edit-near and standard-form-operation-near fetch/XHR and Beacon/Ping requests
+- MAX reporting mode for operation-correlation-unconfirmed target communication diagnostics
+- dynamic Coverage Manifest for observed, reduced, deliberately unobserved, currently unobservable, and unknown-residual regions
+- movable factual chips with persistent top / left / bottom / right placement
 - lint, format, typecheck, test, and build commands
 
-Sprint 3.1 keeps focus out of the activity log and network-correlation path, refreshes the transient correlation pulse on every trusted content edit independently of duplicate activity-log suppression, and observes supported request headers only to detect the `Cookie` header name. Header values are not accessed by DSSI logic and are never copied into messages, records, storage, or UI. Request bodies are not requested, full URL paths and queries are not persisted, and no payload relation, authentication purpose, or server receipt is claimed.
+Sprint 3.2 retains the Sprint 3.1 focus and privacy boundaries while adding a separate MAX reporting mode. MAX does not request broader content access; it reports supported communication diagnostics even when DSSI cannot correlate a recent content edit or trusted standard-form operation. It also exposes a Coverage Manifest showing what DSSI observes, what it reduces, what it deliberately refuses to observe, what the current platform does not expose, and the remaining unknown residual. Header values are not accessed by DSSI logic and are never copied into messages, records, storage, or UI. Request bodies are not requested, full URL paths and queries are not persisted, and no payload relation, user intent, authentication purpose, or server receipt is claimed.
 
 ## Requirements
 
@@ -67,7 +70,7 @@ The initial build does not persist:
 
 The session log stores structural metadata only and can be cleared from the options page.
 
-See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](./docs/SPRINT1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.1 implementation guide](./docs/SPRINT1_1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.2 implementation guide](./docs/SPRINT1_2_IMPLEMENTATION_GUIDE.md), [the Sprint 2 implementation guide](./docs/SPRINT2_IMPLEMENTATION_GUIDE.md), [the Sprint 2.1 implementation guide](./docs/SPRINT2_1_IMPLEMENTATION_GUIDE.md), [the Sprint 2.2 implementation guide](./docs/SPRINT2_2_IMPLEMENTATION_GUIDE.md), [the Sprint 3 implementation guide](./docs/SPRINT3_IMPLEMENTATION_GUIDE.md), [the Sprint 3.1 implementation guide](./docs/SPRINT3_1_IMPLEMENTATION_GUIDE.md), [the data lifecycle and purge boundary](./docs/DATA_LIFECYCLE_AND_PURGE_BOUNDARY_v0.4.ja.md), [the operational glossary](./docs/DSSI_Core_A_Operational_Glossary.ja.md), and the product documents under [docs/product](./docs/product).
+See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](./docs/SPRINT1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.1 implementation guide](./docs/SPRINT1_1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.2 implementation guide](./docs/SPRINT1_2_IMPLEMENTATION_GUIDE.md), [the Sprint 2 implementation guide](./docs/SPRINT2_IMPLEMENTATION_GUIDE.md), [the Sprint 2.1 implementation guide](./docs/SPRINT2_1_IMPLEMENTATION_GUIDE.md), [the Sprint 2.2 implementation guide](./docs/SPRINT2_2_IMPLEMENTATION_GUIDE.md), [the Sprint 3 implementation guide](docs/SPRINT3_0_IMPLEMENTATION_GUIDE.md), [the Sprint 3.1 implementation guide](./docs/SPRINT3_1_IMPLEMENTATION_GUIDE.md), [the Sprint 3.2 implementation guide](./docs/SPRINT3_2_IMPLEMENTATION_GUIDE.md), [the data lifecycle and purge boundary](./docs/DATA_LIFECYCLE_AND_PURGE_BOUNDARY_v0.4.ja.md), [the operational glossary](./docs/DSSI_Core_A_Operational_Glossary.ja.md), and the product documents under [docs/product](./docs/product).
 
 ## License
 
@@ -92,3 +95,13 @@ Network metadata observation is disabled by default. When the user enables it, t
 The browser API temporarily supplies a complete request URL and, in Sprint 3.1, a request-header collection. DSSI immediately reduces the URL to scheme, host, method, resource-class-derived mechanism, and same/cross-origin relation. It scans header names only for `Cookie` and reduces the result to a closed detection state. Path, query, fragment, credentials, request body, header values, response body, and server receipt are not persisted or claimed.
 
 Focus is no longer an activity-log fact or a network-correlation pulse. It remains a transient awareness cue at Level 3, and at Level 2 for password, payment, and personal-information fields.
+
+## Sprint 3.2: MAX coverage reporting
+
+MAX is not viscosity Level 4. Viscosity remains a three-level cue policy. MAX is a separate reporting mode that includes Level 3 awareness cues and adds diagnostic communication reporting and observation-boundary visibility.
+
+In standard mode, supported communication metadata is retained when it follows a trusted content edit within 2.5 seconds or a trusted standard-form operation within 2 seconds. In MAX, supported requests without either correlation are stored in the diagnostic log and presented through an 800ms aggregate chip. “Operation correlation unconfirmed” does not mean that no user operation occurred.
+
+The options page includes a dynamic Coverage Manifest. It distinguishes observation, immediate reduction, design refusal, current technical unobservability, and unknown residual. MAX does not inspect stored Cookie values, request bodies, page-main-world memory, in-memory cache contents, or messages inside already-established WebSocket or WebTransport sessions.
+
+Fact chips remain pointer-transparent except for a small move handle. Clicking the handle cycles the position through top, left, bottom, and right and persists the selection.

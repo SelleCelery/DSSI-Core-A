@@ -11,7 +11,7 @@
       <h1>DSSI Core A</h1>
       <h2>設定とプライバシー</h2>
       <p>
-        初期版は入力本文、パスワード、決済番号、クリップボード本文、送信本文を保存しません。
+        DSSIは入力本文、パスワード、決済番号、クリップボード本文、送信本文を保存しません。
         保存対象は設定と、本文を含まない観測メタデータだけです。
       </p>
       <fieldset>
@@ -26,9 +26,32 @@
         </label>
         <p class="small">
           有効化時だけ、ChromeのwebRequest権限とHTTP/HTTPSサイトへの追加アクセスを求めます。
-          観測対象は信頼済みの内容変更操作から2.5秒以内に始まったfetch/XHR系またはBeacon/Ping系の通信です。
+          標準モードでは内容変更または標準form送信操作に近接した通信を通常ログへ残します。
+          MAXでは対象通信のうち相関可能な利用者操作を確認できない通信も診断ログへ記録します。
           request bodyは要求せず、URLのpath・query・fragmentは保存しません。 request
-          headersはCookieというヘッダー名の検出にだけ一時利用し、値はDSSIの処理で参照・分類・保存・表示しません。
+          headersはCookieというヘッダー名の検出にだけ一時利用し、値は保存・表示しません。
+        </p>
+        <label class="field">
+          <span>報告モード</span>
+          <select id="reportingMode">
+            <option value="standard">標準 — 選別された観測を報告</option>
+            <option value="max_coverage">MAX — 診断事象と既知の観測限界を最大限表示</option>
+          </select>
+        </label>
+        <p class="small">
+          MAXは権限や取得内容を増やすモードではありません。現在の観測面で取得できた診断事象と、見ない・見えない領域の説明量を増やします。
+        </p>
+        <label class="field">
+          <span>チップ表示位置</span>
+          <select id="factChipPosition">
+            <option value="top">上</option>
+            <option value="left">左</option>
+            <option value="bottom">下</option>
+            <option value="right">右</option>
+          </select>
+        </label>
+        <p class="small">
+          表示中のチップ右上にある移動ボタンでも、上 → 左 → 下 → 右の順に変更できます。
         </p>
         <label class="row">
           <span>永続履歴</span>
@@ -38,13 +61,15 @@
       <button id="save" type="button">保存</button>
       <button id="clearSession" type="button">セッション観測ログを消去</button>
       <p id="status" class="status" role="status"></p>
-      <h2>現在の死角</h2>
-      <p>
-        DSSI Core Aは、通信本文、レスポンス、WebSocket確立後のメッセージ、Service
-        Worker内部の因果関係を捕捉しません。
-        通信メタデータが観測されても、その通信に入力内容が含まれたとは断定しません。
-        警告が表示されていないことは、安全であることを意味しません。
-      </p>
+
+      <section aria-labelledby="coverageHeading">
+        <h2 id="coverageHeading">現在の観測範囲</h2>
+        <p>
+          DSSIが観測するもの、観測後に縮約するもの、主権保全のため接続しないもの、現在の仕組みでは見えないものを分けて表示します。
+          この一覧自体も完全ではなく、未列挙の未知が残ります。
+        </p>
+        <div id="coverageBody" class="coverage-list"></div>
+      </section>
     </main>
     <script type="module" src="options.js"></script>
   </body>

@@ -22,6 +22,8 @@ export type TriggerType =
   | 'live_sync_surface_detected'
   | 'network_activity_during_input'
   | 'network_activity_after_content_edit'
+  | 'network_activity_after_submit_operation'
+  | 'network_activity_without_correlated_operation'
   | 'partially_observable_surface'
   | 'unobservable_surface';
 
@@ -92,7 +94,7 @@ import type {
 } from './network';
 
 export interface ObservationLogRecord {
-  schemaVersion?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+  schemaVersion?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
   eventId: string;
   timestamp: number;
   sessionId: string;

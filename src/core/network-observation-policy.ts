@@ -1,5 +1,5 @@
 /**
- * Closed Sprint 3.1 network-observation policy.
+ * Closed Sprint 3.2 network-observation policy.
  * Request bodies are never requested. Request headers are transiently
  * requested only so DSSI can inspect header names for `Cookie`; values are
  * not accessed by DSSI logic and are never copied, logged, displayed, or

@@ -16,7 +16,12 @@ export type NetworkMethod =
 
 export type NetworkMechanism = 'fetch_or_xhr' | 'beacon_or_ping';
 
-export type NetworkCorrelation = 'recent_input_activity' | 'recent_content_edit';
+export type NetworkCorrelation =
+  | 'recent_input_activity'
+  | 'recent_content_edit'
+  | 'recent_submit_operation'
+  | 'no_correlated_user_operation'
+  | 'correlation_unavailable';
 
 export type NetworkPayloadObservation = 'not_requested';
 
@@ -57,5 +62,20 @@ export interface InputActivityPulse {
   classificationConfidence: ClassificationConfidence;
   viscosityLevel: ViscosityLevel;
   /** Wall-clock time assigned in the content script when the trusted edit was observed. */
+  observedAt: number;
+}
+
+export type UserActionType = 'form_submit' | 'submit_control' | 'enter_candidate';
+
+/**
+ * Ephemeral metadata for correlating a later browser network event with a
+ * trusted standard-form operation. It contains no form action URL, labels,
+ * element identifiers, or user-entered content.
+ */
+export interface UserActionPulse {
+  sessionId: string;
+  domainKey: string;
+  viscosityLevel: ViscosityLevel;
+  actionType: UserActionType;
   observedAt: number;
 }

@@ -4,6 +4,7 @@ import {
   surfaceTypeLabel,
 } from '../core/observation-presentation';
 import type { ObservationLogRecord } from '../core/models/observation';
+import type { ReportingMode } from '../core/models/settings';
 import { loadSettings, saveSettings } from '../storage/settings-store';
 import { getSessionRecords } from '../storage/session-buffer';
 import { requiredElement } from '../ui/required-element';
@@ -12,6 +13,7 @@ const MAX_RECENT_RECORDS = 5;
 
 const enabled = requiredElement<HTMLInputElement>('#enabled');
 const viscosity = requiredElement<HTMLSelectElement>('#viscosityLevel');
+const reportingMode = requiredElement<HTMLSelectElement>('#reportingMode');
 const status = requiredElement<HTMLElement>('#status');
 const count = requiredElement<HTMLElement>('#count');
 const recentList = requiredElement<HTMLUListElement>('#recentList');
@@ -49,10 +51,15 @@ function renderRecent(records: ObservationLogRecord[]): void {
   }
 }
 
+function asReportingMode(value: string): ReportingMode {
+  return value === 'max_coverage' ? 'max_coverage' : 'standard';
+}
+
 async function refresh(): Promise<void> {
   const [settings, records] = await Promise.all([loadSettings(), getSessionRecords()]);
   enabled.checked = settings.enabled;
   viscosity.value = String(settings.viscosityLevel);
+  reportingMode.value = settings.reportingMode;
   count.textContent = String(records.length);
   renderRecent(records);
 }
@@ -63,19 +70,26 @@ async function persist(): Promise<void> {
     ...current,
     enabled: enabled.checked,
     viscosityLevel: Number(viscosity.value) === 3 ? 3 : Number(viscosity.value) === 2 ? 2 : 1,
+    reportingMode: asReportingMode(reportingMode.value),
   });
-  status.textContent = '設定を保存しました。';
+  status.textContent =
+    reportingMode.value === 'max_coverage'
+      ? 'MAX報告モードを保存しました。対象ページの再読み込み後に反映されます。'
+      : '設定を保存しました。';
 }
 
 enabled.addEventListener('change', () => void persist());
 viscosity.addEventListener('change', () => void persist());
+reportingMode.addEventListener('change', () => void persist());
 openLog.addEventListener('click', () => {
   void chrome.tabs.create({ url: chrome.runtime.getURL('logs.html') });
 });
 openOptions.addEventListener('click', () => void chrome.runtime.openOptionsPage());
 
-chrome.storage.onChanged.addListener((_changes, areaName) => {
-  if (areaName === 'session') void refresh();
-});
+chrome.storage.onChanged.addListener(
+  (_changes: Record<string, chrome.storage.StorageChange>, areaName: string) => {
+    if (areaName === 'session') void refresh();
+  },
+);
 
 void refresh();

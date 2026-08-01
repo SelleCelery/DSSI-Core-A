@@ -220,3 +220,39 @@ Sprint 3.1のrequest bodyは未要求である。request headersはCookieヘッ�
 将来構想。利用者が明示操作によって、通常なら破棄される追加情報を証拠候補として保存すること。
 
 現時点では未実装であり、通常のObservationRecordとは別仕様にする。
+
+## 標準form操作近接通信 / Network Activity Near Standard-Form Operation
+
+信頼済みのsubmit要素操作、IME変換中ではないEnter候補、またはtrusted submitイベントから2000ms以内に、同一tab / frameで対象通信開始が観測された状態。
+
+内容変更から送信までの時間が長い場合でも、送信時点の標準form操作との近接を扱える。ただし、通信に入力内容が含まれたこと、利用者がその通信を意図したこと、サーバーが受信したことは意味しない。
+
+## 操作相関未確認通信 / Network Activity Without Confirmed User-Operation Correlation
+
+MAX報告モードで、内容変更2500ms相関と標準form操作2000ms相関のいずれも確認できなかった対象通信。
+
+```text
+操作相関未確認 ≠ 利用者操作がなかった
+操作相関未確認 ≠ 自動送信
+操作相関未確認 ≠ 意図外送信
+```
+
+DSSIが現在相関対象にしている信号を確認しなかったことだけを示す。
+
+## MAX報告モード / MAX Coverage Reporting
+
+粘性Level 1-3とは別の報告軸。Level 3相当の気づき表示を含み、対象通信の診断事象と既知の観測限界を最大限表示する。
+
+MAXはすべてを観測するという意味ではなく、取得権限や本文観測を増やすものでもない。
+
+## Coverage Manifest / 観測範囲台帳
+
+DSSIの現在の観測能力と境界判断を、事象ログとは別に表示する仕様。
+
+- `observed`: 観測している
+- `observed_then_reduced`: 観測後に縮約している
+- `not_observed_by_design`: 技術的接触可能性があっても設計上接続しない
+- `not_observable_currently`: 現在の権限・API・構造では観測できない
+- `unknown_residual`: 未列挙の死角が残る
+
+Coverage Manifestは完全な死角一覧を保証しない。

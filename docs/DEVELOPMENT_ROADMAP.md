@@ -93,3 +93,18 @@ The original product functional specification placed the network metadata spike 
 ## Sprint 4 and later
 
 Continue from `docs/product/DSSI_Core_A_Functional_Specification.md`, reconciling the original sequence with verified implementation history.
+
+## Sprint 3.2 — MAX Coverage Reporting
+
+- [x] add MAX as a reporting mode separate from viscosity Levels 1-3
+- [x] add standard-form-operation-to-network transient correlation
+- [x] keep operation-correlation-unconfirmed target communication in the diagnostic layer
+- [x] aggregate MAX communication chips without aggregating persisted diagnostic records
+- [x] add a dynamic Coverage Manifest
+- [x] separate observed, reduced, deliberately unobserved, currently unobservable, and unknown-residual regions
+- [x] expose optional network-permission state in the Coverage Manifest
+- [x] add persistent top / left / bottom / right fact-chip placement
+- [x] keep the chip body pointer-transparent and make only the move handle interactive
+- [ ] complete real-browser MAX traffic-volume tests
+- [ ] verify standard-form action correlation against multiple SPA and navigation patterns
+- [ ] evaluate general button-operation correlation without collecting labels or identifiers

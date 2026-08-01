@@ -64,3 +64,26 @@ Only request starts within 2500ms of a trusted content edit in the same tab, fra
 Observation records are validated before a Content Script message, after Service Worker receipt, and immediately before `chrome.storage.session` persistence. Unknown fields, nested payloads, and raw URL-like host values are rejected.
 
 Future user-requested evidence preservation is not implemented. It must use a separate explicit-consent record type and storage path rather than weakening the normal observation-log boundary.
+
+## Sprint 3.2 MAX reporting and coverage responsibility
+
+MAX is a reporting mode, not a fourth viscosity level and not a broader content-access permission. It includes Level 3 cues, records supported communication diagnostics when DSSI cannot correlate a recent trusted content edit or standard-form operation, and displays DSSI's known observation boundaries.
+
+Standard activity records may use either of these transient correlations:
+
+- trusted content edit to supported request start within 2500ms
+- trusted standard-form submit operation to supported request start within 2000ms
+
+MAX diagnostic records may use the closed state `no_correlated_user_operation`. This means only that DSSI did not confirm one of its currently supported correlation signals. It does not prove that no user operation occurred, that communication was automatic, that the user did not intend it, or that input content was present.
+
+The Coverage Manifest separates:
+
+- observed facts
+- facts observed and immediately reduced
+- technically reachable areas deliberately not connected because of privacy or permission boundaries
+- areas not observable through the current browser and extension architecture
+- unknown residual not guaranteed to be exhaustively listed
+
+Core A deliberately does not connect to stored-Cookie inspection, request bodies, raw Cookie or Authorization values, page-main-world memory inspection, or invasive wrapping of page networking APIs. It also cannot guarantee visibility into in-memory cache handling, already-established WebSocket or WebTransport message flows, permission-excluded traffic, browser-private traffic, or events that occurred before DSSI observation began.
+
+A chip-position handle stores only one categorical preference: top, left, bottom, or right. The chip body remains pointer-transparent so normal page interaction is not intercepted.

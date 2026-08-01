@@ -146,3 +146,47 @@ button {
   outline: 2px solid currentColor;
   outline-offset: 2px;
 }
+
+.coverage-list {
+  display: grid;
+  gap: 12px;
+}
+
+.coverage-entry {
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 10px;
+}
+
+.coverage-entry h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.coverage-entry p {
+  margin: 6px 0 0;
+}
+
+.coverage-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.coverage-status,
+.coverage-reason {
+  display: inline-block;
+  padding: 2px 7px;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+.coverage-observed,
+.coverage-observed_then_reduced {
+  font-weight: 700;
+}
+
+.coverage-unknown_residual {
+  border-style: dashed;
+}

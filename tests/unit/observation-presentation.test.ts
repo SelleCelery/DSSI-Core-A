@@ -154,4 +154,16 @@ describe('observation presentation', () => {
       '判定不能',
     );
   });
+
+  it('labels submit correlation and MAX diagnostic communication without claiming intent', () => {
+    expect(
+      networkCorrelationLabel(makeRecord({ networkCorrelation: 'recent_submit_operation' })),
+    ).toBe('標準form送信操作から2秒以内の時間相関');
+    expect(triggerTypeLabel('network_activity_without_correlated_operation')).toBe(
+      '通信開始を観測（相関可能な利用者操作は未確認）',
+    );
+    expect(
+      networkCorrelationLabel(makeRecord({ networkCorrelation: 'no_correlated_user_operation' })),
+    ).toBe('相関可能な利用者操作を確認していない');
+  });
 });
