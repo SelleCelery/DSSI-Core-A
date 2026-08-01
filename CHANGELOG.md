@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.3 - Sprint 3.3
+
+- Added a log-page Coverage Manifest dialog so observation limits can be checked while reading records.
+- Added synchronized top and bottom horizontal scrollbars for the wide observation table.
+- Expanded fact-chip placement to eight clockwise positions, including right-bottom and left-bottom.
+- Added an optional small communication-pulse display for Level 2, Level 3, and MAX.
+- Added geometric visual separation for DOM form boundaries, fetch/XHR traffic, and Beacon/Ping traffic.
+- Added compact method glyphs, Cookie-header detection markers, and a cross-origin corner mark.
+- Kept all pulse colors low-saturation and non-evaluative; colors identify observation routes rather than safety or danger.
+- Added configurable pulse duration and size while keeping each mechanism icon at approximately five millimeters or less.
+- Kept network pulses metadata-only and explicitly body-unobserved.
+- Added shared Coverage Manifest rendering for the options and log pages.
+
 ## 0.4.2 - Sprint 3.2
 
 - Added MAX as a reporting mode separate from viscosity Levels 1-3.

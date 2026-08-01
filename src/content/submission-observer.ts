@@ -1,5 +1,9 @@
 import type { UserActionType } from '../core/models/network';
-import { effectiveCueLevel, type DssiSettings } from '../core/models/settings';
+import {
+  effectiveCueLevel,
+  shouldPresentCommunicationPulse,
+  type DssiSettings,
+} from '../core/models/settings';
 import type {
   SubmissionAssociation,
   SubmissionDescriptor,
@@ -8,6 +12,7 @@ import type {
 import { createObservationRecord } from '../core/observation-factory';
 import { createPrivacySafeRecord } from '../core/privacy-safe-logger';
 import { analyzeSubmission } from '../core/submission-analyzer';
+import { CommunicationPulsePresenter } from '../ui/communication-pulse';
 import { FactChipPresenter } from '../ui/fact-chip';
 
 const SUBMIT_CORRELATION_WINDOW_MS = 1500;
@@ -61,6 +66,7 @@ export class SubmissionObserver {
   readonly #sessionId: string;
   readonly #domainKey = location.hostname || 'unknown';
   readonly #presenter: FactChipPresenter;
+  readonly #pulsePresenter: CommunicationPulsePresenter;
   readonly #pending = new WeakMap<HTMLFormElement, PendingSubmissionCandidate>();
   #networkPulseEnabled: boolean;
 
@@ -68,6 +74,12 @@ export class SubmissionObserver {
     this.#settings = settings;
     this.#sessionId = sessionId;
     this.#presenter = new FactChipPresenter(settings.factChipPosition);
+    this.#pulsePresenter = new CommunicationPulsePresenter({
+      position: settings.factChipPosition,
+      durationMs: settings.communicationPulseDurationMs,
+      size: settings.communicationPulseSize,
+      enabled: shouldPresentCommunicationPulse(settings),
+    });
     this.#networkPulseEnabled = settings.networkObservationEnabled;
   }
 
@@ -118,6 +130,8 @@ export class SubmissionObserver {
       | 'untrusted_or_unknown',
     confirmed: boolean,
   ): void {
+    if (confirmed) this.#pulsePresenter.showSubmission(descriptor);
+
     const cuePresented = this.#shouldPresent(descriptor, confirmed);
     if (cuePresented) {
       this.#presenter.showSubmission(descriptor, effectiveCueLevel(this.#settings), confirmed);

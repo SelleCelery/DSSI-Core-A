@@ -55,20 +55,36 @@ function applyHostPosition(host: HTMLDivElement, position: FactChipPosition): vo
       host.style.setProperty('left', '50%');
       host.style.setProperty('transform', 'translateX(-50%)');
       break;
-    case 'left':
-      host.style.setProperty('left', '10px');
+    case 'top_right':
+      host.style.setProperty('top', '10px');
+      host.style.setProperty('right', '10px');
+      break;
+    case 'right':
+      host.style.setProperty('right', '10px');
       host.style.setProperty('top', '50%');
       host.style.setProperty('transform', 'translateY(-50%)');
+      break;
+    case 'bottom_right':
+      host.style.setProperty('right', '10px');
+      host.style.setProperty('bottom', '10px');
       break;
     case 'bottom':
       host.style.setProperty('bottom', '10px');
       host.style.setProperty('left', '50%');
       host.style.setProperty('transform', 'translateX(-50%)');
       break;
-    case 'right':
-      host.style.setProperty('right', '10px');
+    case 'bottom_left':
+      host.style.setProperty('left', '10px');
+      host.style.setProperty('bottom', '10px');
+      break;
+    case 'left':
+      host.style.setProperty('left', '10px');
       host.style.setProperty('top', '50%');
       host.style.setProperty('transform', 'translateY(-50%)');
+      break;
+    case 'top_left':
+      host.style.setProperty('top', '10px');
+      host.style.setProperty('left', '10px');
       break;
   }
 }
@@ -342,6 +358,7 @@ export class FactChipPresenter {
       const from = (host.dataset.position as FactChipPosition | undefined) ?? this.#initialPosition;
       const to = nextFactChipPosition(from);
       applyHostPosition(host, to);
+      window.dispatchEvent(new CustomEvent('dssi-core-a-chip-position-changed', { detail: to }));
       const following = nextFactChipPosition(to);
       move.setAttribute('aria-label', `チップ表示位置を${factChipPositionLabel(following)}へ変更`);
       move.title = `${factChipPositionLabel(following)}へ移動`;

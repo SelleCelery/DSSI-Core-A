@@ -108,3 +108,19 @@ Continue from `docs/product/DSSI_Core_A_Functional_Specification.md`, reconcilin
 - [ ] complete real-browser MAX traffic-volume tests
 - [ ] verify standard-form action correlation against multiple SPA and navigation patterns
 - [ ] evaluate general button-operation correlation without collecting labels or identifiers
+
+## Sprint 3.3 — Real-Time Boundary Pulse Visualization
+
+- [x] expose the Coverage Manifest from the log viewer
+- [x] synchronize top and bottom horizontal scrollbars for the observation table
+- [x] expand factual-chip placement to eight clockwise positions
+- [x] persist right-bottom and left-bottom placement options
+- [x] add optional communication pulses for Level 2, Level 3, and MAX
+- [x] distinguish DOM form, fetch/XHR, and Beacon/Ping by geometry
+- [x] distinguish methods and Cookie-header detection states without inspecting values
+- [x] mark cross-origin relation without using danger semantics
+- [x] use low-saturation, non-evaluative colors and preserve shape-first readability
+- [x] make pulse duration and size configurable
+- [x] preserve request-body non-observation and existing privacy boundaries
+- [ ] complete real-browser visual-density tests on high-traffic SPA pages
+- [ ] evaluate active-tab settings propagation without page reload

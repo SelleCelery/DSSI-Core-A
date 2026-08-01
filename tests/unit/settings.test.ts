@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_SETTINGS, effectiveCueLevel } from '../../src/core/models/settings';
+import {
+  DEFAULT_SETTINGS,
+  effectiveCueLevel,
+  shouldPresentCommunicationPulse,
+} from '../../src/core/models/settings';
 
 describe('default settings', () => {
   it('starts in silent standard mode with optional analysis disabled', () => {
@@ -8,6 +12,9 @@ describe('default settings', () => {
       viscosityLevel: 1,
       reportingMode: 'standard',
       factChipPosition: 'right',
+      communicationPulseEnabled: true,
+      communicationPulseDurationMs: 700,
+      communicationPulseSize: 'small',
       localClassificationEnabled: false,
       networkObservationEnabled: false,
       downloadObservationEnabled: false,
@@ -19,5 +26,36 @@ describe('default settings', () => {
     expect(effectiveCueLevel({ viscosityLevel: 1, reportingMode: 'standard' })).toBe(1);
     expect(effectiveCueLevel({ viscosityLevel: 1, reportingMode: 'max_coverage' })).toBe(3);
     expect(effectiveCueLevel({ viscosityLevel: 3, reportingMode: 'max_coverage' })).toBe(3);
+  });
+
+  it('shows communication pulses only from Level 2 upward or in MAX', () => {
+    expect(
+      shouldPresentCommunicationPulse({
+        viscosityLevel: 1,
+        reportingMode: 'standard',
+        communicationPulseEnabled: true,
+      }),
+    ).toBe(false);
+    expect(
+      shouldPresentCommunicationPulse({
+        viscosityLevel: 2,
+        reportingMode: 'standard',
+        communicationPulseEnabled: true,
+      }),
+    ).toBe(true);
+    expect(
+      shouldPresentCommunicationPulse({
+        viscosityLevel: 1,
+        reportingMode: 'max_coverage',
+        communicationPulseEnabled: true,
+      }),
+    ).toBe(true);
+    expect(
+      shouldPresentCommunicationPulse({
+        viscosityLevel: 3,
+        reportingMode: 'max_coverage',
+        communicationPulseEnabled: false,
+      }),
+    ).toBe(false);
   });
 });

@@ -21,13 +21,22 @@
       <p class="small"><span id="viewLabel">通常ログ</span>件数: <strong id="count">0</strong></p>
       <div class="button-row">
         <button id="refresh" type="button">更新</button>
+        <button id="showCoverage" type="button">観測範囲を確認</button>
         <button id="clearCurrent" type="button">表示中のログを消去</button>
         <button id="clearAll" type="button">すべてのログを消去</button>
       </div>
       <p id="status" class="status" role="status"></p>
       <p id="empty">観測ログはありません。</p>
-      <div class="table-scroll">
-        <table class="observation-table">
+
+      <div
+        id="tableScrollTop"
+        class="table-scroll-top"
+        aria-label="観測ログ表の上側横スクロールバー"
+      >
+        <div id="tableScrollTopSizer" class="table-scroll-top-sizer"></div>
+      </div>
+      <div id="tableScroll" class="table-scroll">
+        <table id="observationTable" class="observation-table">
           <thead>
             <tr>
               <th scope="col">時刻</th>
@@ -55,6 +64,17 @@
           <tbody id="logBody"></tbody>
         </table>
       </div>
+
+      <section aria-labelledby="pulseLegendHeading">
+        <h2 id="pulseLegendHeading">通信パルスの読み方</h2>
+        <p>
+          小型通信パルスは、標準formのDOM送信境界と、webRequestで観測した通信の時間配置を示します。
+          □はDOM form、○はfetch/XHR、波形はBeacon/Ping、中央のG/P等はmethodです。
+          右上の点はCookieヘッダー名の検出状態、左上の短線は別オリジンを示します。
+          色は観測経路の識別補助であり、安全・危険・注意を意味しません。ネットワークパルスはすべて本文未観測です。
+        </p>
+      </section>
+
       <h2>読み方</h2>
       <p>
         「トップフレーム」はブラウザタブの最上位文書です。「埋め込みフレーム」はその中に置かれた別文書です。
@@ -82,7 +102,7 @@
       </p>
       <p>
         MAX報告モードは、DSSIの権限や取得内容を最大化するものではありません。
-        現在の通信フィルターと権限で観測できた診断事象を増やし、設定画面に観測・縮約・設計上非観測・現在観測不能・未知残差を表示します。
+        現在の通信フィルターと権限で観測できた診断事象を増やし、観測・縮約・設計上非観測・現在観測不能・未知残差を表示します。
       </p>
       <p>
         「ページ観測開始から5秒以内／5秒超」は、DSSI自身の観測開始との時間関係だけを示します。
@@ -96,6 +116,22 @@
         Chromeの権限、API制約、キャッシュ、ブラウザ内部処理などにより、通信やヘッダー自体を観測できない場合があります。
       </p>
     </main>
+
+    <dialog id="coverageDialog" class="coverage-dialog" aria-labelledby="coverageDialogTitle">
+      <div class="coverage-dialog-header">
+        <div>
+          <h2 id="coverageDialogTitle">現在の観測範囲</h2>
+          <p class="small">
+            観測しているもの、縮約しているもの、設計上接続しないもの、現在見えないもの、未知残差を区別します。
+          </p>
+        </div>
+        <form method="dialog">
+          <button type="submit">閉じる</button>
+        </form>
+      </div>
+      <div id="coverageDialogBody" class="coverage-list"></div>
+    </dialog>
+
     <script type="module" src="logs.js"></script>
   </body>
 </html>

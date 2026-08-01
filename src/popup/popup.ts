@@ -14,6 +14,7 @@ const MAX_RECENT_RECORDS = 5;
 const enabled = requiredElement<HTMLInputElement>('#enabled');
 const viscosity = requiredElement<HTMLSelectElement>('#viscosityLevel');
 const reportingMode = requiredElement<HTMLSelectElement>('#reportingMode');
+const communicationPulseEnabled = requiredElement<HTMLInputElement>('#communicationPulseEnabled');
 const status = requiredElement<HTMLElement>('#status');
 const count = requiredElement<HTMLElement>('#count');
 const recentList = requiredElement<HTMLUListElement>('#recentList');
@@ -60,6 +61,7 @@ async function refresh(): Promise<void> {
   enabled.checked = settings.enabled;
   viscosity.value = String(settings.viscosityLevel);
   reportingMode.value = settings.reportingMode;
+  communicationPulseEnabled.checked = settings.communicationPulseEnabled;
   count.textContent = String(records.length);
   renderRecent(records);
 }
@@ -71,6 +73,7 @@ async function persist(): Promise<void> {
     enabled: enabled.checked,
     viscosityLevel: Number(viscosity.value) === 3 ? 3 : Number(viscosity.value) === 2 ? 2 : 1,
     reportingMode: asReportingMode(reportingMode.value),
+    communicationPulseEnabled: communicationPulseEnabled.checked,
   });
   status.textContent =
     reportingMode.value === 'max_coverage'
@@ -81,6 +84,7 @@ async function persist(): Promise<void> {
 enabled.addEventListener('change', () => void persist());
 viscosity.addEventListener('change', () => void persist());
 reportingMode.addEventListener('change', () => void persist());
+communicationPulseEnabled.addEventListener('change', () => void persist());
 openLog.addEventListener('click', () => {
   void chrome.tabs.create({ url: chrome.runtime.getURL('logs.html') });
 });

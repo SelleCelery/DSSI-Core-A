@@ -8,7 +8,7 @@ The extension is designed to present observable facts and observation limits bef
 
 ## Status
 
-Sprint 3.2 — MAX Coverage Reporting and Observation-Boundary Manifest
+Sprint 3.3 — Real-Time Boundary Pulse Visualization
 
 This repository currently provides:
 
@@ -29,10 +29,12 @@ This repository currently provides:
 - optional browser network metadata observation for content-edit-near and standard-form-operation-near fetch/XHR and Beacon/Ping requests
 - MAX reporting mode for operation-correlation-unconfirmed target communication diagnostics
 - dynamic Coverage Manifest for observed, reduced, deliberately unobserved, currently unobservable, and unknown-residual regions
-- movable factual chips with persistent top / left / bottom / right placement
+- movable factual chips with persistent eight-direction placement
+- optional geometric communication pulses for DOM form, fetch/XHR, and Beacon/Ping observations
+- log-page Coverage Manifest dialog and synchronized top/bottom table scrollbars
 - lint, format, typecheck, test, and build commands
 
-Sprint 3.2 retains the Sprint 3.1 focus and privacy boundaries while adding a separate MAX reporting mode. MAX does not request broader content access; it reports supported communication diagnostics even when DSSI cannot correlate a recent content edit or trusted standard-form operation. It also exposes a Coverage Manifest showing what DSSI observes, what it reduces, what it deliberately refuses to observe, what the current platform does not expose, and the remaining unknown residual. Header values are not accessed by DSSI logic and are never copied into messages, records, storage, or UI. Request bodies are not requested, full URL paths and queries are not persisted, and no payload relation, user intent, authentication purpose, or server receipt is claimed.
+Sprint 3.3 retains the Sprint 3.2 MAX and privacy boundaries while adding a real-time, metadata-only communication-pulse layer. MAX does not request broader content access; it reports supported communication diagnostics even when DSSI cannot correlate a recent content edit or trusted standard-form operation. It also exposes a Coverage Manifest showing what DSSI observes, what it reduces, what it deliberately refuses to observe, what the current platform does not expose, and the remaining unknown residual. Header values are not accessed by DSSI logic and are never copied into messages, records, storage, or UI. Request bodies are not requested, full URL paths and queries are not persisted, and no payload relation, user intent, authentication purpose, or server receipt is claimed.
 
 ## Requirements
 
@@ -70,7 +72,7 @@ The initial build does not persist:
 
 The session log stores structural metadata only and can be cleared from the options page.
 
-See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](./docs/SPRINT1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.1 implementation guide](./docs/SPRINT1_1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.2 implementation guide](./docs/SPRINT1_2_IMPLEMENTATION_GUIDE.md), [the Sprint 2 implementation guide](./docs/SPRINT2_IMPLEMENTATION_GUIDE.md), [the Sprint 2.1 implementation guide](./docs/SPRINT2_1_IMPLEMENTATION_GUIDE.md), [the Sprint 2.2 implementation guide](./docs/SPRINT2_2_IMPLEMENTATION_GUIDE.md), [the Sprint 3 implementation guide](docs/SPRINT3_0_IMPLEMENTATION_GUIDE.md), [the Sprint 3.1 implementation guide](./docs/SPRINT3_1_IMPLEMENTATION_GUIDE.md), [the Sprint 3.2 implementation guide](./docs/SPRINT3_2_IMPLEMENTATION_GUIDE.md), [the data lifecycle and purge boundary](./docs/DATA_LIFECYCLE_AND_PURGE_BOUNDARY_v0.4.ja.md), [the operational glossary](./docs/DSSI_Core_A_Operational_Glossary.ja.md), and the product documents under [docs/product](./docs/product).
+See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](./docs/SPRINT1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.1 implementation guide](./docs/SPRINT1_1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.2 implementation guide](./docs/SPRINT1_2_IMPLEMENTATION_GUIDE.md), [the Sprint 2 implementation guide](./docs/SPRINT2_IMPLEMENTATION_GUIDE.md), [the Sprint 2.1 implementation guide](./docs/SPRINT2_1_IMPLEMENTATION_GUIDE.md), [the Sprint 2.2 implementation guide](./docs/SPRINT2_2_IMPLEMENTATION_GUIDE.md), [the Sprint 3 implementation guide](./docs/SPRINT3_IMPLEMENTATION_GUIDE.md), [the Sprint 3.1 implementation guide](./docs/SPRINT3_1_IMPLEMENTATION_GUIDE.md), [the Sprint 3.2 implementation guide](./docs/SPRINT3_2_IMPLEMENTATION_GUIDE.md), [the Sprint 3.3 implementation guide](./docs/SPRINT3_3_IMPLEMENTATION_GUIDE.md), [the data lifecycle and purge boundary](./docs/DATA_LIFECYCLE_AND_PURGE_BOUNDARY_v0.4.ja.md), [the operational glossary](./docs/DSSI_Core_A_Operational_Glossary.ja.md), and the product documents under [docs/product](./docs/product).
 
 ## License
 
@@ -104,4 +106,12 @@ In standard mode, supported communication metadata is retained when it follows a
 
 The options page includes a dynamic Coverage Manifest. It distinguishes observation, immediate reduction, design refusal, current technical unobservability, and unknown residual. MAX does not inspect stored Cookie values, request bodies, page-main-world memory, in-memory cache contents, or messages inside already-established WebSocket or WebTransport sessions.
 
-Fact chips remain pointer-transparent except for a small move handle. Clicking the handle cycles the position through top, left, bottom, and right and persists the selection.
+Fact chips remain pointer-transparent except for a small move handle. Clicking the handle cycles clockwise through eight positions and persists the selection.
+
+## Sprint 3.3: real-time boundary pulse visualization
+
+The log viewer can open the same dynamic Coverage Manifest used by the options page, so observation limits remain available while records are interpreted. The wide table now has synchronized horizontal scroll controls above and below the table.
+
+Fact-chip placement now supports top, top-right, right, bottom-right, bottom, bottom-left, left, and top-left. The move handle follows this clockwise order and the communication-pulse layer follows the same position.
+
+Level 2, Level 3, and MAX can display small geometric communication pulses. A square denotes a DOM standard-form boundary, a circle denotes fetch/XHR observed through `webRequest`, and a wave form denotes Beacon/Ping. A compact letter indicates method, the Cookie marker reports only header-name detection state, and a corner mark indicates cross-origin relation. The muted graphite, plum-gray, sage-gray, and copper-gray colors identify observation routes only; they do not encode safety, danger, or warning. Network pulses remain request-body-unobserved.

@@ -1,17 +1,24 @@
-import {
-  buildCoverageManifest,
-  coverageReasonLabel,
-  coverageStatusLabel,
-} from '../core/coverage-manifest';
+import { buildCoverageManifest } from '../core/coverage-manifest';
 import { NETWORK_PERMISSION_REQUEST } from '../core/network-permission';
-import type { FactChipPosition, ReportingMode } from '../core/models/settings';
+import type {
+  CommunicationPulseDurationMs,
+  CommunicationPulseSize,
+  FactChipPosition,
+  ReportingMode,
+} from '../core/models/settings';
 import { loadSettings, saveSettings } from '../storage/settings-store';
+import { renderCoverageManifest } from '../ui/coverage-renderer';
 import { requiredElement } from '../ui/required-element';
 
 const localClassification = requiredElement<HTMLInputElement>('#localClassificationEnabled');
 const networkObservation = requiredElement<HTMLInputElement>('#networkObservationEnabled');
 const reportingMode = requiredElement<HTMLSelectElement>('#reportingMode');
 const factChipPosition = requiredElement<HTMLSelectElement>('#factChipPosition');
+const communicationPulseEnabled = requiredElement<HTMLInputElement>('#communicationPulseEnabled');
+const communicationPulseDuration = requiredElement<HTMLSelectElement>(
+  '#communicationPulseDuration',
+);
+const communicationPulseSize = requiredElement<HTMLSelectElement>('#communicationPulseSize');
 const coverageBody = requiredElement<HTMLDivElement>('#coverageBody');
 const save = requiredElement<HTMLButtonElement>('#save');
 const clearSession = requiredElement<HTMLButtonElement>('#clearSession');
@@ -26,53 +33,39 @@ function asReportingMode(value: string): ReportingMode {
 }
 
 function asFactChipPosition(value: string): FactChipPosition {
-  return value === 'top' || value === 'left' || value === 'bottom' ? value : 'right';
+  switch (value) {
+    case 'top':
+    case 'top_right':
+    case 'right':
+    case 'bottom_right':
+    case 'bottom':
+    case 'bottom_left':
+    case 'left':
+    case 'top_left':
+      return value;
+    default:
+      return 'right';
+  }
+}
+
+function asCommunicationPulseDuration(value: string): CommunicationPulseDurationMs {
+  const duration = Number(value);
+  return duration === 300 || duration === 1500 || duration === 3000 ? duration : 700;
+}
+
+function asCommunicationPulseSize(value: string): CommunicationPulseSize {
+  return value === 'medium' ? 'medium' : 'small';
 }
 
 async function renderCoverage(): Promise<void> {
   const [settings, permissionGranted] = await Promise.all([loadSettings(), hasNetworkPermission()]);
-  coverageBody.replaceChildren();
-
-  for (const entry of buildCoverageManifest({
-    networkObservationEnabled: settings.networkObservationEnabled,
-    networkPermissionGranted: permissionGranted,
-  })) {
-    const article = document.createElement('article');
-    article.className = 'coverage-entry';
-
-    const heading = document.createElement('h3');
-    heading.textContent = entry.label;
-
-    const badges = document.createElement('p');
-    badges.className = 'coverage-badges';
-
-    const statusBadge = document.createElement('span');
-    statusBadge.className = `coverage-status coverage-${entry.status}`;
-    statusBadge.textContent = coverageStatusLabel(entry.status);
-
-    const reasonBadge = document.createElement('span');
-    reasonBadge.className = 'coverage-reason';
-    reasonBadge.textContent = coverageReasonLabel(entry.reason);
-
-    badges.append(statusBadge, reasonBadge);
-
-    if (entry.permissionGranted !== undefined) {
-      const permissionBadge = document.createElement('span');
-      permissionBadge.className = 'coverage-reason';
-      permissionBadge.textContent = entry.permissionGranted ? '権限あり' : '権限なし';
-      badges.append(permissionBadge);
-    }
-
-    const detail = document.createElement('p');
-    detail.textContent = entry.detail;
-
-    const availability = document.createElement('p');
-    availability.className = 'small';
-    availability.textContent = entry.enabled ? '現在有効' : '現在は観測経路へ未接続';
-
-    article.append(heading, badges, detail, availability);
-    coverageBody.append(article);
-  }
+  renderCoverageManifest(
+    coverageBody,
+    buildCoverageManifest({
+      networkObservationEnabled: settings.networkObservationEnabled,
+      networkPermissionGranted: permissionGranted,
+    }),
+  );
 }
 
 async function refresh(): Promise<void> {
@@ -81,6 +74,9 @@ async function refresh(): Promise<void> {
   networkObservation.checked = settings.networkObservationEnabled && permissionGranted;
   reportingMode.value = settings.reportingMode;
   factChipPosition.value = settings.factChipPosition;
+  communicationPulseEnabled.checked = settings.communicationPulseEnabled;
+  communicationPulseDuration.value = String(settings.communicationPulseDurationMs);
+  communicationPulseSize.value = settings.communicationPulseSize;
 
   if (settings.networkObservationEnabled && !permissionGranted) {
     await saveSettings({ ...settings, networkObservationEnabled: false });
@@ -111,13 +107,17 @@ save.addEventListener('click', () => {
       networkObservationEnabled: networkEnabled,
       reportingMode: asReportingMode(reportingMode.value),
       factChipPosition: asFactChipPosition(factChipPosition.value),
+      communicationPulseEnabled: communicationPulseEnabled.checked,
+      communicationPulseDurationMs: asCommunicationPulseDuration(communicationPulseDuration.value),
+      communicationPulseSize: asCommunicationPulseSize(communicationPulseSize.value),
     });
 
     if (networkEnabled) {
       status.textContent =
-        '設定を保存しました。通信本文・URL path/query・ヘッダー値は保存しません。';
+        '設定を保存しました。通信本文・URL path/query・ヘッダー値は保存しません。対象ページの再読み込み後に確実に反映されます。';
     } else if (!wantsNetworkObservation) {
-      status.textContent = '設定を保存しました。通信メタデータ観測は無効です。';
+      status.textContent =
+        '設定を保存しました。通信メタデータ観測は無効です。対象ページの再読み込み後に確実に反映されます。';
     }
     await renderCoverage();
   });

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>DSSI Core A Sprint 3.2 Manual Fixture</title>
+    <title>DSSI Core A Sprint 3.3 Manual Fixture</title>
     <style>
       body {
         max-width: 760px;
@@ -33,7 +33,7 @@
     </style>
   </head>
   <body>
-    <h1>DSSI Core A Sprint 3.2 手動確認ページ</h1>
+    <h1>DSSI Core A Sprint 3.3 手動確認ページ</h1>
     <p>
       各入力面でキー入力・貼り付け・ブラウザ自動入力を試してください。フォーカスは通常ログに保存せず、Level
       3、またはLevel 2の機密入力面でチップだけを表示します。
@@ -132,19 +132,19 @@
     <section>
       <button type="button" id="set-probe-cookie">試験用Cookieを設定</button>
       <button type="button" id="clear-probe-cookie">試験用Cookieを削除</button>
-      <button type="button" id="custom-fetch-button">
-        JavaScript通信（Sprint 3.2通信メタデータ試験）
-      </button>
+      <button type="button" id="custom-fetch-button">fetch POST通信</button>
+      <button type="button" id="custom-fetch-get-button">fetch GET通信</button>
+      <button type="button" id="custom-beacon-button">Beacon/Ping系通信</button>
       <p>
-        標準モードでは、自由記述欄を編集してから2.5秒以内に通信ボタンを押します。MAXでは、入力やsubmitを行わずに通信ボタンを押し、診断ログの「相関可能な利用者操作は未確認」を確認します。Cookieを設定した場合は「検出」、削除した場合は「未検出」が期待値ですが、ChromeがヘッダーをDSSIへ提供しない場合は「判定不能」になり得ます。
+        標準モードでは、自由記述欄を編集してから2.5秒以内に通信ボタンを押します。MAXでは、入力やsubmitを行わずに通信ボタンを押し、診断ログの「相関可能な利用者操作は未確認」を確認します。通信パルスを有効にすると、fetch/XHR系は円、Beacon/Ping系は波形、methodは中央文字で表示されます。Cookieを設定した場合は塗り点、削除した場合は空点が期待値ですが、ChromeがヘッダーをDSSIへ提供しない場合は破線点になります。色は危険度を示しません。
       </p>
     </section>
 
     <section>
       <h2>チップ位置テスト</h2>
       <p>
-        チップ右上の移動ボタンを押し、上 → 左 → 下 →
-        右の順に移動することを確認します。チップ本体はページ操作を遮らず、移動ボタンだけがクリック可能です。
+        チップ右上の移動ボタンを押し、上 → 右上 → 右 → 右下 → 下 → 左下 → 左 →
+        左上の順に移動することを確認します。チップ本体はページ操作を遮らず、移動ボタンだけがクリック可能です。
       </p>
     </section>
 
@@ -166,6 +166,17 @@
           method: 'POST',
           body: 'test-body-that-dssi-must-not-request',
         }).catch(() => undefined);
+      });
+
+      document.querySelector('#custom-fetch-get-button').addEventListener('click', () => {
+        void fetch('/dssi-sprint3-probe/read?token=must-not-be-logged').catch(() => undefined);
+      });
+
+      document.querySelector('#custom-beacon-button').addEventListener('click', () => {
+        navigator.sendBeacon(
+          '/dssi-sprint3-probe/beacon?token=must-not-be-logged',
+          'body-not-observed',
+        );
       });
 
       document.querySelector('#paste-blocked').addEventListener('paste', (event) => {

@@ -87,3 +87,9 @@ The Coverage Manifest separates:
 Core A deliberately does not connect to stored-Cookie inspection, request bodies, raw Cookie or Authorization values, page-main-world memory inspection, or invasive wrapping of page networking APIs. It also cannot guarantee visibility into in-memory cache handling, already-established WebSocket or WebTransport message flows, permission-excluded traffic, browser-private traffic, or events that occurred before DSSI observation began.
 
 A chip-position handle stores only one categorical preference: top, left, bottom, or right. The chip body remains pointer-transparent so normal page interaction is not intercepted.
+
+## Sprint 3.3 communication-pulse presentation
+
+Communication pulses are derived only from already privacy-safe DOM submission descriptors and network descriptors. They do not add permissions, request bodies, Cookie values, URL paths, queries, fragments, form values, or page-main-world memory.
+
+Pulse color and geometry identify observation routes and metadata states only. They do not classify traffic as safe, dangerous, suspicious, or intended. Network pulses always represent body-unobserved metadata.

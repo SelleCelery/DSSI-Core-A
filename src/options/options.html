@@ -42,17 +42,53 @@
           MAXは権限や取得内容を増やすモードではありません。現在の観測面で取得できた診断事象と、見ない・見えない領域の説明量を増やします。
         </p>
         <label class="field">
-          <span>チップ表示位置</span>
+          <span>チップ・通信パルス表示位置</span>
           <select id="factChipPosition">
             <option value="top">上</option>
-            <option value="left">左</option>
-            <option value="bottom">下</option>
+            <option value="top_right">右上</option>
             <option value="right">右</option>
+            <option value="bottom_right">右下</option>
+            <option value="bottom">下</option>
+            <option value="bottom_left">左下</option>
+            <option value="left">左</option>
+            <option value="top_left">左上</option>
           </select>
         </label>
         <p class="small">
-          表示中のチップ右上にある移動ボタンでも、上 → 左 → 下 → 右の順に変更できます。
+          表示中の文章チップ右上にある移動ボタンでも、時計回りに位置を変更できます。
         </p>
+
+        <h3>通信パルス表示</h3>
+        <label class="row">
+          <span>小型通信パルスを表示</span>
+          <input id="communicationPulseEnabled" type="checkbox" />
+        </label>
+        <p class="small">
+          Level
+          2・3またはMAXで、標準formのDOM送信境界と、webRequestで観測した通信を小型の幾何アイコンとして一時表示します。
+          色は観測経路の識別補助であり、安全・危険・注意を示しません。ネットワークパルスはすべて本文未観測です。
+        </p>
+        <label class="field">
+          <span>表示時間</span>
+          <select id="communicationPulseDuration">
+            <option value="300">瞬間 — 300ms</option>
+            <option value="700">短い — 700ms</option>
+            <option value="1500">標準 — 1500ms</option>
+            <option value="3000">長い — 3000ms</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>アイコンサイズ</span>
+          <select id="communicationPulseSize">
+            <option value="small">小 — 約4.2mm相当</option>
+            <option value="medium">中 — 約4.8mm相当</option>
+          </select>
+        </label>
+        <p class="small pulse-legend">
+          □＝DOM
+          form、○＝fetch/XHR、波形＝Beacon/Ping、G/P等＝method、外周の点＝Cookieヘッダー名検出、空点＝未検出、破線点＝未観測・判定不能、左上の短線＝別オリジン。
+        </p>
+
         <label class="row">
           <span>永続履歴</span>
           <input id="persistentHistoryEnabled" type="checkbox" disabled />

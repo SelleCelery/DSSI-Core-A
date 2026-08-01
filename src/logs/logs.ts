@@ -1,3 +1,5 @@
+import { buildCoverageManifest } from '../core/coverage-manifest';
+import { NETWORK_PERMISSION_REQUEST } from '../core/network-permission';
 import {
   boundarySourceLabel,
   cookieHeaderDetectionLabel,
@@ -18,6 +20,7 @@ import {
   surfaceTypeLabel,
 } from '../core/observation-presentation';
 import type { ObservationLogRecord } from '../core/models/observation';
+import { loadSettings } from '../storage/settings-store';
 import {
   clearActivityRecords,
   clearDiagnosticRecords,
@@ -25,6 +28,7 @@ import {
   getDiagnosticRecords,
   getSessionRecords,
 } from '../storage/session-buffer';
+import { renderCoverageManifest } from '../ui/coverage-renderer';
 import { requiredElement } from '../ui/required-element';
 
 type ViewMode = 'activity' | 'diagnostic';
@@ -34,12 +38,20 @@ const viewLabel = requiredElement<HTMLElement>('#viewLabel');
 const empty = requiredElement<HTMLElement>('#empty');
 const body = requiredElement<HTMLTableSectionElement>('#logBody');
 const refreshButton = requiredElement<HTMLButtonElement>('#refresh');
+const showCoverageButton = requiredElement<HTMLButtonElement>('#showCoverage');
 const clearCurrentButton = requiredElement<HTMLButtonElement>('#clearCurrent');
 const clearAllButton = requiredElement<HTMLButtonElement>('#clearAll');
 const activityButton = requiredElement<HTMLButtonElement>('#showActivity');
 const diagnosticButton = requiredElement<HTMLButtonElement>('#showDiagnostic');
 const status = requiredElement<HTMLElement>('#status');
+const coverageDialog = requiredElement<HTMLDialogElement>('#coverageDialog');
+const coverageDialogBody = requiredElement<HTMLDivElement>('#coverageDialogBody');
+const tableScrollTop = requiredElement<HTMLDivElement>('#tableScrollTop');
+const tableScrollTopSizer = requiredElement<HTMLDivElement>('#tableScrollTopSizer');
+const tableScroll = requiredElement<HTMLDivElement>('#tableScroll');
+const observationTable = requiredElement<HTMLTableElement>('#observationTable');
 let viewMode: ViewMode = 'activity';
+let scrollSyncInProgress = false;
 
 function formatTimestamp(timestamp: number): string {
   return new Date(timestamp).toLocaleString('ja-JP', {
@@ -56,6 +68,13 @@ function makeCell(text: string): HTMLTableCellElement {
   const cell = document.createElement('td');
   cell.textContent = text;
   return cell;
+}
+
+function updateMirrorScrollbar(): void {
+  const width = tableScroll.scrollWidth;
+  tableScrollTopSizer.style.width = `${width}px`;
+  tableScrollTop.hidden = width <= tableScroll.clientWidth;
+  if (!tableScrollTop.hidden) tableScrollTop.scrollLeft = tableScroll.scrollLeft;
 }
 
 function render(records: ObservationLogRecord[]): void {
@@ -89,6 +108,8 @@ function render(records: ObservationLogRecord[]): void {
     );
     body.append(row);
   }
+
+  requestAnimationFrame(updateMirrorScrollbar);
 }
 
 function updateViewControls(): void {
@@ -109,6 +130,35 @@ async function refresh(): Promise<void> {
   render(await recordsForCurrentView());
 }
 
+async function showCoverage(): Promise<void> {
+  const [settings, permissionGranted] = await Promise.all([
+    loadSettings(),
+    chrome.permissions.contains(NETWORK_PERMISSION_REQUEST),
+  ]);
+  renderCoverageManifest(
+    coverageDialogBody,
+    buildCoverageManifest({
+      networkObservationEnabled: settings.networkObservationEnabled,
+      networkPermissionGranted: permissionGranted,
+    }),
+  );
+  coverageDialog.showModal();
+}
+
+function synchronizeScroll(source: HTMLDivElement, target: HTMLDivElement): void {
+  if (scrollSyncInProgress) return;
+  scrollSyncInProgress = true;
+  target.scrollLeft = source.scrollLeft;
+  requestAnimationFrame(() => {
+    scrollSyncInProgress = false;
+  });
+}
+
+tableScrollTop.addEventListener('scroll', () => synchronizeScroll(tableScrollTop, tableScroll));
+tableScroll.addEventListener('scroll', () => synchronizeScroll(tableScroll, tableScrollTop));
+new ResizeObserver(updateMirrorScrollbar).observe(observationTable);
+new ResizeObserver(updateMirrorScrollbar).observe(tableScroll);
+
 activityButton.addEventListener('click', () => {
   viewMode = 'activity';
   void refresh();
@@ -118,6 +168,7 @@ diagnosticButton.addEventListener('click', () => {
   void refresh();
 });
 refreshButton.addEventListener('click', () => void refresh());
+showCoverageButton.addEventListener('click', () => void showCoverage());
 clearCurrentButton.addEventListener('click', () => {
   const label = viewMode === 'activity' ? '通常ログ' : '診断ログ';
   if (!window.confirm(`${label}を消去しますか？`)) return;
