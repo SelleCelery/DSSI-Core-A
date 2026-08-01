@@ -1,16 +1,13 @@
 # Changelog
 
-## 0.4.4 - Sprint 3.3 display refinement
+## 0.4.5 - Communication pulse icon refinement
 
-- Made communication text chips opt-in and kept compact communication pulses as the default communication display.
-- Separated the pulse lane from the explanatory text-chip lane so one does not cover the other.
-- Added 10-second, 30-second, 60-second, and manual-clear pulse retention options.
-- Increased the pulse display capacity and retained individual events rather than semantic aggregation.
-- Added page-local pulse controls for pause/resume, clear, temporary pulse visibility, and temporary text-chip visibility.
-- Added a page-local text-chip mute control while preserving the saved base setting.
-- Added a default simple chronological log stream combining activity and diagnostic records.
-- Added all/activity/diagnostic filters, a detailed-table switch, and per-record detail expansion.
-- Kept the full audit table and synchronized top/bottom horizontal scrollbars as the detailed view.
+- Changed communication-pulse method encoding from center letters to outer geometric shapes.
+- Changed center letters to mechanism glyphs: S for standard form submit, F for fetch/XHR, and B for Beacon/Ping.
+- Added route colors with non-evaluative semantics: deep magenta for DOM observations and pale cyan for webRequest observations.
+- Changed Cookie-header markers to explicit top-right glyphs: ● detected, − not detected, · not observed, and ? unavailable.
+- Kept the cross-origin corner mark and body-unobserved privacy boundary unchanged.
+- Applied the same icon grammar to the compact observation-log stream.
 
 ## 0.4.3 - Sprint 3.3
 

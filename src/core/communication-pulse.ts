@@ -4,6 +4,19 @@ import type { SubmissionDescriptor, SubmissionMethod } from './models/submission
 export type CommunicationPulseKind = 'dom_submit' | 'fetch_or_xhr' | 'beacon_or_ping';
 export type CommunicationPulseMethod = NetworkMethod | SubmissionMethod;
 export type CommunicationPulseCookieState = CookieHeaderDetection | 'not_applicable';
+export type CommunicationPulseObservationRoute = 'dom' | 'web_request';
+export type CommunicationPulseMethodShape =
+  | 'circle'
+  | 'square'
+  | 'diamond'
+  | 'hexagon'
+  | 'triangle'
+  | 'capsule'
+  | 'octagon'
+  | 'double_ring'
+  | 'vertical_rect'
+  | 'dialog'
+  | 'unknown';
 
 export interface CommunicationPulseDescriptor {
   kind: CommunicationPulseKind;
@@ -37,30 +50,72 @@ export function communicationPulseFromSubmission(
   };
 }
 
-export function communicationPulseMethodGlyph(method: CommunicationPulseMethod): string {
+/**
+ * Center glyphs identify the communication mechanism. The HTTP method is
+ * carried by the outer geometry instead of another letter.
+ */
+export function communicationPulseKindGlyph(kind: CommunicationPulseKind): string {
+  switch (kind) {
+    case 'dom_submit':
+      return 'S';
+    case 'fetch_or_xhr':
+      return 'F';
+    case 'beacon_or_ping':
+      return 'B';
+  }
+}
+
+export function communicationPulseObservationRoute(
+  kind: CommunicationPulseKind,
+): CommunicationPulseObservationRoute {
+  return kind === 'dom_submit' ? 'dom' : 'web_request';
+}
+
+export function communicationPulseMethodShape(
+  method: CommunicationPulseMethod,
+): CommunicationPulseMethodShape {
   switch (method) {
     case 'GET':
-      return 'G';
+      return 'circle';
     case 'POST':
-      return 'P';
+      return 'square';
     case 'PUT':
-      return 'U';
+      return 'diamond';
     case 'PATCH':
-      return 'A';
+      return 'hexagon';
     case 'DELETE':
-      return 'D';
+      return 'triangle';
     case 'HEAD':
-      return 'H';
+      return 'capsule';
     case 'OPTIONS':
-      return 'O';
+      return 'octagon';
     case 'CONNECT':
-      return 'C';
+      return 'double_ring';
     case 'TRACE':
-      return 'T';
+      return 'vertical_rect';
     case 'DIALOG':
-      return 'L';
+      return 'dialog';
     case 'UNKNOWN':
+      return 'unknown';
+  }
+}
+
+/**
+ * Compact top-right marker. `not_detected` is not proof of Cookie absence;
+ * it only reports that the header name was not found in Chrome's exposed set.
+ */
+export function communicationPulseCookieGlyph(state: CommunicationPulseCookieState): string {
+  switch (state) {
+    case 'detected':
+      return '●';
+    case 'not_detected':
+      return '−';
+    case 'not_observed':
       return '·';
+    case 'unavailable':
+      return '?';
+    case 'not_applicable':
+      return '';
   }
 }
 

@@ -85,8 +85,8 @@
         <h2 id="pulseLegendHeading">通信パルスの読み方</h2>
         <p>
           簡易ストリームは一件を一行へ縮約し、クリックすると詳細を展開します。小型通信パルスは、標準formのDOM送信境界と、webRequestで観測した通信の時間配置を示します。
-          □はDOM form、○はfetch/XHR、波形はBeacon/Ping、中央のG/P等はmethodです。
-          右上の点はCookieヘッダー名の検出状態、左上の短線は別オリジンを示します。
+          外周形はmethodです（GET＝円、POST＝四角、PUT＝ひし形、PATCH＝六角形、DELETE＝三角形）。中央のS/F/Bは標準form・fetch/XHR・Beacon/Pingを示します。濃いマゼンタはDOM観測、淡いシアンはwebRequest観測です。
+          右上はCookieヘッダー名の状態で、●＝検出、−＝未検出、·＝未観測、?＝判定不能。左上の短線は別オリジンを示します。
           色は観測経路の識別補助であり、安全・危険・注意を意味しません。ネットワークパルスはすべて本文未観測です。
         </p>
       </section>

@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   communicationPulseAriaLabel,
+  communicationPulseCookieGlyph,
   communicationPulseFromNetwork,
   communicationPulseFromSubmission,
-  communicationPulseMethodGlyph,
+  communicationPulseKindGlyph,
+  communicationPulseMethodShape,
+  communicationPulseObservationRoute,
 } from '../../src/core/communication-pulse';
 
 describe('communication pulse descriptors', () => {
@@ -51,9 +54,26 @@ describe('communication pulse descriptors', () => {
     });
   });
 
-  it('uses compact method glyphs without safety semantics', () => {
-    expect(communicationPulseMethodGlyph('GET')).toBe('G');
-    expect(communicationPulseMethodGlyph('POST')).toBe('P');
-    expect(communicationPulseMethodGlyph('UNKNOWN')).toBe('·');
+  it('uses outer geometry for method and center text for mechanism', () => {
+    expect(communicationPulseMethodShape('GET')).toBe('circle');
+    expect(communicationPulseMethodShape('POST')).toBe('square');
+    expect(communicationPulseMethodShape('PUT')).toBe('diamond');
+    expect(communicationPulseMethodShape('PATCH')).toBe('hexagon');
+    expect(communicationPulseMethodShape('DELETE')).toBe('triangle');
+    expect(communicationPulseMethodShape('UNKNOWN')).toBe('unknown');
+
+    expect(communicationPulseKindGlyph('dom_submit')).toBe('S');
+    expect(communicationPulseKindGlyph('fetch_or_xhr')).toBe('F');
+    expect(communicationPulseKindGlyph('beacon_or_ping')).toBe('B');
+    expect(communicationPulseObservationRoute('dom_submit')).toBe('dom');
+    expect(communicationPulseObservationRoute('fetch_or_xhr')).toBe('web_request');
+  });
+
+  it('uses explicit cookie markers without claiming absence', () => {
+    expect(communicationPulseCookieGlyph('detected')).toBe('●');
+    expect(communicationPulseCookieGlyph('not_detected')).toBe('−');
+    expect(communicationPulseCookieGlyph('not_observed')).toBe('·');
+    expect(communicationPulseCookieGlyph('unavailable')).toBe('?');
+    expect(communicationPulseCookieGlyph('not_applicable')).toBe('');
   });
 });

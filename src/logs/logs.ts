@@ -1,4 +1,7 @@
-import { communicationPulseMethodGlyph } from '../core/communication-pulse';
+import {
+  communicationPulseAriaLabel,
+  type CommunicationPulseDescriptor,
+} from '../core/communication-pulse';
 import { buildCoverageManifest } from '../core/coverage-manifest';
 import type { ObservationLogRecord } from '../core/models/observation';
 import { NETWORK_PERMISSION_REQUEST } from '../core/network-permission';
@@ -30,6 +33,7 @@ import {
   getSessionRecords,
 } from '../storage/session-buffer';
 import { renderCoverageManifest } from '../ui/coverage-renderer';
+import { createCommunicationPulseIcon } from '../ui/communication-pulse-icon';
 import { requiredElement } from '../ui/required-element';
 
 type ViewMode = 'all' | 'activity' | 'diagnostic';
@@ -102,36 +106,45 @@ function updateMirrorScrollbar(): void {
   if (!tableScrollTop.hidden) tableScrollTop.scrollLeft = tableScroll.scrollLeft;
 }
 
-function cookieGlyph(record: ObservationLogRecord): string {
-  switch (record.cookieHeaderDetection) {
-    case 'detected':
-      return '●';
-    case 'not_detected':
-      return '○';
-    case 'not_observed':
-    case 'unavailable':
-      return '┄';
-    default:
-      return '';
+function communicationDescriptorFromRecord(
+  record: ObservationLogRecord,
+): CommunicationPulseDescriptor | null {
+  if (record.networkMechanism !== undefined && record.networkMethod !== undefined) {
+    return {
+      kind: record.networkMechanism,
+      method: record.networkMethod,
+      cookieState: record.cookieHeaderDetection ?? 'not_observed',
+      destinationRelation: record.destinationRelation ?? 'unknown',
+      bodyObservation: 'not_observed',
+    };
   }
+
+  if (record.submissionMethod !== undefined) {
+    return {
+      kind: 'dom_submit',
+      method: record.submissionMethod,
+      cookieState: 'not_applicable',
+      destinationRelation: record.destinationRelation ?? 'unknown',
+      bodyObservation: 'not_observed',
+    };
+  }
+
+  return null;
 }
 
-function streamGlyph(record: ObservationLogRecord): string {
-  const method = communicationPulseMethodGlyph(
-    record.networkMethod ?? record.submissionMethod ?? 'UNKNOWN',
-  );
-  const cross = record.destinationRelation === 'cross_origin' ? '↗' : '';
+function createStreamGlyph(record: ObservationLogRecord): HTMLSpanElement {
+  const wrapper = document.createElement('span');
+  wrapper.className = 'stream-glyph';
+  const descriptor = communicationDescriptorFromRecord(record);
+  if (descriptor === null) {
+    wrapper.textContent = '◇';
+    return wrapper;
+  }
 
-  if (record.networkMechanism === 'fetch_or_xhr') {
-    return `${cross}○${method}${cookieGlyph(record)}`;
-  }
-  if (record.networkMechanism === 'beacon_or_ping') {
-    return `${cross}≋${method}${cookieGlyph(record)}`;
-  }
-  if (record.submissionMethod !== undefined) {
-    return `${cross}□${method}`;
-  }
-  return '◇';
+  const icon = createCommunicationPulseIcon(descriptor);
+  icon.title = communicationPulseAriaLabel(descriptor);
+  wrapper.append(icon);
+  return wrapper;
 }
 
 function shortCorrelation(record: ObservationLogRecord): string {
@@ -174,10 +187,8 @@ function renderSimple(records: TaggedRecord[]): void {
     time.dateTime = new Date(record.timestamp).toISOString();
     time.textContent = formatClock(record.timestamp);
 
-    const glyph = document.createElement('span');
-    glyph.className = 'stream-glyph';
-    glyph.textContent = streamGlyph(record);
-    glyph.title = layer === 'diagnostic' ? '診断記録' : '通常記録';
+    const glyph = createStreamGlyph(record);
+    glyph.dataset.layer = layer;
 
     const action = document.createElement('span');
     action.className = 'stream-action';

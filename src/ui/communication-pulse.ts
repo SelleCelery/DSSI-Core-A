@@ -3,9 +3,7 @@ import {
   communicationPulseAriaLabel,
   communicationPulseFromNetwork,
   communicationPulseFromSubmission,
-  communicationPulseMethodGlyph,
   type CommunicationPulseDescriptor,
-  type CommunicationPulseKind,
 } from '../core/communication-pulse';
 import type { NetworkDescriptor } from '../core/models/network';
 import type {
@@ -14,6 +12,7 @@ import type {
   FactChipPosition,
 } from '../core/models/settings';
 import type { SubmissionDescriptor } from '../core/models/submission';
+import { createCommunicationPulseIcon } from './communication-pulse-icon';
 import {
   setPulsePaused,
   setPulseVisible,
@@ -82,48 +81,6 @@ function applyPulseHostPosition(host: HTMLDivElement, position: FactChipPosition
       host.style.setProperty('left', '10px');
       break;
   }
-}
-
-function kindSvg(kind: CommunicationPulseKind): SVGSVGElement {
-  const namespace = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(namespace, 'svg');
-  svg.setAttribute('viewBox', '0 0 20 20');
-  svg.setAttribute('aria-hidden', 'true');
-
-  if (kind === 'dom_submit') {
-    const rect = document.createElementNS(namespace, 'rect');
-    rect.setAttribute('x', '3.5');
-    rect.setAttribute('y', '3.5');
-    rect.setAttribute('width', '13');
-    rect.setAttribute('height', '13');
-    rect.setAttribute('rx', '1.5');
-    const path = document.createElementNS(namespace, 'path');
-    path.setAttribute('d', 'M7 10h7m-2.5-2.5L14 10l-2.5 2.5');
-    svg.append(rect, path);
-    return svg;
-  }
-
-  if (kind === 'fetch_or_xhr') {
-    const circle = document.createElementNS(namespace, 'circle');
-    circle.setAttribute('cx', '10');
-    circle.setAttribute('cy', '10');
-    circle.setAttribute('r', '6.5');
-    const path = document.createElementNS(namespace, 'path');
-    path.setAttribute('d', 'M5.5 10h9M7 7.5h6M7 12.5h6');
-    svg.append(circle, path);
-    return svg;
-  }
-
-  const dot = document.createElementNS(namespace, 'circle');
-  dot.setAttribute('cx', '6');
-  dot.setAttribute('cy', '10');
-  dot.setAttribute('r', '1.25');
-  const inner = document.createElementNS(namespace, 'path');
-  inner.setAttribute('d', 'M8.5 6.8a4.5 4.5 0 0 1 0 6.4');
-  const outer = document.createElementNS(namespace, 'path');
-  outer.setAttribute('d', 'M11 4.5a7.7 7.7 0 0 1 0 11');
-  svg.append(dot, inner, outer);
-  return svg;
 }
 
 function button(label: string, title: string): HTMLButtonElement {
@@ -258,59 +215,81 @@ function ensureHost(position: FactChipPosition, size: CommunicationPulseSize): P
       transform: scale(0.72);
       transition: opacity 100ms ease, transform 120ms ease;
       border-radius: 4px;
-      background: rgba(52, 52, 50, 0.34);
-      color: rgba(215, 214, 208, 0.9);
+      background: rgba(32, 33, 35, 0.48);
       backdrop-filter: blur(2px);
       -webkit-backdrop-filter: blur(2px);
     }
     .pulse[data-size="medium"] { --pulse-size: 18px; }
     .pulse[data-visible="true"] { opacity: 1; transform: scale(1); }
-    .pulse[data-kind="fetch_or_xhr"] { color: rgba(157, 143, 164, 0.92); }
-    .pulse[data-kind="beacon_or_ping"] { color: rgba(134, 151, 140, 0.92); }
-    .pulse[data-kind="dom_submit"] { color: rgba(205, 204, 198, 0.92); }
-    svg {
+    .communication-pulse-icon {
+      --route-stroke: rgba(163, 231, 239, 0.98);
+      --route-fill: rgba(74, 157, 170, 0.46);
+      --route-text: rgba(241, 254, 255, 0.98);
+      position: absolute;
+      inset: 0;
+      display: block;
+      color: var(--route-stroke);
+    }
+    .communication-pulse-icon[data-route="dom"] {
+      --route-stroke: rgba(213, 64, 166, 0.99);
+      --route-fill: rgba(120, 24, 92, 0.82);
+      --route-text: rgba(255, 238, 250, 0.99);
+    }
+    .communication-pulse-icon[data-route="web_request"] {
+      --route-stroke: rgba(166, 235, 242, 0.99);
+      --route-fill: rgba(77, 164, 178, 0.44);
+      --route-text: rgba(242, 254, 255, 0.99);
+    }
+    .method-shape {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 1.25;
+      overflow: visible;
+      fill: var(--route-fill);
+      stroke: var(--route-stroke);
+      stroke-width: 1.55;
       stroke-linecap: round;
       stroke-linejoin: round;
     }
-    .method {
+    .method-shape .unknown-method-shape {
+      stroke-dasharray: 2 1.4;
+    }
+    .kind-glyph {
       position: absolute;
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
-      color: rgba(245, 243, 236, 0.95);
-      font: 600 7px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      text-shadow: 0 0 2px rgba(20, 20, 20, 0.85);
+      color: var(--route-text);
+      font: 700 7px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      text-shadow: 0 0 2px rgba(12, 12, 14, 0.92);
     }
-    .cookie {
+    .cookie-marker {
       position: absolute;
       right: -1px;
-      top: -1px;
+      top: -2px;
+      display: grid;
+      place-items: center;
       box-sizing: border-box;
-      width: 5px;
-      height: 5px;
-      border: 1px solid rgba(174, 155, 133, 0.95);
-      border-radius: 50%;
-      background: transparent;
+      min-width: 7px;
+      height: 7px;
+      color: rgba(248, 244, 236, 0.98);
+      font: 700 7px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      text-shadow:
+        0 0 2px rgba(10, 10, 12, 0.98),
+        0 0 3px rgba(10, 10, 12, 0.95);
     }
-    .cookie[data-state="detected"] { background: rgba(174, 155, 133, 0.95); }
-    .cookie[data-state="not_observed"],
-    .cookie[data-state="unavailable"] { border-style: dashed; opacity: 0.75; }
-    .relation {
+    .cookie-marker[data-state="not_observed"] { opacity: 0.72; }
+    .cookie-marker[data-state="unavailable"] { opacity: 0.95; }
+    .relation-marker {
       position: absolute;
       left: -1px;
       top: -1px;
       width: 5px;
       height: 5px;
-      border-top: 1px solid currentColor;
-      border-left: 1px solid currentColor;
-      opacity: 0.82;
+      border-top: 1px solid rgba(244, 241, 234, 0.9);
+      border-left: 1px solid rgba(244, 241, 234, 0.9);
+      opacity: 0.9;
     }
     @media (prefers-reduced-motion: reduce) {
       .pulse, .controls { transition: none; }
@@ -405,24 +384,7 @@ export class CommunicationPulsePresenter {
     pulse.dataset.size = this.#options.size;
     pulse.title = communicationPulseAriaLabel(descriptor);
 
-    const glyph = kindSvg(descriptor.kind);
-    const method = document.createElement('span');
-    method.className = 'method';
-    method.textContent = communicationPulseMethodGlyph(descriptor.method);
-    pulse.append(glyph, method);
-
-    if (descriptor.cookieState !== 'not_applicable') {
-      const cookie = document.createElement('span');
-      cookie.className = 'cookie';
-      cookie.dataset.state = descriptor.cookieState;
-      pulse.append(cookie);
-    }
-
-    if (descriptor.destinationRelation === 'cross_origin') {
-      const relation = document.createElement('span');
-      relation.className = 'relation';
-      pulse.append(relation);
-    }
+    pulse.append(createCommunicationPulseIcon(descriptor));
 
     stream.append(pulse);
     requestAnimationFrame(() => pulse.setAttribute('data-visible', 'true'));
