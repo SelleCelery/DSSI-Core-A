@@ -73,7 +73,9 @@ export class SubmissionObserver {
   public constructor(settings: DssiSettings, sessionId: string) {
     this.#settings = settings;
     this.#sessionId = sessionId;
-    this.#presenter = new FactChipPresenter(settings.factChipPosition);
+    this.#presenter = new FactChipPresenter(settings.factChipPosition, {
+      communicationTextEnabled: settings.communicationTextChipEnabled,
+    });
     this.#pulsePresenter = new CommunicationPulsePresenter({
       position: settings.factChipPosition,
       durationMs: settings.communicationPulseDurationMs,

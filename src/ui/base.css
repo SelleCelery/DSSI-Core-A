@@ -244,3 +244,96 @@ button {
   padding: 9px 10px;
   border-left: 3px solid color-mix(in srgb, currentColor 28%, transparent);
 }
+
+.log-control-groups {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.simple-stream {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.stream-entry {
+  border-bottom: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.stream-entry[data-layer='diagnostic'] {
+  border-left: 2px dashed color-mix(in srgb, currentColor 28%, transparent);
+}
+
+.stream-entry summary {
+  display: grid;
+  grid-template-columns: 5.5rem 3.8rem minmax(12rem, 1fr) minmax(10rem, 1fr) minmax(7rem, auto);
+  gap: 8px;
+  align-items: center;
+  padding: 6px 8px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.stream-entry summary::-webkit-details-marker {
+  display: none;
+}
+
+.stream-entry time,
+.stream-glyph,
+.stream-correlation {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+}
+
+.stream-glyph {
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.stream-action,
+.stream-destination,
+.stream-correlation {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stream-correlation {
+  opacity: 0.72;
+}
+
+.stream-detail {
+  display: grid;
+  grid-template-columns: minmax(9rem, 13rem) minmax(0, 1fr);
+  gap: 4px 12px;
+  margin: 0;
+  padding: 8px 12px 12px 26px;
+  font-size: 0.86rem;
+}
+
+.stream-detail dt {
+  opacity: 0.68;
+}
+
+.stream-detail dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .stream-entry summary {
+    grid-template-columns: 4.8rem 3.2rem minmax(0, 1fr);
+  }
+
+  .stream-destination,
+  .stream-correlation {
+    display: none;
+  }
+
+  .stream-detail {
+    grid-template-columns: 1fr;
+    padding-left: 12px;
+  }
+}

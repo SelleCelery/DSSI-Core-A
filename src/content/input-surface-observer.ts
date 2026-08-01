@@ -58,7 +58,9 @@ export class InputSurfaceObserver {
   public constructor(settings: DssiSettings, sessionId: string) {
     this.#settings = settings;
     this.#sessionId = sessionId;
-    this.#presenter = new FactChipPresenter(settings.factChipPosition);
+    this.#presenter = new FactChipPresenter(settings.factChipPosition, {
+      communicationTextEnabled: settings.communicationTextChipEnabled,
+    });
     this.#networkPulseEnabled = settings.networkObservationEnabled;
   }
 

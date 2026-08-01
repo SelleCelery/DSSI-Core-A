@@ -15,6 +15,9 @@ const networkObservation = requiredElement<HTMLInputElement>('#networkObservatio
 const reportingMode = requiredElement<HTMLSelectElement>('#reportingMode');
 const factChipPosition = requiredElement<HTMLSelectElement>('#factChipPosition');
 const communicationPulseEnabled = requiredElement<HTMLInputElement>('#communicationPulseEnabled');
+const communicationTextChipEnabled = requiredElement<HTMLInputElement>(
+  '#communicationTextChipEnabled',
+);
 const communicationPulseDuration = requiredElement<HTMLSelectElement>(
   '#communicationPulseDuration',
 );
@@ -50,7 +53,16 @@ function asFactChipPosition(value: string): FactChipPosition {
 
 function asCommunicationPulseDuration(value: string): CommunicationPulseDurationMs {
   const duration = Number(value);
-  return duration === 300 || duration === 1500 || duration === 3000 ? duration : 700;
+  return duration === 0 ||
+    duration === 300 ||
+    duration === 700 ||
+    duration === 1500 ||
+    duration === 3000 ||
+    duration === 10000 ||
+    duration === 30000 ||
+    duration === 60000
+    ? duration
+    : 700;
 }
 
 function asCommunicationPulseSize(value: string): CommunicationPulseSize {
@@ -75,6 +87,7 @@ async function refresh(): Promise<void> {
   reportingMode.value = settings.reportingMode;
   factChipPosition.value = settings.factChipPosition;
   communicationPulseEnabled.checked = settings.communicationPulseEnabled;
+  communicationTextChipEnabled.checked = settings.communicationTextChipEnabled;
   communicationPulseDuration.value = String(settings.communicationPulseDurationMs);
   communicationPulseSize.value = settings.communicationPulseSize;
 
@@ -108,6 +121,7 @@ save.addEventListener('click', () => {
       reportingMode: asReportingMode(reportingMode.value),
       factChipPosition: asFactChipPosition(factChipPosition.value),
       communicationPulseEnabled: communicationPulseEnabled.checked,
+      communicationTextChipEnabled: communicationTextChipEnabled.checked,
       communicationPulseDurationMs: asCommunicationPulseDuration(communicationPulseDuration.value),
       communicationPulseSize: asCommunicationPulseSize(communicationPulseSize.value),
     });

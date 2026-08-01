@@ -63,10 +63,14 @@
           <span>小型通信パルスを表示</span>
           <input id="communicationPulseEnabled" type="checkbox" />
         </label>
+        <label class="row">
+          <span>通信の文章チップも表示</span>
+          <input id="communicationTextChipEnabled" type="checkbox" />
+        </label>
         <p class="small">
           Level
-          2・3またはMAXで、標準formのDOM送信境界と、webRequestで観測した通信を小型の幾何アイコンとして一時表示します。
-          色は観測経路の識別補助であり、安全・危険・注意を示しません。ネットワークパルスはすべて本文未観測です。
+          2・3またはMAXで、標準formのDOM送信境界と、webRequestで観測した通信を小型の幾何アイコンとして表示します。
+          通信の文章チップは初期状態では無効です。色は観測経路の識別補助であり、安全・危険・注意を示しません。ネットワークパルスはすべて本文未観測です。
         </p>
         <label class="field">
           <span>表示時間</span>
@@ -74,7 +78,11 @@
             <option value="300">瞬間 — 300ms</option>
             <option value="700">短い — 700ms</option>
             <option value="1500">標準 — 1500ms</option>
-            <option value="3000">長い — 3000ms</option>
+            <option value="3000">長い — 3秒</option>
+            <option value="10000">確認 — 10秒</option>
+            <option value="30000">調査 — 30秒</option>
+            <option value="60000">長時間 — 60秒</option>
+            <option value="0">固定 — 手動で消すまで</option>
           </select>
         </label>
         <label class="field">
@@ -87,6 +95,7 @@
         <p class="small pulse-legend">
           □＝DOM
           form、○＝fetch/XHR、波形＝Beacon/Ping、G/P等＝method、外周の点＝Cookieヘッダー名検出、空点＝未検出、破線点＝未観測・判定不能、左上の短線＝別オリジン。
+          ページ上の小型操作部から、パルスの一時停止・消去・表示抑制と、通信文章チップの一時切替を行えます。これらの一時状態はページ再読み込みで基本設定へ戻ります。
         </p>
 
         <label class="row">

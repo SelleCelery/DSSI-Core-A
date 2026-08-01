@@ -14,9 +14,16 @@ import type {
   FactChipPosition,
 } from '../core/models/settings';
 import type { SubmissionDescriptor } from '../core/models/submission';
+import {
+  setPulsePaused,
+  setPulseVisible,
+  setTextChipVisible,
+  subscribeTransientDisplayState,
+  transientDisplayState,
+} from './transient-display-state';
 
 const HOST_ID = 'dssi-core-a-communication-pulse-host';
-const MAX_VISIBLE_PULSES = 8;
+const MAX_VISIBLE_PULSES = 32;
 
 interface CommunicationPulsePresenterOptions {
   position: FactChipPosition;
@@ -39,40 +46,40 @@ function applyPulseHostPosition(host: HTMLDivElement, position: FactChipPosition
 
   switch (position) {
     case 'top':
-      host.style.setProperty('top', '52px');
+      host.style.setProperty('top', '8px');
       host.style.setProperty('left', '50%');
       host.style.setProperty('transform', 'translateX(-50%)');
       break;
     case 'top_right':
-      host.style.setProperty('top', '52px');
-      host.style.setProperty('right', '12px');
+      host.style.setProperty('top', '8px');
+      host.style.setProperty('right', '10px');
       break;
     case 'right':
-      host.style.setProperty('right', '12px');
-      host.style.setProperty('top', 'calc(50% + 52px)');
+      host.style.setProperty('right', '8px');
+      host.style.setProperty('top', '50%');
       host.style.setProperty('transform', 'translateY(-50%)');
       break;
     case 'bottom_right':
-      host.style.setProperty('right', '12px');
-      host.style.setProperty('bottom', '52px');
+      host.style.setProperty('right', '10px');
+      host.style.setProperty('bottom', '8px');
       break;
     case 'bottom':
-      host.style.setProperty('bottom', '52px');
+      host.style.setProperty('bottom', '8px');
       host.style.setProperty('left', '50%');
       host.style.setProperty('transform', 'translateX(-50%)');
       break;
     case 'bottom_left':
-      host.style.setProperty('left', '12px');
-      host.style.setProperty('bottom', '52px');
+      host.style.setProperty('left', '10px');
+      host.style.setProperty('bottom', '8px');
       break;
     case 'left':
-      host.style.setProperty('left', '12px');
-      host.style.setProperty('top', 'calc(50% + 52px)');
+      host.style.setProperty('left', '8px');
+      host.style.setProperty('top', '50%');
       host.style.setProperty('transform', 'translateY(-50%)');
       break;
     case 'top_left':
-      host.style.setProperty('top', '52px');
-      host.style.setProperty('left', '12px');
+      host.style.setProperty('top', '8px');
+      host.style.setProperty('left', '10px');
       break;
   }
 }
@@ -119,6 +126,43 @@ function kindSvg(kind: CommunicationPulseKind): SVGSVGElement {
   return svg;
 }
 
+function button(label: string, title: string): HTMLButtonElement {
+  const element = document.createElement('button');
+  element.type = 'button';
+  element.textContent = label;
+  element.title = title;
+  element.setAttribute('aria-label', title);
+  return element;
+}
+
+function refreshControls(root: ShadowRoot): void {
+  const state = transientDisplayState();
+  const stream = root.querySelector<HTMLDivElement>('.stream');
+  const pause = root.querySelector<HTMLButtonElement>('[data-action="pause"]');
+  const visibility = root.querySelector<HTMLButtonElement>('[data-action="visibility"]');
+  const text = root.querySelector<HTMLButtonElement>('[data-action="text"]');
+
+  if (stream) stream.hidden = !state.pulseVisible;
+  if (pause) {
+    pause.textContent = state.pulsePaused ? '▶' : 'Ⅱ';
+    pause.title = state.pulsePaused ? '通信パルス表示を再開' : '通信パルス表示を一時停止';
+    pause.setAttribute('aria-label', pause.title);
+    pause.dataset.active = String(state.pulsePaused);
+  }
+  if (visibility) {
+    visibility.textContent = state.pulseVisible ? '◉' : '○';
+    visibility.title = state.pulseVisible ? '通信パルスを一時的に非表示' : '通信パルスを再表示';
+    visibility.setAttribute('aria-label', visibility.title);
+    visibility.dataset.active = String(!state.pulseVisible);
+  }
+  if (text) {
+    text.textContent = 'T';
+    text.title = state.textChipVisible ? '文章チップを一時的に非表示' : '文章チップを再表示';
+    text.setAttribute('aria-label', text.title);
+    text.dataset.active = String(!state.textChipVisible);
+  }
+}
+
 function ensureHost(position: FactChipPosition, size: CommunicationPulseSize): PulseHost {
   const existing = document.getElementById(HOST_ID);
   if (existing instanceof HTMLDivElement && existing.shadowRoot) {
@@ -126,6 +170,7 @@ function ensureHost(position: FactChipPosition, size: CommunicationPulseSize): P
     if (stream) {
       existing.dataset.size = size;
       applyPulseHostPosition(existing, position);
+      refreshControls(existing.shadowRoot);
       return { host: existing, root: existing.shadowRoot, stream };
     }
   }
@@ -143,14 +188,64 @@ function ensureHost(position: FactChipPosition, size: CommunicationPulseSize): P
   const style = document.createElement('style');
   style.textContent = `
     :host { all: initial; }
+    .hud {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      pointer-events: none;
+    }
+    :host([data-position="left"]) .hud,
+    :host([data-position="right"]) .hud {
+      flex-direction: column;
+    }
+    .controls {
+      display: flex;
+      gap: 2px;
+      opacity: 0.42;
+      transition: opacity 120ms ease;
+      pointer-events: auto;
+    }
+    .controls:hover,
+    .controls:focus-within {
+      opacity: 1;
+    }
+    :host([data-position="left"]) .controls,
+    :host([data-position="right"]) .controls {
+      flex-direction: column;
+    }
+    button {
+      box-sizing: border-box;
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      border: 1px solid rgba(215, 214, 208, 0.24);
+      border-radius: 4px;
+      background: rgba(48, 48, 46, 0.42);
+      color: rgba(225, 223, 216, 0.9);
+      font: 9px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      cursor: pointer;
+    }
+    button[data-active="true"] {
+      border-style: dashed;
+      background: rgba(82, 76, 84, 0.52);
+    }
+    button:focus-visible {
+      outline: 2px solid rgba(235, 233, 226, 0.9);
+      outline-offset: 1px;
+    }
     .stream {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: center;
       gap: 3px;
-      max-width: min(220px, calc(100vw - 24px));
+      max-width: min(360px, calc(100vw - 110px));
       pointer-events: none;
+    }
+    :host([data-position="left"]) .stream,
+    :host([data-position="right"]) .stream {
+      max-width: 76px;
+      max-height: min(420px, calc(100vh - 120px));
     }
     .pulse {
       --pulse-size: 16px;
@@ -168,22 +263,11 @@ function ensureHost(position: FactChipPosition, size: CommunicationPulseSize): P
       backdrop-filter: blur(2px);
       -webkit-backdrop-filter: blur(2px);
     }
-    .pulse[data-size="medium"] {
-      --pulse-size: 18px;
-    }
-    .pulse[data-visible="true"] {
-      opacity: 1;
-      transform: scale(1);
-    }
-    .pulse[data-kind="fetch_or_xhr"] {
-      color: rgba(157, 143, 164, 0.92);
-    }
-    .pulse[data-kind="beacon_or_ping"] {
-      color: rgba(134, 151, 140, 0.92);
-    }
-    .pulse[data-kind="dom_submit"] {
-      color: rgba(205, 204, 198, 0.92);
-    }
+    .pulse[data-size="medium"] { --pulse-size: 18px; }
+    .pulse[data-visible="true"] { opacity: 1; transform: scale(1); }
+    .pulse[data-kind="fetch_or_xhr"] { color: rgba(157, 143, 164, 0.92); }
+    .pulse[data-kind="beacon_or_ping"] { color: rgba(134, 151, 140, 0.92); }
+    .pulse[data-kind="dom_submit"] { color: rgba(205, 204, 198, 0.92); }
     svg {
       position: absolute;
       inset: 0;
@@ -215,14 +299,9 @@ function ensureHost(position: FactChipPosition, size: CommunicationPulseSize): P
       border-radius: 50%;
       background: transparent;
     }
-    .cookie[data-state="detected"] {
-      background: rgba(174, 155, 133, 0.95);
-    }
+    .cookie[data-state="detected"] { background: rgba(174, 155, 133, 0.95); }
     .cookie[data-state="not_observed"],
-    .cookie[data-state="unavailable"] {
-      border-style: dashed;
-      opacity: 0.75;
-    }
+    .cookie[data-state="unavailable"] { border-style: dashed; opacity: 0.75; }
     .relation {
       position: absolute;
       left: -1px;
@@ -234,15 +313,51 @@ function ensureHost(position: FactChipPosition, size: CommunicationPulseSize): P
       opacity: 0.82;
     }
     @media (prefers-reduced-motion: reduce) {
-      .pulse { transition: none; }
+      .pulse, .controls { transition: none; }
     }
   `;
+
+  const controls = document.createElement('div');
+  controls.className = 'controls';
+
+  const pause = button('Ⅱ', '通信パルス表示を一時停止');
+  pause.dataset.action = 'pause';
+  pause.addEventListener('click', () => {
+    setPulsePaused(!transientDisplayState().pulsePaused);
+  });
+
+  const clear = button('×', '表示中の通信パルスを消去');
+  clear.dataset.action = 'clear';
+  clear.addEventListener('click', () => {
+    stream.replaceChildren();
+  });
+
+  const visibility = button('◉', '通信パルスを一時的に非表示');
+  visibility.dataset.action = 'visibility';
+  visibility.addEventListener('click', () => {
+    setPulseVisible(!transientDisplayState().pulseVisible);
+  });
+
+  const text = button('T', '文章チップを一時的に非表示');
+  text.dataset.action = 'text';
+  text.addEventListener('click', () => {
+    setTextChipVisible(!transientDisplayState().textChipVisible);
+  });
+
+  controls.append(pause, clear, visibility, text);
 
   const stream = document.createElement('div');
   stream.className = 'stream';
   stream.setAttribute('aria-hidden', 'true');
-  root.append(style, stream);
+
+  const hud = document.createElement('div');
+  hud.className = 'hud';
+  hud.append(controls, stream);
+
+  root.append(style, hud);
   document.documentElement.append(host);
+  subscribeTransientDisplayState(() => refreshControls(root));
+  refreshControls(root);
   return { host, root, stream };
 }
 
@@ -253,6 +368,8 @@ export class CommunicationPulsePresenter {
   public constructor(options: CommunicationPulsePresenterOptions) {
     this.#options = options;
     this.#position = options.position;
+    if (options.enabled) ensureHost(options.position, options.size);
+
     window.addEventListener('dssi-core-a-chip-position-changed', (event) => {
       if (!(event instanceof CustomEvent)) return;
       const candidate: unknown = event.detail;
@@ -274,6 +391,9 @@ export class CommunicationPulsePresenter {
   }
 
   #show(descriptor: CommunicationPulseDescriptor): void {
+    const state = transientDisplayState();
+    if (!state.pulseVisible || state.pulsePaused) return;
+
     const { stream } = ensureHost(this.#position, this.#options.size);
     while (stream.childElementCount >= MAX_VISIBLE_PULSES) {
       stream.firstElementChild?.remove();
@@ -306,6 +426,8 @@ export class CommunicationPulsePresenter {
 
     stream.append(pulse);
     requestAnimationFrame(() => pulse.setAttribute('data-visible', 'true'));
+
+    if (this.#options.durationMs === 0) return;
     window.setTimeout(() => {
       pulse.setAttribute('data-visible', 'false');
       window.setTimeout(() => pulse.remove(), 140);

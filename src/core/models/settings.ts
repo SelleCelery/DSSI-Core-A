@@ -2,7 +2,7 @@ export type ViscosityLevel = 1 | 2 | 3;
 export type ReportingMode = 'standard' | 'max_coverage';
 export type FactChipPosition =
   'top' | 'top_right' | 'right' | 'bottom_right' | 'bottom' | 'bottom_left' | 'left' | 'top_left';
-export type CommunicationPulseDurationMs = 300 | 700 | 1500 | 3000;
+export type CommunicationPulseDurationMs = 0 | 300 | 700 | 1500 | 3000 | 10000 | 30000 | 60000;
 export type CommunicationPulseSize = 'small' | 'medium';
 
 export interface DssiSettings {
@@ -11,6 +11,7 @@ export interface DssiSettings {
   reportingMode: ReportingMode;
   factChipPosition: FactChipPosition;
   communicationPulseEnabled: boolean;
+  communicationTextChipEnabled: boolean;
   communicationPulseDurationMs: CommunicationPulseDurationMs;
   communicationPulseSize: CommunicationPulseSize;
   localClassificationEnabled: boolean;
@@ -25,6 +26,7 @@ export const DEFAULT_SETTINGS: Readonly<DssiSettings> = Object.freeze({
   reportingMode: 'standard',
   factChipPosition: 'right',
   communicationPulseEnabled: true,
+  communicationTextChipEnabled: false,
   communicationPulseDurationMs: 700,
   communicationPulseSize: 'small',
   localClassificationEnabled: false,

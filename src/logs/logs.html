@@ -14,11 +14,22 @@
         診断ログには拡張機能の起動に加え、MAX報告モードで観測した操作相関未確認の対象通信を分離して表示します。
         入力本文、パスワード、決済番号、クリップボード本文は含まれません。
       </p>
-      <div class="log-tabs" role="tablist" aria-label="ログ種別">
-        <button id="showActivity" type="button" role="tab" aria-selected="true">通常ログ</button>
-        <button id="showDiagnostic" type="button" role="tab" aria-selected="false">診断ログ</button>
+      <div class="log-control-groups">
+        <div class="log-tabs" role="tablist" aria-label="ログ種別">
+          <button id="showAll" type="button" role="tab" aria-selected="true">全時系列</button>
+          <button id="showActivity" type="button" role="tab" aria-selected="false">通常のみ</button>
+          <button id="showDiagnostic" type="button" role="tab" aria-selected="false">
+            診断のみ
+          </button>
+        </div>
+        <div class="log-tabs" role="tablist" aria-label="表示形式">
+          <button id="showSimple" type="button" role="tab" aria-selected="true">
+            簡易ストリーム
+          </button>
+          <button id="showDetailed" type="button" role="tab" aria-selected="false">詳細表</button>
+        </div>
       </div>
-      <p class="small"><span id="viewLabel">通常ログ</span>件数: <strong id="count">0</strong></p>
+      <p class="small"><span id="viewLabel">全時系列</span>件数: <strong id="count">0</strong></p>
       <div class="button-row">
         <button id="refresh" type="button">更新</button>
         <button id="showCoverage" type="button">観測範囲を確認</button>
@@ -28,47 +39,52 @@
       <p id="status" class="status" role="status"></p>
       <p id="empty">観測ログはありません。</p>
 
-      <div
-        id="tableScrollTop"
-        class="table-scroll-top"
-        aria-label="観測ログ表の上側横スクロールバー"
-      >
-        <div id="tableScrollTopSizer" class="table-scroll-top-sizer"></div>
-      </div>
-      <div id="tableScroll" class="table-scroll">
-        <table id="observationTable" class="observation-table">
-          <thead>
-            <tr>
-              <th scope="col">時刻</th>
-              <th scope="col">観測フレーム</th>
-              <th scope="col">フレーム関係</th>
-              <th scope="col">入力面</th>
-              <th scope="col">安全な構造情報</th>
-              <th scope="col">観測事実</th>
-              <th scope="col">操作証拠</th>
-              <th scope="col">入力面分類根拠</th>
-              <th scope="col">境界観測範囲</th>
-              <th scope="col">境界種別</th>
-              <th scope="col">送信関連づけ</th>
-              <th scope="col">method</th>
-              <th scope="col">送信先／通信先</th>
-              <th scope="col">encoding</th>
-              <th scope="col">通信方式</th>
-              <th scope="col">操作相関</th>
-              <th scope="col">ページ観測との時間関係</th>
-              <th scope="col">Cookieヘッダー検出</th>
-              <th scope="col">本文観測</th>
-              <th scope="col">チップ</th>
-            </tr>
-          </thead>
-          <tbody id="logBody"></tbody>
-        </table>
+      <div id="simpleStream" class="simple-stream" aria-live="polite"></div>
+
+      <div id="detailView" hidden>
+        <div
+          id="tableScrollTop"
+          class="table-scroll-top"
+          aria-label="観測ログ表の上側横スクロールバー"
+        >
+          <div id="tableScrollTopSizer" class="table-scroll-top-sizer"></div>
+        </div>
+        <div id="tableScroll" class="table-scroll">
+          <table id="observationTable" class="observation-table">
+            <thead>
+              <tr>
+                <th scope="col">時刻</th>
+                <th scope="col">区分</th>
+                <th scope="col">観測フレーム</th>
+                <th scope="col">フレーム関係</th>
+                <th scope="col">入力面</th>
+                <th scope="col">安全な構造情報</th>
+                <th scope="col">観測事実</th>
+                <th scope="col">操作証拠</th>
+                <th scope="col">入力面分類根拠</th>
+                <th scope="col">境界観測範囲</th>
+                <th scope="col">境界種別</th>
+                <th scope="col">送信関連づけ</th>
+                <th scope="col">method</th>
+                <th scope="col">送信先／通信先</th>
+                <th scope="col">encoding</th>
+                <th scope="col">通信方式</th>
+                <th scope="col">操作相関</th>
+                <th scope="col">ページ観測との時間関係</th>
+                <th scope="col">Cookieヘッダー検出</th>
+                <th scope="col">本文観測</th>
+                <th scope="col">チップ</th>
+              </tr>
+            </thead>
+            <tbody id="logBody"></tbody>
+          </table>
+        </div>
       </div>
 
       <section aria-labelledby="pulseLegendHeading">
         <h2 id="pulseLegendHeading">通信パルスの読み方</h2>
         <p>
-          小型通信パルスは、標準formのDOM送信境界と、webRequestで観測した通信の時間配置を示します。
+          簡易ストリームは一件を一行へ縮約し、クリックすると詳細を展開します。小型通信パルスは、標準formのDOM送信境界と、webRequestで観測した通信の時間配置を示します。
           □はDOM form、○はfetch/XHR、波形はBeacon/Ping、中央のG/P等はmethodです。
           右上の点はCookieヘッダー名の検出状態、左上の短線は別オリジンを示します。
           色は観測経路の識別補助であり、安全・危険・注意を意味しません。ネットワークパルスはすべて本文未観測です。

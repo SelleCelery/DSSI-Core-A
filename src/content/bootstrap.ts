@@ -26,7 +26,9 @@ async function bootstrap(): Promise<void> {
   const submissionObserver = new SubmissionObserver(settings, sessionId);
   submissionObserver.start();
 
-  const presenter = new FactChipPresenter(settings.factChipPosition);
+  const presenter = new FactChipPresenter(settings.factChipPosition, {
+    communicationTextEnabled: settings.communicationTextChipEnabled,
+  });
   const pulsePresenter = new CommunicationPulsePresenter({
     position: settings.factChipPosition,
     durationMs: settings.communicationPulseDurationMs,

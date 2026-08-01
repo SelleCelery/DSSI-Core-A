@@ -6,6 +6,7 @@ import type { FactChipPosition, ViscosityLevel } from '../core/models/settings';
 import type { SubmissionDescriptor } from '../core/models/submission';
 import { inputOriginLabel, surfaceTypeLabel } from '../core/observation-presentation';
 import { loadSettings, saveSettings } from '../storage/settings-store';
+import { setTextChipVisible, transientDisplayState } from './transient-display-state';
 
 const HOST_ID = 'dssi-core-a-fact-chip-host';
 
@@ -51,39 +52,39 @@ function applyHostPosition(host: HTMLDivElement, position: FactChipPosition): vo
 
   switch (position) {
     case 'top':
-      host.style.setProperty('top', '10px');
+      host.style.setProperty('top', '38px');
       host.style.setProperty('left', '50%');
       host.style.setProperty('transform', 'translateX(-50%)');
       break;
     case 'top_right':
-      host.style.setProperty('top', '10px');
+      host.style.setProperty('top', '38px');
       host.style.setProperty('right', '10px');
       break;
     case 'right':
-      host.style.setProperty('right', '10px');
+      host.style.setProperty('right', '38px');
       host.style.setProperty('top', '50%');
       host.style.setProperty('transform', 'translateY(-50%)');
       break;
     case 'bottom_right':
       host.style.setProperty('right', '10px');
-      host.style.setProperty('bottom', '10px');
+      host.style.setProperty('bottom', '38px');
       break;
     case 'bottom':
-      host.style.setProperty('bottom', '10px');
+      host.style.setProperty('bottom', '38px');
       host.style.setProperty('left', '50%');
       host.style.setProperty('transform', 'translateX(-50%)');
       break;
     case 'bottom_left':
       host.style.setProperty('left', '10px');
-      host.style.setProperty('bottom', '10px');
+      host.style.setProperty('bottom', '38px');
       break;
     case 'left':
-      host.style.setProperty('left', '10px');
+      host.style.setProperty('left', '38px');
       host.style.setProperty('top', '50%');
       host.style.setProperty('transform', 'translateY(-50%)');
       break;
     case 'top_left':
-      host.style.setProperty('top', '10px');
+      host.style.setProperty('top', '38px');
       host.style.setProperty('left', '10px');
       break;
   }
@@ -110,7 +111,7 @@ function ensureHost(initialPosition: FactChipPosition): ChipHost {
       position: relative;
       box-sizing: border-box;
       max-width: min(360px, calc(100vw - 20px));
-      padding: 6px 32px 6px 10px;
+      padding: 6px 56px 6px 10px;
       border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 8px;
       background: rgba(64, 64, 64, 0.32);
@@ -137,10 +138,15 @@ function ensureHost(initialPosition: FactChipPosition): ChipHost {
     .detail {
       color: rgba(255, 255, 255, 0.68);
     }
-    .move {
+    .controls {
       position: absolute;
       top: 4px;
       right: 4px;
+      display: flex;
+      gap: 3px;
+      pointer-events: auto;
+    }
+    .control {
       box-sizing: border-box;
       width: 24px;
       height: 24px;
@@ -153,9 +159,12 @@ function ensureHost(initialPosition: FactChipPosition): ChipHost {
       cursor: pointer;
       pointer-events: auto;
     }
-    .move:focus-visible {
+    .control:focus-visible {
       outline: 2px solid rgba(255, 255, 255, 0.9);
       outline-offset: 2px;
+    }
+    .move {
+      position: static;
     }
   `;
   root.append(style);
@@ -184,14 +193,23 @@ function destinationRelationLabel(descriptor: NetworkDescriptor): string {
         : '通信先関係不明';
 }
 
+interface FactChipPresenterOptions {
+  communicationTextEnabled?: boolean;
+}
+
 export class FactChipPresenter {
   #hideTimer: number | undefined;
   #diagnosticTimer: number | undefined;
   #diagnosticAggregate: DiagnosticNetworkAggregate | undefined;
   readonly #initialPosition: FactChipPosition;
+  readonly #communicationTextEnabled: boolean;
 
-  public constructor(initialPosition: FactChipPosition = 'right') {
+  public constructor(
+    initialPosition: FactChipPosition = 'right',
+    options: FactChipPresenterOptions = {},
+  ) {
     this.#initialPosition = initialPosition;
+    this.#communicationTextEnabled = options.communicationTextEnabled ?? true;
   }
 
   public show(surfaceType: SurfaceType, viscosityLevel: ViscosityLevel): void {
@@ -219,6 +237,7 @@ export class FactChipPresenter {
   }
 
   public showNetwork(descriptor: NetworkDescriptor, viscosityLevel: ViscosityLevel): void {
+    if (!this.#communicationTextEnabled) return;
     const relation = destinationRelationLabel(descriptor);
     const host = descriptor.destinationHost === 'unknown' ? '' : ` · ${descriptor.destinationHost}`;
     const cookie =
@@ -244,6 +263,7 @@ export class FactChipPresenter {
     descriptor: NetworkDescriptor,
     viscosityLevel: ViscosityLevel,
   ): void {
+    if (!this.#communicationTextEnabled) return;
     const aggregate = this.#diagnosticAggregate ?? {
       count: 0,
       methods: new Map<NetworkMethod, number>(),
@@ -303,6 +323,7 @@ export class FactChipPresenter {
     viscosityLevel: ViscosityLevel,
     confirmed: boolean,
   ): void {
+    if (!this.#communicationTextEnabled) return;
     const relation =
       descriptor.destinationRelation === 'same_origin'
         ? '同一オリジン'
@@ -327,6 +348,7 @@ export class FactChipPresenter {
   }
 
   #render(titleText: string, detailText: string, viscosityLevel: ViscosityLevel): void {
+    if (!transientDisplayState().textChipVisible) return;
     const { root, host } = ensureHost(this.#initialPosition);
     root.querySelector('.chip')?.remove();
 
@@ -344,7 +366,7 @@ export class FactChipPresenter {
     detail.textContent = detailText;
 
     const move = document.createElement('button');
-    move.className = 'move';
+    move.className = 'control move';
     move.type = 'button';
     const current =
       (host.dataset.position as FactChipPosition | undefined) ?? this.#initialPosition;
@@ -369,7 +391,25 @@ export class FactChipPresenter {
         });
     });
 
-    chip.append(title, detail, move);
+    const mute = document.createElement('button');
+    mute.className = 'control mute';
+    mute.type = 'button';
+    mute.textContent = 'T';
+    mute.setAttribute('aria-label', 'このページで文章チップを一時的に非表示');
+    mute.title = '文章チップを一時的に非表示';
+    mute.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setTextChipVisible(false);
+      chip.setAttribute('data-visible', 'false');
+      window.setTimeout(() => chip.remove(), 180);
+    });
+
+    const controls = document.createElement('span');
+    controls.className = 'controls';
+    controls.append(mute, move);
+
+    chip.append(title, detail, controls);
     root.append(chip);
     requestAnimationFrame(() => chip.setAttribute('data-visible', 'true'));
 

@@ -13,6 +13,7 @@ describe('default settings', () => {
       reportingMode: 'standard',
       factChipPosition: 'right',
       communicationPulseEnabled: true,
+      communicationTextChipEnabled: false,
       communicationPulseDurationMs: 700,
       communicationPulseSize: 'small',
       localClassificationEnabled: false,
