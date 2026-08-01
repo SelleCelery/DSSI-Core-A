@@ -5,8 +5,8 @@ import type { InputOrigin, SurfaceType } from '../core/models/observation';
 import type { FactChipPosition, ViscosityLevel } from '../core/models/settings';
 import type { SubmissionDescriptor } from '../core/models/submission';
 import { inputOriginLabel, surfaceTypeLabel } from '../core/observation-presentation';
-import { loadSettings, saveSettings } from '../storage/settings-store';
-import { setTextChipVisible, transientDisplayState } from './transient-display-state';
+import { saveHostDisplayProfile } from '../storage/host-display-profile-store';
+import { setCommunicationTextVisible, transientDisplayState } from './transient-display-state';
 
 const HOST_ID = 'dssi-core-a-fact-chip-host';
 
@@ -43,6 +43,8 @@ interface DiagnosticNetworkAggregate {
   cookieDetected: boolean;
   viscosityLevel: ViscosityLevel;
 }
+
+type ChipCategory = 'attention' | 'communication';
 
 function applyHostPosition(host: HTMLDivElement, position: FactChipPosition): void {
   host.dataset.position = position;
@@ -111,7 +113,7 @@ function ensureHost(initialPosition: FactChipPosition): ChipHost {
       position: relative;
       box-sizing: border-box;
       max-width: min(360px, calc(100vw - 20px));
-      padding: 6px 56px 6px 10px;
+      padding: 6px 34px 6px 10px;
       border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 8px;
       background: rgba(64, 64, 64, 0.32);
@@ -126,18 +128,10 @@ function ensureHost(initialPosition: FactChipPosition): ChipHost {
       transition: opacity 120ms ease, transform 120ms ease;
       pointer-events: none;
     }
-    .chip[data-visible="true"] {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .title {
-      display: block;
-      margin-bottom: 2px;
-      font-weight: 600;
-    }
-    .detail {
-      color: rgba(255, 255, 255, 0.68);
-    }
+    .chip[data-category="communication"] { padding-right: 58px; }
+    .chip[data-visible="true"] { opacity: 1; transform: translateY(0); }
+    .title { display: block; margin-bottom: 2px; font-weight: 600; }
+    .detail { color: rgba(255, 255, 255, 0.68); }
     .controls {
       position: absolute;
       top: 4px;
@@ -162,9 +156,6 @@ function ensureHost(initialPosition: FactChipPosition): ChipHost {
     .control:focus-visible {
       outline: 2px solid rgba(255, 255, 255, 0.9);
       outline-offset: 2px;
-    }
-    .move {
-      position: static;
     }
   `;
   root.append(style);
@@ -194,7 +185,7 @@ function destinationRelationLabel(descriptor: NetworkDescriptor): string {
 }
 
 interface FactChipPresenterOptions {
-  communicationTextEnabled?: boolean;
+  hostname?: string;
 }
 
 export class FactChipPresenter {
@@ -202,18 +193,27 @@ export class FactChipPresenter {
   #diagnosticTimer: number | undefined;
   #diagnosticAggregate: DiagnosticNetworkAggregate | undefined;
   readonly #initialPosition: FactChipPosition;
-  readonly #communicationTextEnabled: boolean;
+  readonly #hostname: string;
 
   public constructor(
     initialPosition: FactChipPosition = 'right',
     options: FactChipPresenterOptions = {},
   ) {
     this.#initialPosition = initialPosition;
-    this.#communicationTextEnabled = options.communicationTextEnabled ?? true;
+    this.#hostname = options.hostname ?? location.hostname ?? 'unknown';
+  }
+
+  #canShowCommunicationText(): boolean {
+    return transientDisplayState().communicationTextVisible;
   }
 
   public show(surfaceType: SurfaceType, viscosityLevel: ViscosityLevel): void {
-    this.#render(SURFACE_MESSAGES[surfaceType], detailForCurrentPage(), viscosityLevel);
+    this.#render(
+      SURFACE_MESSAGES[surfaceType],
+      detailForCurrentPage(),
+      viscosityLevel,
+      'attention',
+    );
   }
 
   public showCoverageBoundary(viscosityLevel: ViscosityLevel): void {
@@ -221,6 +221,25 @@ export class FactChipPresenter {
       'MAX報告モード',
       '観測可能な診断事象を表示します。本文、保存Cookie、ページ内部メモリ、確立済み通信路などは観測外です。',
       viscosityLevel,
+      'attention',
+    );
+  }
+
+  public showFirstHostObservation(viscosityLevel: ViscosityLevel): void {
+    this.#render(
+      '初回観測ホスト',
+      'このホストでは、保存済みの観測表示履歴がありません。粘性レベルは自動変更していません。',
+      viscosityLevel,
+      'attention',
+    );
+  }
+
+  public showHostProfileReview(viscosityLevel: ViscosityLevel): void {
+    this.#render(
+      'ホスト表示設定の再確認',
+      'このホストの表示設定は長期間更新されていません。必要に応じて全体設定へ戻して再観測できます。',
+      viscosityLevel,
+      'attention',
     );
   }
 
@@ -233,11 +252,12 @@ export class FactChipPresenter {
       inputOriginLabel(inputOrigin),
       `${surfaceTypeLabel(surfaceType)}として観測しました。入力内容は取得していません。`,
       viscosityLevel,
+      'attention',
     );
   }
 
   public showNetwork(descriptor: NetworkDescriptor, viscosityLevel: ViscosityLevel): void {
-    if (!this.#communicationTextEnabled) return;
+    if (!this.#canShowCommunicationText()) return;
     const relation = destinationRelationLabel(descriptor);
     const host = descriptor.destinationHost === 'unknown' ? '' : ` · ${descriptor.destinationHost}`;
     const cookie =
@@ -256,6 +276,7 @@ export class FactChipPresenter {
       title,
       `${mechanismLabel(descriptor.mechanism)} · ${descriptor.method} · ${relation}${host} · ${cookie}。本文は取得せず、入力内容との因果関係も確認していません。`,
       viscosityLevel,
+      'communication',
     );
   }
 
@@ -263,7 +284,7 @@ export class FactChipPresenter {
     descriptor: NetworkDescriptor,
     viscosityLevel: ViscosityLevel,
   ): void {
-    if (!this.#communicationTextEnabled) return;
+    if (!this.#canShowCommunicationText()) return;
     const aggregate = this.#diagnosticAggregate ?? {
       count: 0,
       methods: new Map<NetworkMethod, number>(),
@@ -292,7 +313,7 @@ export class FactChipPresenter {
       this.#diagnosticTimer = undefined;
       const completed = this.#diagnosticAggregate;
       this.#diagnosticAggregate = undefined;
-      if (!completed) return;
+      if (!completed || !this.#canShowCommunicationText()) return;
 
       const methodSummary = [...completed.methods.entries()]
         .map(([method, count]) => `${method} ${count}`)
@@ -314,6 +335,7 @@ export class FactChipPresenter {
         `通信活動 ${completed.count}件`,
         `${methodSummary} · ${mechanismSummary}${relationSummary}${hostSummary}${cookie}。相関可能な利用者操作は確認していません。本文と通信目的は未確認です。`,
         completed.viscosityLevel,
+        'communication',
       );
     }, DIAGNOSTIC_CHIP_AGGREGATION_WINDOW_MS);
   }
@@ -323,7 +345,7 @@ export class FactChipPresenter {
     viscosityLevel: ViscosityLevel,
     confirmed: boolean,
   ): void {
-    if (!this.#communicationTextEnabled) return;
+    if (!this.#canShowCommunicationText()) return;
     const relation =
       descriptor.destinationRelation === 'same_origin'
         ? '同一オリジン'
@@ -344,16 +366,22 @@ export class FactChipPresenter {
       title,
       `${descriptor.method} · ${relation}${host}。実際の通信成立やサーバー到達は未確認です。`,
       viscosityLevel,
+      'communication',
     );
   }
 
-  #render(titleText: string, detailText: string, viscosityLevel: ViscosityLevel): void {
-    if (!transientDisplayState().textChipVisible) return;
+  #render(
+    titleText: string,
+    detailText: string,
+    viscosityLevel: ViscosityLevel,
+    category: ChipCategory,
+  ): void {
     const { root, host } = ensureHost(this.#initialPosition);
     root.querySelector('.chip')?.remove();
 
     const chip = document.createElement('div');
     chip.className = 'chip';
+    chip.dataset.category = category;
     chip.setAttribute('role', 'status');
     chip.setAttribute('aria-live', 'polite');
 
@@ -384,39 +412,38 @@ export class FactChipPresenter {
       const following = nextFactChipPosition(to);
       move.setAttribute('aria-label', `チップ表示位置を${factChipPositionLabel(following)}へ変更`);
       move.title = `${factChipPositionLabel(following)}へ移動`;
-      void loadSettings()
-        .then((settings) => saveSettings({ ...settings, factChipPosition: to }))
-        .catch(() => {
-          // Position changes remain available for the current page even if storage fails.
-        });
-    });
-
-    const mute = document.createElement('button');
-    mute.className = 'control mute';
-    mute.type = 'button';
-    mute.textContent = 'T';
-    mute.setAttribute('aria-label', 'このページで文章チップを一時的に非表示');
-    mute.title = '文章チップを一時的に非表示';
-    mute.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      setTextChipVisible(false);
-      chip.setAttribute('data-visible', 'false');
-      window.setTimeout(() => chip.remove(), 180);
+      void saveHostDisplayProfile(this.#hostname, { position: to });
     });
 
     const controls = document.createElement('span');
     controls.className = 'controls';
-    controls.append(mute, move);
+
+    if (category === 'communication') {
+      const mute = document.createElement('button');
+      mute.className = 'control mute';
+      mute.type = 'button';
+      mute.textContent = 'T';
+      mute.setAttribute('aria-label', 'このホストの通信説明チップを非表示にして保存');
+      mute.title = '通信説明チップを非表示にして保存';
+      mute.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setCommunicationTextVisible(false);
+        void saveHostDisplayProfile(this.#hostname, {
+          communicationTextVisible: false,
+        });
+        chip.setAttribute('data-visible', 'false');
+        window.setTimeout(() => chip.remove(), 180);
+      });
+      controls.append(mute);
+    }
+    controls.append(move);
 
     chip.append(title, detail, controls);
     root.append(chip);
     requestAnimationFrame(() => chip.setAttribute('data-visible', 'true'));
 
-    if (this.#hideTimer !== undefined) {
-      window.clearTimeout(this.#hideTimer);
-    }
-
+    if (this.#hideTimer !== undefined) window.clearTimeout(this.#hideTimer);
     const duration = viscosityLevel === 1 ? 4000 : viscosityLevel === 2 ? 6500 : 9000;
     this.#hideTimer = window.setTimeout(() => {
       chip.setAttribute('data-visible', 'false');

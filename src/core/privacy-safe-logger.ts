@@ -24,6 +24,7 @@ const ALLOWED_RECORD_KEYS = new Set<keyof ObservationLogRecord>([
   'eventId',
   'timestamp',
   'sessionId',
+  'settingsSnapshotId',
   'domainKey',
   'logLayer',
   'frameType',
@@ -287,7 +288,7 @@ function assertEnumField(
 function assertScalarFields(payload: ObservationLogRecord): void {
   if (
     payload.schemaVersion !== undefined &&
-    ![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(payload.schemaVersion)
+    ![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].includes(payload.schemaVersion)
   ) {
     throw new PrivacyBoundaryError('Unsupported observation schema version.');
   }
@@ -299,6 +300,9 @@ function assertScalarFields(payload: ObservationLogRecord): void {
   }
   assertUuid('eventId', payload.eventId);
   assertUuid('sessionId', payload.sessionId);
+  if (payload.settingsSnapshotId !== undefined) {
+    assertUuid('settingsSnapshotId', payload.settingsSnapshotId);
+  }
   if (typeof payload.domainKey !== 'string') {
     throw new PrivacyBoundaryError('domainKey is required.');
   }

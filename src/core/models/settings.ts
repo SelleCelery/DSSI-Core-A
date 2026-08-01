@@ -4,6 +4,8 @@ export type FactChipPosition =
   'top' | 'top_right' | 'right' | 'bottom_right' | 'bottom' | 'bottom_left' | 'left' | 'top_left';
 export type CommunicationPulseDurationMs = 0 | 300 | 700 | 1500 | 3000 | 10000 | 30000 | 60000;
 export type CommunicationPulseSize = 'small' | 'medium';
+export type CommunicationPulseColor = 'magenta' | 'cyan' | 'yellow' | 'neutral';
+export type CommunicationPulseOpacity = 1 | 0.8 | 0.6 | 0.4;
 
 export interface DssiSettings {
   enabled: boolean;
@@ -14,6 +16,9 @@ export interface DssiSettings {
   communicationTextChipEnabled: boolean;
   communicationPulseDurationMs: CommunicationPulseDurationMs;
   communicationPulseSize: CommunicationPulseSize;
+  communicationPulseDomColor: CommunicationPulseColor;
+  communicationPulseWebRequestColor: CommunicationPulseColor;
+  communicationPulseOpacity: CommunicationPulseOpacity;
   localClassificationEnabled: boolean;
   networkObservationEnabled: boolean;
   downloadObservationEnabled: boolean;
@@ -29,6 +34,9 @@ export const DEFAULT_SETTINGS: Readonly<DssiSettings> = Object.freeze({
   communicationTextChipEnabled: false,
   communicationPulseDurationMs: 700,
   communicationPulseSize: 'small',
+  communicationPulseDomColor: 'magenta',
+  communicationPulseWebRequestColor: 'cyan',
+  communicationPulseOpacity: 0.8,
   localClassificationEnabled: false,
   networkObservationEnabled: false,
   downloadObservationEnabled: false,
@@ -39,6 +47,12 @@ export function effectiveCueLevel(
   settings: Pick<DssiSettings, 'viscosityLevel' | 'reportingMode'>,
 ): ViscosityLevel {
   return settings.reportingMode === 'max_coverage' ? 3 : settings.viscosityLevel;
+}
+
+export function communicationPulseAvailable(
+  settings: Pick<DssiSettings, 'viscosityLevel' | 'reportingMode'>,
+): boolean {
+  return settings.reportingMode === 'max_coverage' || settings.viscosityLevel >= 2;
 }
 
 export function shouldPresentCommunicationPulse(

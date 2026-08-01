@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.6 - Sprint 3.4 domain profiles and log export boundaries
+
+- Added independent global DOM and webRequest pulse-color choices: magenta, cyan, yellow, or neutral.
+- Added hostname-scoped display profiles for pulse visibility, communication-text visibility, position, route colors, duration/opacity fields, and automatic HUD-control persistence.
+- Added HUD controls for DOM color, webRequest color, pulse opacity, and resetting the current hostname to global settings.
+- Kept viscosity-bound attention chips fixed-opacity and independent from communication-pulse and communication-text suppression.
+- Added first-host observation and stale-host-profile review cues without automatically changing viscosity.
+- Added per-record settings snapshot identifiers and session-scoped settings snapshots for later export context.
+- Added JSON and CSV log export for all records or the current log view.
+- Added Coverage Manifest, export-time settings, referenced record-time settings snapshots, exclusions, use boundaries, and explicit no-integrity status to JSON export.
+- Kept CSV flat and one-record-per-row; CSV-only export also emits a context JSON file.
+- Declared that export performs only selection and timestamp ordering, without aggregation, purpose classification, danger scoring, or missing-value inference.
+- Updated the observation record schema to version 10.
+- Updated package and extension version to 0.4.6.
+
 ## 0.4.5 - Communication pulse icon refinement
 
 - Changed communication-pulse method encoding from center letters to outer geometric shapes.

@@ -1,11 +1,11 @@
 export interface TransientDisplayState {
-  textChipVisible: boolean;
+  communicationTextVisible: boolean;
   pulseVisible: boolean;
   pulsePaused: boolean;
 }
 
 const state: TransientDisplayState = {
-  textChipVisible: true,
+  communicationTextVisible: true,
   pulseVisible: true,
   pulsePaused: false,
 };
@@ -17,13 +17,22 @@ function notify(): void {
   for (const listener of listeners) listener(snapshot);
 }
 
+export function initializeTransientDisplayState(
+  initial: Pick<TransientDisplayState, 'communicationTextVisible' | 'pulseVisible'>,
+): void {
+  state.communicationTextVisible = initial.communicationTextVisible;
+  state.pulseVisible = initial.pulseVisible;
+  state.pulsePaused = false;
+  notify();
+}
+
 export function transientDisplayState(): Readonly<TransientDisplayState> {
   return state;
 }
 
-export function setTextChipVisible(visible: boolean): void {
-  if (state.textChipVisible === visible) return;
-  state.textChipVisible = visible;
+export function setCommunicationTextVisible(visible: boolean): void {
+  if (state.communicationTextVisible === visible) return;
+  state.communicationTextVisible = visible;
   notify();
 }
 

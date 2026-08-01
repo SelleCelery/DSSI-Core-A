@@ -59,7 +59,7 @@ export class InputSurfaceObserver {
     this.#settings = settings;
     this.#sessionId = sessionId;
     this.#presenter = new FactChipPresenter(settings.factChipPosition, {
-      communicationTextEnabled: settings.communicationTextChipEnabled,
+      hostname: this.#domainKey,
     });
     this.#networkPulseEnabled = settings.networkObservationEnabled;
   }

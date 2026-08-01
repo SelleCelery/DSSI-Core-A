@@ -1,5 +1,6 @@
 import type { LogLayer, ObservationLogRecord } from '../core/models/observation';
 import { createPrivacySafeRecord } from '../core/privacy-safe-logger';
+import { clearObservationSettingsSnapshots } from './settings-snapshot-store';
 
 const ACTIVITY_LOG_KEY = 'dssiSessionLog';
 const DIAGNOSTIC_LOG_KEY = 'dssiDiagnosticLog';
@@ -40,6 +41,7 @@ export async function appendSessionRecord(record: ObservationLogRecord): Promise
 
 export async function clearSessionRecords(): Promise<void> {
   await chrome.storage.session.remove([ACTIVITY_LOG_KEY, DIAGNOSTIC_LOG_KEY]);
+  await clearObservationSettingsSnapshots();
 }
 
 export async function clearActivityRecords(): Promise<void> {

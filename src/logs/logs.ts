@@ -3,7 +3,14 @@ import {
   type CommunicationPulseDescriptor,
 } from '../core/communication-pulse';
 import { buildCoverageManifest } from '../core/coverage-manifest';
+import {
+  buildDssiObservationLogExport,
+  exportFilenameTimestamp,
+  observationRecordsToCsv,
+  type LogExportScopeType,
+} from '../core/log-export';
 import type { ObservationLogRecord } from '../core/models/observation';
+import type { DssiSettings } from '../core/models/settings';
 import { NETWORK_PERMISSION_REQUEST } from '../core/network-permission';
 import {
   boundarySourceLabel,
@@ -25,6 +32,7 @@ import {
   surfaceTypeLabel,
 } from '../core/observation-presentation';
 import { loadSettings } from '../storage/settings-store';
+import { getObservationSettingsSnapshots } from '../storage/settings-snapshot-store';
 import {
   clearActivityRecords,
   clearDiagnosticRecords,
@@ -38,6 +46,7 @@ import { requiredElement } from '../ui/required-element';
 
 type ViewMode = 'all' | 'activity' | 'diagnostic';
 type DisplayMode = 'simple' | 'detailed';
+type ExportFormat = 'json' | 'csv' | 'both';
 
 interface TaggedRecord {
   record: ObservationLogRecord;
@@ -59,6 +68,9 @@ const activityButton = requiredElement<HTMLButtonElement>('#showActivity');
 const diagnosticButton = requiredElement<HTMLButtonElement>('#showDiagnostic');
 const simpleButton = requiredElement<HTMLButtonElement>('#showSimple');
 const detailedButton = requiredElement<HTMLButtonElement>('#showDetailed');
+const exportFormat = requiredElement<HTMLSelectElement>('#exportFormat');
+const exportScope = requiredElement<HTMLSelectElement>('#exportScope');
+const exportLogsButton = requiredElement<HTMLButtonElement>('#exportLogs');
 const status = requiredElement<HTMLElement>('#status');
 const coverageDialog = requiredElement<HTMLDialogElement>('#coverageDialog');
 const coverageDialogBody = requiredElement<HTMLDivElement>('#coverageDialogBody');
@@ -69,6 +81,7 @@ const observationTable = requiredElement<HTMLTableElement>('#observationTable');
 let viewMode: ViewMode = 'all';
 let displayMode: DisplayMode = 'simple';
 let scrollSyncInProgress = false;
+let currentSettings: DssiSettings | undefined;
 
 function formatTimestamp(timestamp: number): string {
   return new Date(timestamp).toLocaleString('ja-JP', {
@@ -141,7 +154,17 @@ function createStreamGlyph(record: ObservationLogRecord): HTMLSpanElement {
     return wrapper;
   }
 
-  const icon = createCommunicationPulseIcon(descriptor);
+  const settings = currentSettings;
+  const icon = createCommunicationPulseIcon(
+    descriptor,
+    settings
+      ? {
+          domColor: settings.communicationPulseDomColor,
+          webRequestColor: settings.communicationPulseWebRequestColor,
+          opacity: settings.communicationPulseOpacity,
+        }
+      : undefined,
+  );
   icon.title = communicationPulseAriaLabel(descriptor);
   wrapper.append(icon);
   return wrapper;
@@ -228,7 +251,11 @@ function renderSimple(records: TaggedRecord[]): void {
       detailItem('ページ観測との時間関係', pageObservationTimingLabel(record)),
       detailItem('Cookieヘッダー検出', cookieHeaderDetectionLabel(record)),
       detailItem('本文観測', networkPayloadObservationLabel(record)),
-      detailItem('文章チップ', record.cuePresented ? '表示対象' : '非表示／表示対象外'),
+      detailItem('設定スナップショット', record.settingsSnapshotId ?? '取得不能'),
+      detailItem(
+        '表示方針',
+        record.cuePresented ? '表示対象（実表示は観測時設定に依存）' : '表示対象外',
+      ),
     );
 
     details.append(summary, detail);
@@ -263,7 +290,7 @@ function renderDetailed(records: TaggedRecord[]): void {
       makeCell(pageObservationTimingLabel(record)),
       makeCell(cookieHeaderDetectionLabel(record)),
       makeCell(networkPayloadObservationLabel(record)),
-      makeCell(record.cuePresented ? '表示対象' : '非表示／対象外'),
+      makeCell(record.cuePresented ? '表示対象（設定依存）' : '表示対象外'),
     );
     body.append(row);
   }
@@ -300,21 +327,23 @@ function updateViewControls(): void {
     viewMode === 'all' ? '全時系列' : viewMode === 'activity' ? '通常ログ' : '診断ログ';
 }
 
-async function recordsForCurrentView(): Promise<TaggedRecord[]> {
+async function allTaggedRecords(): Promise<TaggedRecord[]> {
   const [activity, diagnostic] = await Promise.all([getSessionRecords(), getDiagnosticRecords()]);
+  return [
+    ...activity.map((record) => ({ record, layer: 'activity' as const })),
+    ...diagnostic.map((record) => ({ record, layer: 'diagnostic' as const })),
+  ].sort((a, b) => b.record.timestamp - a.record.timestamp);
+}
 
-  const tagged: TaggedRecord[] = [];
-  if (viewMode !== 'diagnostic') {
-    tagged.push(...activity.map((record) => ({ record, layer: 'activity' as const })));
-  }
-  if (viewMode !== 'activity') {
-    tagged.push(...diagnostic.map((record) => ({ record, layer: 'diagnostic' as const })));
-  }
-  return tagged.sort((a, b) => b.record.timestamp - a.record.timestamp);
+async function recordsForCurrentView(): Promise<TaggedRecord[]> {
+  const all = await allTaggedRecords();
+  if (viewMode === 'all') return all;
+  return all.filter(({ layer }) => layer === viewMode);
 }
 
 async function refresh(): Promise<void> {
   updateViewControls();
+  currentSettings = await loadSettings();
   render(await recordsForCurrentView());
 }
 
@@ -352,6 +381,88 @@ function selectDisplay(next: DisplayMode): void {
   void refresh();
 }
 
+function downloadText(filename: string, text: string, mimeType: string): void {
+  const blob = new Blob([text], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.hidden = true;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function selectedExportFormat(): ExportFormat {
+  return exportFormat.value === 'csv' ? 'csv' : exportFormat.value === 'both' ? 'both' : 'json';
+}
+
+function selectedExportScope(): LogExportScopeType {
+  return exportScope.value === 'current_view' ? 'current_view' : 'all_records';
+}
+
+async function exportLogs(): Promise<void> {
+  const scopeType = selectedExportScope();
+  const tagged =
+    scopeType === 'all_records' ? await allTaggedRecords() : await recordsForCurrentView();
+  const records = tagged.map(({ record }) => record);
+  const [settings, permissionGranted] = await Promise.all([
+    loadSettings(),
+    chrome.permissions.contains(NETWORK_PERMISSION_REQUEST),
+  ]);
+  const snapshotIds = new Set(
+    records
+      .map((record) => record.settingsSnapshotId)
+      .filter((id): id is string => id !== undefined),
+  );
+  const settingsSnapshots = await getObservationSettingsSnapshots(snapshotIds);
+  const now = new Date();
+  const timestamp = exportFilenameTimestamp(now);
+  const baseName = `dssi-observation-log_${timestamp}`;
+  const document = buildDssiObservationLogExport({
+    records,
+    settings,
+    settingsSnapshots,
+    coverageManifest: buildCoverageManifest({
+      networkObservationEnabled: settings.networkObservationEnabled,
+      networkPermissionGranted: permissionGranted,
+    }),
+    applicationVersion: chrome.runtime.getManifest().version,
+    scope: {
+      type: scopeType,
+      viewMode,
+      filterApplied: scopeType === 'current_view' && viewMode !== 'all',
+    },
+    exportedAt: now,
+  });
+  const json = `${JSON.stringify(document, null, 2)}\n`;
+  const contextOnly = {
+    export: document.export,
+    observationContext: document.observationContext,
+    useBoundary: document.useBoundary,
+    integrity: document.integrity,
+  };
+  const contextJson = `${JSON.stringify(contextOnly, null, 2)}\n`;
+  const csv = `\uFEFF${observationRecordsToCsv(records)}\r\n`;
+
+  switch (selectedExportFormat()) {
+    case 'json':
+      downloadText(`${baseName}.json`, json, 'application/json;charset=utf-8');
+      break;
+    case 'csv':
+      downloadText(`${baseName}.csv`, csv, 'text/csv;charset=utf-8');
+      downloadText(`${baseName}.context.json`, contextJson, 'application/json;charset=utf-8');
+      break;
+    case 'both':
+      downloadText(`${baseName}.json`, json, 'application/json;charset=utf-8');
+      downloadText(`${baseName}.csv`, csv, 'text/csv;charset=utf-8');
+      break;
+  }
+
+  status.textContent = `${records.length}件の一次観測記録を保存しました。保存時の追加集約・判定は行っていません。`;
+}
+
 tableScrollTop.addEventListener('scroll', () => synchronizeScroll(tableScrollTop, tableScroll));
 tableScroll.addEventListener('scroll', () => synchronizeScroll(tableScroll, tableScrollTop));
 new ResizeObserver(updateMirrorScrollbar).observe(observationTable);
@@ -364,6 +475,7 @@ simpleButton.addEventListener('click', () => selectDisplay('simple'));
 detailedButton.addEventListener('click', () => selectDisplay('detailed'));
 refreshButton.addEventListener('click', () => void refresh());
 showCoverageButton.addEventListener('click', () => void showCoverage());
+exportLogsButton.addEventListener('click', () => void exportLogs());
 clearCurrentButton.addEventListener('click', () => {
   if (viewMode === 'all') {
     if (!window.confirm('通常ログと診断ログをすべて消去しますか？')) return;

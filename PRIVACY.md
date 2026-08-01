@@ -93,3 +93,15 @@ A chip-position handle stores only one categorical preference: top, left, bottom
 Communication pulses are derived only from already privacy-safe DOM submission descriptors and network descriptors. They do not add permissions, request bodies, Cookie values, URL paths, queries, fragments, form values, or page-main-world memory.
 
 Pulse color and geometry identify observation routes and metadata states only. They do not classify traffic as safe, dangerous, suspicious, or intended. Network pulses always represent body-unobserved metadata.
+
+## Sprint 3.4 hostname profiles and log export
+
+Hostname-scoped display profiles are stored in `chrome.storage.local`. They may contain pulse visibility, communication-explanation visibility, chip position, route-color choices, pulse opacity, and update time. They are display preferences only. They do not store a safety score, trust decision, permission decision, browsing content, or communication content.
+
+The first-observation registry stores the normalized hostname and first/last observation times so DSSI can indicate a new observation target and later return a review cue. Repeated page loads update this registry no more than once per hour per hostname.
+
+Observation-log export is initiated explicitly from the log viewer. JSON export includes DSSI primary observation records, export-time settings, referenced record-time settings snapshots when available, the Coverage Manifest, export scope, exclusions, and use boundaries. CSV contains a flat row per observation record. Selecting CSV alone also produces a context JSON file because nested observation conditions cannot be represented faithfully in a flat table.
+
+Export does not add host aggregation, communication-purpose classification, danger or safety scoring, missing-value inference, input content, Cookie values, request bodies, or complete URLs. It performs record selection and timestamp ordering only.
+
+After download, exported files are outside `chrome.storage.session` and inside the user's file-management boundary. Version 0.4.6 does not encrypt, digitally sign, authenticate, or make exported files read-only. The files can be copied, edited, disclosed, compelled, or misinterpreted by software or people with access to them. The exported use-boundary statement therefore says that the records do not prove user intent, responsibility, communication content, harmfulness, or safety.

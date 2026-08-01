@@ -124,3 +124,21 @@ Continue from `docs/product/DSSI_Core_A_Functional_Specification.md`, reconcilin
 - [x] preserve request-body non-observation and existing privacy boundaries
 - [ ] complete real-browser visual-density tests on high-traffic SPA pages
 - [ ] evaluate active-tab settings propagation without page reload
+
+## Sprint 3.4 — Domain Observation Profiles and Log Export Boundaries
+
+- [x] allow independent DOM and webRequest pulse colors: magenta, cyan, yellow, neutral
+- [x] allow pulse-opacity selection while keeping attention-chip opacity fixed
+- [x] separate communication pulses, communication explanations, and viscosity attention chips
+- [x] persist page-HUD display changes as exact-hostname display profiles
+- [x] keep hostname profiles separate from trust, safety, and permission decisions
+- [x] provide profile reset and stale-profile review cues
+- [x] mark first hostname observation without changing viscosity automatically
+- [x] add observation-settings snapshots and schema version 10
+- [x] export primary observation records as JSON and CSV
+- [x] include export scope, settings context, Coverage Manifest, exclusions, and use boundaries
+- [x] declare encryption, signatures, and authenticated integrity as not provided
+- [ ] complete real-browser profile persistence and reset tests
+- [ ] complete JSON / CSV download acceptance tests
+- [ ] design coercion-resistant encryption, signing, deletion, and verification boundaries before implementation
+- [ ] defer fully custom viscosity policies until after MVP review

@@ -92,9 +92,36 @@
             <option value="medium">中 — 約4.8mm相当</option>
           </select>
         </label>
+        <label class="field">
+          <span>DOM観測の色</span>
+          <select id="communicationPulseDomColor">
+            <option value="magenta">マゼンタ</option>
+            <option value="cyan">シアン</option>
+            <option value="yellow">イエロー</option>
+            <option value="neutral">無色</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>webRequest観測の色</span>
+          <select id="communicationPulseWebRequestColor">
+            <option value="magenta">マゼンタ</option>
+            <option value="cyan">シアン</option>
+            <option value="yellow">イエロー</option>
+            <option value="neutral">無色</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>通信パルスの不透明度</span>
+          <select id="communicationPulseOpacity">
+            <option value="1">100%</option>
+            <option value="0.8">80%</option>
+            <option value="0.6">60%</option>
+            <option value="0.4">40%</option>
+          </select>
+        </label>
         <p class="small pulse-legend">
-          外周形はmethodを示します（GET＝円、POST＝四角、PUT＝ひし形、PATCH＝六角形、DELETE＝三角形）。中央のS/F/Bは標準form・fetch/XHR・Beacon/Pingを示します。濃いマゼンタはDOM観測、淡いシアンはwebRequest観測です。右上はCookieヘッダー名の状態で、●＝検出、−＝未検出、·＝未観測、?＝判定不能。左上の短線は別オリジンです。色は安全・危険・注意を示しません。
-          ページ上の小型操作部から、パルスの一時停止・消去・表示抑制と、通信文章チップの一時切替を行えます。これらの一時状態はページ再読み込みで基本設定へ戻ります。
+          外周形はmethodを示します（GET＝円、POST＝四角、PUT＝ひし形、PATCH＝六角形、DELETE＝三角形）。中央のS/F/Bは標準form・fetch/XHR・Beacon/Pingを示します。DOMとwebRequestの色は、マゼンタ／シアン／イエロー／無色から個別に選択できます。同色または無色でも、外周形と中央文字による識別は残ります。右上はCookieヘッダー名の状態で、●＝検出、−＝未検出、·＝未観測、?＝判定不能。左上の短線は別オリジンです。色は安全・危険・注意を示しません。注意チップの透明度は固定され、通信表示の設定から独立します。
+          ページ上の小型操作部から、パルスの一時停止・消去・表示切替、通信説明チップの表示切替、DOM色、webRequest色、不透明度を変更できます。表示切替・位置・色・不透明度はhostname単位の表示プロファイルとして自動保存されます。↺でそのホストの設定を解除し、全体設定へ戻せます。粘性に基づく注意チップは通信表示の抑制では隠れません。
         </p>
 
         <label class="row">

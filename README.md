@@ -8,7 +8,7 @@ The extension is designed to present observable facts and observation limits bef
 
 ## Status
 
-Sprint 3.3 — Real-Time Boundary Pulse Visualization
+Sprint 3.4 — Domain Observation Profiles and Log Export Boundaries
 
 This repository currently provides:
 
@@ -31,10 +31,14 @@ This repository currently provides:
 - dynamic Coverage Manifest for observed, reduced, deliberately unobserved, currently unobservable, and unknown-residual regions
 - movable factual chips with persistent eight-direction placement
 - optional geometric communication pulses for DOM form, fetch/XHR, and Beacon/Ping observations
+- independently selectable DOM and webRequest pulse colors: magenta, cyan, yellow, or neutral
+- hostname-scoped observation display profiles with automatic HUD-control persistence and reset
+- independent communication-pulse and communication-explanation controls that do not suppress viscosity attention chips
+- JSON and CSV export of primary observation records with settings snapshots, Coverage Manifest, scope, and use boundaries
 - log-page Coverage Manifest dialog and synchronized top/bottom table scrollbars
 - lint, format, typecheck, test, and build commands
 
-Sprint 3.3 retains the Sprint 3.2 MAX and privacy boundaries while adding a real-time, metadata-only communication-pulse layer. MAX does not request broader content access; it reports supported communication diagnostics even when DSSI cannot correlate a recent content edit or trusted standard-form operation. It also exposes a Coverage Manifest showing what DSSI observes, what it reduces, what it deliberately refuses to observe, what the current platform does not expose, and the remaining unknown residual. Header values are not accessed by DSSI logic and are never copied into messages, records, storage, or UI. Request bodies are not requested, full URL paths and queries are not persisted, and no payload relation, user intent, authentication purpose, or server receipt is claimed.
+Sprint 3.4 retains the Sprint 3.3 communication-pulse and privacy boundaries while adding hostname-scoped display profiles and explicit log export. A host profile describes only how densely observations are displayed; it is not a trust, safety, permission, or reputation decision. Communication display can be reduced without suppressing viscosity-bound attention chips for password, payment, and personal-information surfaces. JSON export preserves DSSI primary observation records together with referenced settings snapshots, the Coverage Manifest, export scope, and use boundaries. CSV is a flat derivative for spreadsheet use and is accompanied by context JSON when selected alone. Exported files are not encrypted, signed, or protected against later editing in this version.
 
 ## Requirements
 
@@ -72,7 +76,7 @@ The initial build does not persist:
 
 The session log stores structural metadata only and can be cleared from the options page.
 
-See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](./docs/SPRINT1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.1 implementation guide](./docs/SPRINT1_1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.2 implementation guide](./docs/SPRINT1_2_IMPLEMENTATION_GUIDE.md), [the Sprint 2 implementation guide](./docs/SPRINT2_IMPLEMENTATION_GUIDE.md), [the Sprint 2.1 implementation guide](./docs/SPRINT2_1_IMPLEMENTATION_GUIDE.md), [the Sprint 2.2 implementation guide](./docs/SPRINT2_2_IMPLEMENTATION_GUIDE.md), [the Sprint 3 implementation guide](./docs/SPRINT3_IMPLEMENTATION_GUIDE.md), [the Sprint 3.1 implementation guide](./docs/SPRINT3_1_IMPLEMENTATION_GUIDE.md), [the Sprint 3.2 implementation guide](./docs/SPRINT3_2_IMPLEMENTATION_GUIDE.md), [the Sprint 3.3 implementation guide](docs/SPRINT3_3_0_IMPLEMENTATION_GUIDE.md), [the data lifecycle and purge boundary](./docs/DATA_LIFECYCLE_AND_PURGE_BOUNDARY_v0.4.ja.md), [the operational glossary](./docs/DSSI_Core_A_Operational_Glossary.ja.md), and the product documents under [docs/product](./docs/product).
+See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](./docs/SPRINT1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.1 implementation guide](./docs/SPRINT1_1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.2 implementation guide](./docs/SPRINT1_2_IMPLEMENTATION_GUIDE.md), [the Sprint 2 implementation guide](./docs/SPRINT2_IMPLEMENTATION_GUIDE.md), [the Sprint 2.1 implementation guide](./docs/SPRINT2_1_IMPLEMENTATION_GUIDE.md), [the Sprint 2.2 implementation guide](./docs/SPRINT2_2_IMPLEMENTATION_GUIDE.md), [the Sprint 3 implementation guide](./docs/SPRINT3_IMPLEMENTATION_GUIDE.md), [the Sprint 3.1 implementation guide](./docs/SPRINT3_1_IMPLEMENTATION_GUIDE.md), [the Sprint 3.2 implementation guide](./docs/SPRINT3_2_IMPLEMENTATION_GUIDE.md), [the Sprint 3.3 implementation guide](./docs/SPRINT3_3_IMPLEMENTATION_GUIDE.md), [the Sprint 3.4 implementation guide](./docs/SPRINT3_4_IMPLEMENTATION_GUIDE.md), [the data lifecycle and purge boundary](./docs/DATA_LIFECYCLE_AND_PURGE_BOUNDARY_v0.4.ja.md), [the operational glossary](./docs/DSSI_Core_A_Operational_Glossary.ja.md), and the product documents under [docs/product](./docs/product).
 
 ## License
 
@@ -114,4 +118,12 @@ The log viewer can open the same dynamic Coverage Manifest used by the options p
 
 Fact-chip placement now supports top, top-right, right, bottom-right, bottom, bottom-left, left, and top-left. The move handle follows this clockwise order and the communication-pulse layer follows the same position.
 
-Level 2, Level 3, and MAX can display small geometric communication pulses. A square denotes a DOM standard-form boundary, a circle denotes fetch/XHR observed through `webRequest`, and a wave form denotes Beacon/Ping. A compact letter indicates method, the Cookie marker reports only header-name detection state, and a corner mark indicates cross-origin relation. The muted graphite, plum-gray, sage-gray, and copper-gray colors identify observation routes only; they do not encode safety, danger, or warning. Network pulses remain request-body-unobserved.
+Level 2, Level 3, and MAX can display small geometric communication pulses. The outer geometry denotes the HTTP method; the center glyph denotes S for standard-form DOM submission, F for fetch/XHR, or B for Beacon/Ping. A top-right marker reports only Cookie-header-name detection state, and a corner mark indicates cross-origin relation. Pulse colors are observation-route aids only and do not encode safety, danger, warning, intent, or harmfulness. Network pulses remain request-body-unobserved.
+
+## Sprint 3.4: domain observation profiles and log export boundaries
+
+Page-HUD changes to pulse visibility, communication-explanation visibility, position, DOM color, webRequest color, and pulse opacity are stored automatically for the exact `hostname`. The profile changes display density only. It does not mark a host trusted, safe, approved, or permitted. The reset control removes the host profile and returns the page to global settings. First observation of a hostname is indicated without automatically raising viscosity, and profiles older than 90 days can produce a review cue.
+
+Communication pulses and communication explanatory chips are independently controlled. Viscosity-bound attention chips remain fixed-opacity and are not suppressed by communication display controls. Full viscosity customization remains outside the Sprint 3.4 MVP.
+
+The log viewer can export all retained records or the current activity/diagnostic view. JSON includes the primary observation records, export-time settings, referenced record-time settings snapshots when available, Coverage Manifest, scope, exclusions, and use boundaries. CSV contains one flat row per record without aggregation or safety classification; selecting CSV alone also creates a context JSON file. The export performs selection and timestamp ordering only. It does not add communication-purpose classification, missing-value inference, danger ratings, or host aggregation. Exported files move into the user's file-management boundary and are not encrypted, signed, or made edit-proof in v0.4.6.

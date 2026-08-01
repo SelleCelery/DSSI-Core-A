@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_SETTINGS,
+  communicationPulseAvailable,
   effectiveCueLevel,
   shouldPresentCommunicationPulse,
 } from '../../src/core/models/settings';
@@ -16,6 +17,9 @@ describe('default settings', () => {
       communicationTextChipEnabled: false,
       communicationPulseDurationMs: 700,
       communicationPulseSize: 'small',
+      communicationPulseDomColor: 'magenta',
+      communicationPulseWebRequestColor: 'cyan',
+      communicationPulseOpacity: 0.8,
       localClassificationEnabled: false,
       networkObservationEnabled: false,
       downloadObservationEnabled: false,
@@ -29,7 +33,19 @@ describe('default settings', () => {
     expect(effectiveCueLevel({ viscosityLevel: 3, reportingMode: 'max_coverage' })).toBe(3);
   });
 
-  it('shows communication pulses only from Level 2 upward or in MAX', () => {
+  it('makes the pulse HUD available from Level 2 upward or in MAX', () => {
+    expect(communicationPulseAvailable({ viscosityLevel: 1, reportingMode: 'standard' })).toBe(
+      false,
+    );
+    expect(communicationPulseAvailable({ viscosityLevel: 2, reportingMode: 'standard' })).toBe(
+      true,
+    );
+    expect(communicationPulseAvailable({ viscosityLevel: 1, reportingMode: 'max_coverage' })).toBe(
+      true,
+    );
+  });
+
+  it('shows communication pulses only from Level 2 upward or in MAX and when visible', () => {
     expect(
       shouldPresentCommunicationPulse({
         viscosityLevel: 1,

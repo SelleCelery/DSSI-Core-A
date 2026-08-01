@@ -36,6 +36,32 @@
         <button id="clearCurrent" type="button">表示中のログを消去</button>
         <button id="clearAll" type="button">すべてのログを消去</button>
       </div>
+      <section class="export-panel" aria-labelledby="exportHeading">
+        <h2 id="exportHeading">観測ログを保存</h2>
+        <div class="export-controls">
+          <label>
+            <span>形式</span>
+            <select id="exportFormat">
+              <option value="json">JSON — 観測条件を含む</option>
+              <option value="csv">CSV＋context JSON — 表計算向け</option>
+              <option value="both">JSON＋CSV</option>
+            </select>
+          </label>
+          <label>
+            <span>範囲</span>
+            <select id="exportScope">
+              <option value="all_records">全ログ</option>
+              <option value="current_view">現在表示中</option>
+            </select>
+          </label>
+          <button id="exportLogs" type="button">保存</button>
+        </div>
+        <p class="small export-boundary">
+          保存するのはDSSIが観測時に生成した一次観測記録です。保存時に通信の集約、危険度判定、目的分類、欠損値補完を加えません。
+          このログは入力内容、通信内容、利用者の意図、責任、有害性、安全性を証明しません。保存後のファイルは利用者の管理領域へ移ります。
+          現在の版では暗号化・署名・改変検知を提供しません。
+        </p>
+      </section>
       <p id="status" class="status" role="status"></p>
       <p id="empty">観測ログはありません。</p>
 
@@ -73,7 +99,7 @@
                 <th scope="col">ページ観測との時間関係</th>
                 <th scope="col">Cookieヘッダー検出</th>
                 <th scope="col">本文観測</th>
-                <th scope="col">チップ</th>
+                <th scope="col">表示方針</th>
               </tr>
             </thead>
             <tbody id="logBody"></tbody>
@@ -85,7 +111,7 @@
         <h2 id="pulseLegendHeading">通信パルスの読み方</h2>
         <p>
           簡易ストリームは一件を一行へ縮約し、クリックすると詳細を展開します。小型通信パルスは、標準formのDOM送信境界と、webRequestで観測した通信の時間配置を示します。
-          外周形はmethodです（GET＝円、POST＝四角、PUT＝ひし形、PATCH＝六角形、DELETE＝三角形）。中央のS/F/Bは標準form・fetch/XHR・Beacon/Pingを示します。濃いマゼンタはDOM観測、淡いシアンはwebRequest観測です。
+          外周形はmethodです（GET＝円、POST＝四角、PUT＝ひし形、PATCH＝六角形、DELETE＝三角形）。中央のS/F/Bは標準form・fetch/XHR・Beacon/Pingを示します。DOMとwebRequestの色は、設定したマゼンタ／シアン／イエロー／無色で表示されます。
           右上はCookieヘッダー名の状態で、●＝検出、−＝未検出、·＝未観測、?＝判定不能。左上の短線は別オリジンを示します。
           色は観測経路の識別補助であり、安全・危険・注意を意味しません。ネットワークパルスはすべて本文未観測です。
         </p>

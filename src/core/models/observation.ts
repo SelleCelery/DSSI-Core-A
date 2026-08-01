@@ -94,10 +94,11 @@ import type {
 } from './network';
 
 export interface ObservationLogRecord {
-  schemaVersion?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+  schemaVersion?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
   eventId: string;
   timestamp: number;
   sessionId: string;
+  settingsSnapshotId?: string;
   domainKey: string;
   logLayer?: LogLayer;
   frameType?: FrameType;

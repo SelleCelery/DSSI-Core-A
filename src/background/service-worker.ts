@@ -25,6 +25,8 @@ import { createObservationRecord } from '../core/observation-factory';
 import { createPrivacySafeRecord } from '../core/privacy-safe-logger';
 import { isPrivacySafeUserActionPulse } from '../core/user-action-pulse';
 import { ensureDefaultSettings, loadSettings, saveSettings } from '../storage/settings-store';
+import { captureObservationSettingsSnapshot } from '../storage/settings-snapshot-store';
+import { invalidateHostDisplayProfileCache } from '../storage/host-display-profile-store';
 import {
   appendSessionRecord,
   clearSessionRecords,
@@ -92,6 +94,14 @@ interface NetworkRecordContext {
   logLayer: 'activity' | 'diagnostic';
 }
 
+async function attachSettingsSnapshot(
+  record: ObservationLogRecord,
+  settings: DssiSettings,
+): Promise<ObservationLogRecord> {
+  const snapshot = await captureObservationSettingsSnapshot(record.domainKey, settings);
+  return createPrivacySafeRecord({ ...record, settingsSnapshotId: snapshot.id });
+}
+
 const PAGE_START_DEDUP_WINDOW_MS = 5000;
 const recentPageStarts = new Map<string, number>();
 const recentInputByFrame = new Map<string, RecentInputActivity>();
@@ -111,8 +121,13 @@ chrome.runtime.onStartup.addListener(() => {
 
 chrome.storage.onChanged.addListener(
   (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => {
-    if (areaName !== 'local' || changes.dssiSettings === undefined) return;
-    settingsPromise = loadSettings();
+    if (areaName !== 'local') return;
+    if (changes.dssiHostDisplayProfiles !== undefined) {
+      invalidateHostDisplayProfileCache();
+    }
+    if (changes.dssiSettings !== undefined) {
+      settingsPromise = loadSettings();
+    }
   },
 );
 
@@ -458,7 +473,7 @@ async function handleNetworkRequestHeaders(details: OnBeforeSendHeadersDetails):
     frameDomain: context.domainKey,
   });
 
-  await appendSessionRecord(record);
+  await appendSessionRecord(await attachSettingsSnapshot(record, settings));
 }
 
 const networkRequestHeaderListener: OnBeforeSendHeadersListener = (details) => {
@@ -554,7 +569,9 @@ chrome.runtime.onMessage.addListener(
           return false;
         }
 
-        void appendSessionRecord(enriched)
+        void settingsPromise
+          .then((settings) => attachSettingsSnapshot(enriched, settings))
+          .then((record) => appendSessionRecord(record))
           .then(() => sendResponse({ ok: true }))
           .catch(() => sendResponse({ ok: false }));
         return true;

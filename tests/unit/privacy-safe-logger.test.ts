@@ -7,7 +7,7 @@ import {
 import type { ObservationLogRecord } from '../../src/core/models/observation';
 
 const validRecord: ObservationLogRecord = {
-  schemaVersion: 9,
+  schemaVersion: 10,
   eventId: '123e4567-e89b-42d3-a456-426614174000',
   timestamp: 1,
   sessionId: '123e4567-e89b-42d3-a456-426614174000',
@@ -118,7 +118,7 @@ describe('privacy-safe logger', () => {
       }),
     ).toThrow(PrivacyBoundaryError);
   });
-  it('accepts MAX diagnostic communication only through the closed schema-9 categories', () => {
+  it('accepts MAX diagnostic communication only through the closed schema-10 categories', () => {
     expect(() =>
       assertPrivacySafePayload({
         ...validRecord,

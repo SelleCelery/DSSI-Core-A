@@ -1,7 +1,7 @@
 import type { UserActionType } from '../core/models/network';
 import {
   effectiveCueLevel,
-  shouldPresentCommunicationPulse,
+  communicationPulseAvailable,
   type DssiSettings,
 } from '../core/models/settings';
 import type {
@@ -74,13 +74,17 @@ export class SubmissionObserver {
     this.#settings = settings;
     this.#sessionId = sessionId;
     this.#presenter = new FactChipPresenter(settings.factChipPosition, {
-      communicationTextEnabled: settings.communicationTextChipEnabled,
+      hostname: this.#domainKey,
     });
     this.#pulsePresenter = new CommunicationPulsePresenter({
+      hostname: this.#domainKey,
       position: settings.factChipPosition,
       durationMs: settings.communicationPulseDurationMs,
       size: settings.communicationPulseSize,
-      enabled: shouldPresentCommunicationPulse(settings),
+      enabled: communicationPulseAvailable(settings),
+      domColor: settings.communicationPulseDomColor,
+      webRequestColor: settings.communicationPulseWebRequestColor,
+      opacity: settings.communicationPulseOpacity,
     });
     this.#networkPulseEnabled = settings.networkObservationEnabled;
   }

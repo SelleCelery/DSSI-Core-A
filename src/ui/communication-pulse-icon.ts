@@ -7,8 +7,57 @@ import {
   type CommunicationPulseMethod,
   type CommunicationPulseMethodShape,
 } from '../core/communication-pulse';
+import type { CommunicationPulseColor, CommunicationPulseOpacity } from '../core/models/settings';
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+
+interface PulsePalette {
+  stroke: string;
+  fill: string;
+  text: string;
+}
+
+export interface CommunicationPulseVisualOptions {
+  domColor: CommunicationPulseColor;
+  webRequestColor: CommunicationPulseColor;
+  opacity: CommunicationPulseOpacity;
+}
+
+export const DEFAULT_COMMUNICATION_PULSE_VISUAL_OPTIONS: Readonly<CommunicationPulseVisualOptions> =
+  Object.freeze({
+    domColor: 'magenta',
+    webRequestColor: 'cyan',
+    opacity: 0.8,
+  });
+
+function paletteFor(color: CommunicationPulseColor): PulsePalette {
+  switch (color) {
+    case 'magenta':
+      return {
+        stroke: 'rgba(213, 64, 166, 0.99)',
+        fill: 'rgba(120, 24, 92, 0.82)',
+        text: 'rgba(255, 238, 250, 0.99)',
+      };
+    case 'cyan':
+      return {
+        stroke: 'rgba(166, 235, 242, 0.99)',
+        fill: 'rgba(77, 164, 178, 0.44)',
+        text: 'rgba(242, 254, 255, 0.99)',
+      };
+    case 'yellow':
+      return {
+        stroke: 'rgba(224, 196, 104, 0.99)',
+        fill: 'rgba(139, 112, 37, 0.58)',
+        text: 'rgba(255, 250, 226, 0.99)',
+      };
+    case 'neutral':
+      return {
+        stroke: 'rgba(220, 220, 214, 0.92)',
+        fill: 'rgba(92, 94, 96, 0.5)',
+        text: 'rgba(248, 248, 244, 0.98)',
+      };
+  }
+}
 
 function svgElement<K extends keyof SVGElementTagNameMap>(
   tagName: K,
@@ -110,15 +159,30 @@ export function createCommunicationMethodShapeSvg(method: CommunicationPulseMeth
   return svg;
 }
 
+export function applyCommunicationPulseVisualOptions(
+  icon: HTMLElement,
+  route: 'dom' | 'web_request',
+  options: CommunicationPulseVisualOptions,
+): void {
+  const palette = paletteFor(route === 'dom' ? options.domColor : options.webRequestColor);
+  icon.style.setProperty('--route-stroke', palette.stroke);
+  icon.style.setProperty('--route-fill', palette.fill);
+  icon.style.setProperty('--route-text', palette.text);
+  icon.style.setProperty('--pulse-opacity', String(options.opacity));
+}
+
 export function createCommunicationPulseIcon(
   descriptor: CommunicationPulseDescriptor,
+  options: CommunicationPulseVisualOptions = DEFAULT_COMMUNICATION_PULSE_VISUAL_OPTIONS,
 ): HTMLSpanElement {
   const icon = document.createElement('span');
   icon.className = 'communication-pulse-icon';
   icon.dataset.kind = descriptor.kind;
-  icon.dataset.route = communicationPulseObservationRoute(descriptor.kind);
+  const route = communicationPulseObservationRoute(descriptor.kind);
+  icon.dataset.route = route;
   icon.dataset.method = descriptor.method;
   icon.dataset.methodShape = communicationPulseMethodShape(descriptor.method);
+  applyCommunicationPulseVisualOptions(icon, route, options);
 
   const shape = createCommunicationMethodShapeSvg(descriptor.method);
   const kind = document.createElement('span');

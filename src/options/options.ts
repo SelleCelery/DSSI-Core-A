@@ -1,7 +1,9 @@
 import { buildCoverageManifest } from '../core/coverage-manifest';
 import { NETWORK_PERMISSION_REQUEST } from '../core/network-permission';
 import type {
+  CommunicationPulseColor,
   CommunicationPulseDurationMs,
+  CommunicationPulseOpacity,
   CommunicationPulseSize,
   FactChipPosition,
   ReportingMode,
@@ -22,6 +24,13 @@ const communicationPulseDuration = requiredElement<HTMLSelectElement>(
   '#communicationPulseDuration',
 );
 const communicationPulseSize = requiredElement<HTMLSelectElement>('#communicationPulseSize');
+const communicationPulseDomColor = requiredElement<HTMLSelectElement>(
+  '#communicationPulseDomColor',
+);
+const communicationPulseWebRequestColor = requiredElement<HTMLSelectElement>(
+  '#communicationPulseWebRequestColor',
+);
+const communicationPulseOpacity = requiredElement<HTMLSelectElement>('#communicationPulseOpacity');
 const coverageBody = requiredElement<HTMLDivElement>('#coverageBody');
 const save = requiredElement<HTMLButtonElement>('#save');
 const clearSession = requiredElement<HTMLButtonElement>('#clearSession');
@@ -69,6 +78,23 @@ function asCommunicationPulseSize(value: string): CommunicationPulseSize {
   return value === 'medium' ? 'medium' : 'small';
 }
 
+function asCommunicationPulseColor(value: string): CommunicationPulseColor {
+  switch (value) {
+    case 'magenta':
+    case 'cyan':
+    case 'yellow':
+    case 'neutral':
+      return value;
+    default:
+      return 'neutral';
+  }
+}
+
+function asCommunicationPulseOpacity(value: string): CommunicationPulseOpacity {
+  const opacity = Number(value);
+  return opacity === 1 || opacity === 0.8 || opacity === 0.6 || opacity === 0.4 ? opacity : 0.8;
+}
+
 async function renderCoverage(): Promise<void> {
   const [settings, permissionGranted] = await Promise.all([loadSettings(), hasNetworkPermission()]);
   renderCoverageManifest(
@@ -90,6 +116,9 @@ async function refresh(): Promise<void> {
   communicationTextChipEnabled.checked = settings.communicationTextChipEnabled;
   communicationPulseDuration.value = String(settings.communicationPulseDurationMs);
   communicationPulseSize.value = settings.communicationPulseSize;
+  communicationPulseDomColor.value = settings.communicationPulseDomColor;
+  communicationPulseWebRequestColor.value = settings.communicationPulseWebRequestColor;
+  communicationPulseOpacity.value = String(settings.communicationPulseOpacity);
 
   if (settings.networkObservationEnabled && !permissionGranted) {
     await saveSettings({ ...settings, networkObservationEnabled: false });
@@ -124,6 +153,11 @@ save.addEventListener('click', () => {
       communicationTextChipEnabled: communicationTextChipEnabled.checked,
       communicationPulseDurationMs: asCommunicationPulseDuration(communicationPulseDuration.value),
       communicationPulseSize: asCommunicationPulseSize(communicationPulseSize.value),
+      communicationPulseDomColor: asCommunicationPulseColor(communicationPulseDomColor.value),
+      communicationPulseWebRequestColor: asCommunicationPulseColor(
+        communicationPulseWebRequestColor.value,
+      ),
+      communicationPulseOpacity: asCommunicationPulseOpacity(communicationPulseOpacity.value),
     });
 
     if (networkEnabled) {
