@@ -44,7 +44,7 @@ DOMイベントの直接観測とは別の観測面である。通信開始の�
 
 - pasteの後300ms以内に同じ入力面でinput
 - submit候補の後1500ms以内に同じformでsubmit
-- 入力面操作の後2500ms以内に同じtab / frameで通信開始
+- 信頼済みの内容変更操作の後2500ms以内に同じtab / frameで通信開始
 
 相関は、単独事実より強い関係情報を持つが、因果関係の完全証明ではない。
 
@@ -119,15 +119,44 @@ JavaScriptによる書き換えや別通信経路があり得るため、実際�
 
 ## 通信開始メタデータ / Network Start Metadata
 
-`webRequest.onBeforeRequest`から取得した通信開始時の限定情報。
+`webRequest.onBeforeSendHeaders`から取得し、安全な項目へ縮約した送信前通信メタデータ。
 
-Sprint 3で保持できるのは、method、resource class、scheme、host、same/cross-origin関係、入力操作との時間近接である。
+Sprint 3.1で保持できるのは、method、resource class、scheme、host、same/cross-origin関係、内容変更との時間近接、ページ観測開始との中立的時間関係、Cookieヘッダー名の検出状態である。
 
-## 入力近接通信 / Network Activity Near Input
+request body、完全URL、request-header値、response、サーバー到達は保持または確認しない。
 
-入力面操作パルスから2500ms以内に、同一tab / frameで対象通信開始が観測された状態。
+## 内容変更近接通信 / Network Activity Near Content Edit
 
-入力内容が通信へ含まれたことを意味しない。
+信頼済みの内容変更パルスから2500ms以内に、同一tab / frameで対象通信開始が観測された状態。
+
+フォーカスは内容変更パルスを生成しない。入力内容が通信へ含まれたことも意味しない。
+
+## フォーカス気づき / Focus Awareness Cue
+
+入力面へフォーカスしたことを、その場のチップだけで提示する一時的な気づき。
+
+Sprint 3.1では通常ログへ保存せず、通信相関にも用いない。Level 3では入力面全般、Level 2ではパスワード、決済、個人情報の入力面を表示対象とする。
+
+## Cookieヘッダー検出 / Cookie Header Detection
+
+ChromeがDSSIへ提供したrequest-header集合のヘッダー名に、`Cookie`が含まれていたかを縮約した状態。
+
+- `detected`: ヘッダー名を検出した
+- `not_detected`: 提供された集合内では検出しなかった
+- `not_observed`: その記録ではヘッダー名観測を行っていない
+- `unavailable`: APIからヘッダー集合が提供されず判定できなかった
+
+`not_detected`はCookie不存在を保証しない。DSSIの処理はCookie値を参照、分類、保存、表示しない。ただし、Chromeのコールバックオブジェクトへ値が渡される可能性そのものを否定する定義ではない。
+
+## ページ観測との時間関係 / Page-Observation Timing
+
+通信観測時刻と、DSSIがその文書でページ観測開始を記録した時刻との関係。
+
+- ページ観測開始から5秒以内
+- ページ観測開始から5秒超
+- 時間関係不明
+
+初期化、認証、状態復元、分析等の用途を推定する分類ではない。
 
 ## 一時生観測材料 / Transient Raw Evidence
 
@@ -184,7 +213,7 @@ DSSI自身の起動状態やページ観測開始など、観測装置の動作�
 
 APIが追加情報を返し得る場合でも、DSSIがその情報を受け取るオプションを要求していない状態。
 
-Sprint 3のrequest bodyとheadersは未要求である。
+Sprint 3.1のrequest bodyは未要求である。request headersはCookieヘッダー名の検出目的で要求するため、未要求には該当しない。
 
 ## 利用者明示保存 / User-Preserved Record
 

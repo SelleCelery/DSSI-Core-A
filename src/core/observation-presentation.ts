@@ -49,7 +49,8 @@ const TRIGGER_LABELS: Readonly<Record<TriggerType, string>> = {
   consent_control_focus: '同意操作面へフォーカス',
   consent_control_checked: '同意操作を検出',
   live_sync_surface_detected: 'ライブ同期入力面を検出',
-  network_activity_during_input: '入力操作と近接した通信開始を観測',
+  network_activity_during_input: '入力操作と近接した通信開始を観測（旧形式）',
+  network_activity_after_content_edit: '内容変更操作と近接した通信開始を観測',
   partially_observable_surface: '部分的に観測可能な面を検出',
   unobservable_surface: '観測できない面を検出',
 };
@@ -209,13 +210,45 @@ export function networkMechanismLabel(record: ObservationLogRecord): string {
 }
 
 export function networkCorrelationLabel(record: ObservationLogRecord): string {
-  return record.networkCorrelation === 'recent_input_activity'
-    ? '入力操作から2.5秒以内の時間相関'
-    : '—';
+  if (record.networkCorrelation === 'recent_content_edit') {
+    return '内容変更操作から2.5秒以内の時間相関';
+  }
+  if (record.networkCorrelation === 'recent_input_activity') {
+    return '入力操作から2.5秒以内の時間相関（旧形式）';
+  }
+  return '—';
 }
 
 export function networkPayloadObservationLabel(record: ObservationLogRecord): string {
   return record.networkPayloadObservation === 'not_requested' ? '本文を要求していない' : '—';
+}
+
+export function cookieHeaderDetectionLabel(record: ObservationLogRecord): string {
+  switch (record.cookieHeaderDetection) {
+    case 'detected':
+      return '検出';
+    case 'not_detected':
+      return '未検出';
+    case 'not_observed':
+      return '未観測';
+    case 'unavailable':
+      return '判定不能';
+    default:
+      return '—';
+  }
+}
+
+export function pageObservationTimingLabel(record: ObservationLogRecord): string {
+  switch (record.pageObservationTiming) {
+    case 'within_5s_of_page_observation':
+      return 'ページ観測開始から5秒以内';
+    case 'after_5s_of_page_observation':
+      return 'ページ観測開始から5秒超';
+    case 'unknown':
+      return '時間関係不明';
+    default:
+      return '—';
+  }
 }
 
 export function boundarySourceLabel(record: ObservationLogRecord): string {

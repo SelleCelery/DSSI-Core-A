@@ -1,5 +1,7 @@
 # DSSI Core A Sprint 3 更新手順
 
+> 履歴文書: これはv0.4.0への更新手順である。v0.4.1への更新は`SPRINT3_1_UPDATE_README.ja.md`を参照する。
+
 ## 対象
 
 - 更新前: DSSI Core A 0.3.2 / Sprint 2.2

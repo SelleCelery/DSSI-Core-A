@@ -46,6 +46,7 @@ export function isPrivacySafeInputActivityPulse(value: unknown): value is InputA
     'surfaceType',
     'classificationConfidence',
     'viscosityLevel',
+    'observedAt',
   ]);
   if (entries.some(([key]) => !allowedKeys.has(key))) return false;
 
@@ -58,6 +59,9 @@ export function isPrivacySafeInputActivityPulse(value: unknown): value is InputA
     isHostLike(candidate.domainKey) &&
     SURFACE_TYPES.has(candidate.surfaceType as SurfaceType) &&
     CLASSIFICATION_CONFIDENCE.has(candidate.classificationConfidence as ClassificationConfidence) &&
-    [1, 2, 3].includes(candidate.viscosityLevel ?? 0)
+    [1, 2, 3].includes(candidate.viscosityLevel ?? 0) &&
+    typeof candidate.observedAt === 'number' &&
+    Number.isFinite(candidate.observedAt) &&
+    candidate.observedAt >= 0
   );
 }

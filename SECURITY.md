@@ -13,7 +13,7 @@ Do not include passwords, payment data, private prompts, or other sensitive user
 - Permissions must remain limited to current implemented features.
 
 - Optional network observation uses non-blocking browser metadata events only after runtime permission grant.
-- Request bodies and headers are not requested.
+- Request bodies are not requested. Request headers are observed only to detect the `Cookie` header name; header values must not be accessed by DSSI logic or persisted.
 - Full request URLs are transient API inputs and must be reduced before records are created.
 - Observation records use a closed allowlist and are validated at three persistence boundaries.
 - A missing network record is not proof that no communication occurred.

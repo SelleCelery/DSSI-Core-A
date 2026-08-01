@@ -7,7 +7,7 @@ import {
 import type { ObservationLogRecord } from '../../src/core/models/observation';
 
 const validRecord: ObservationLogRecord = {
-  schemaVersion: 6,
+  schemaVersion: 8,
   eventId: '123e4567-e89b-42d3-a456-426614174000',
   timestamp: 1,
   sessionId: '123e4567-e89b-42d3-a456-426614174000',
@@ -96,13 +96,15 @@ describe('privacy-safe logger', () => {
     expect(() =>
       assertPrivacySafePayload({
         ...validRecord,
-        triggerType: 'network_activity_during_input',
+        triggerType: 'network_activity_after_content_edit',
         observationScope: 'network_metadata_only',
         operationEvidence: 'browser_network_api_observation',
         networkMethod: 'POST',
         networkMechanism: 'fetch_or_xhr',
-        networkCorrelation: 'recent_input_activity',
+        networkCorrelation: 'recent_content_edit',
         networkPayloadObservation: 'not_requested',
+        cookieHeaderDetection: 'detected',
+        pageObservationTiming: 'within_5s_of_page_observation',
         destinationRelation: 'cross_origin',
         destinationScheme: 'https',
         destinationHost: 'api.example.test',
@@ -113,6 +115,28 @@ describe('privacy-safe logger', () => {
       assertPrivacySafePayload({
         ...validRecord,
         networkPayloadObservation: 'captured',
+      }),
+    ).toThrow(PrivacyBoundaryError);
+  });
+  it('rejects arbitrary Cookie or page-timing values while accepting the closed states', () => {
+    expect(() =>
+      assertPrivacySafePayload({
+        ...validRecord,
+        cookieHeaderDetection: 'not_detected',
+        pageObservationTiming: 'after_5s_of_page_observation',
+      }),
+    ).not.toThrow();
+
+    expect(() =>
+      assertPrivacySafePayload({
+        ...validRecord,
+        cookieHeaderDetection: 'session=secret',
+      }),
+    ).toThrow(PrivacyBoundaryError);
+    expect(() =>
+      assertPrivacySafePayload({
+        ...validRecord,
+        pageObservationTiming: 'authentication_window',
       }),
     ).toThrow(PrivacyBoundaryError);
   });

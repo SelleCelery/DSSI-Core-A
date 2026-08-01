@@ -21,7 +21,7 @@ When the user enables it from the options page, DSSI requests:
 
 The request starts directly from the user's settings-page click. Disabling the setting removes the optional capability.
 
-The permission is used only for non-blocking request-start metadata observation. DSSI does not request `webRequestBlocking`, request-body access, or header access.
+The permission is used only for non-blocking send-header metadata observation. DSSI does not request `webRequestBlocking` or request-body access. It requests `requestHeaders` and `extraHeaders` only to detect the `Cookie` header name; DSSI logic does not access or persist header values.
 
 ## Release rule
 
@@ -39,6 +39,7 @@ The broad optional host permission is a development baseline, not a final distri
 - all-site optional access,
 - site-selective access,
 - active-tab-only modes,
-- and whether the feature should be excluded from the first public build.
+- whether the feature should be excluded from the first public build,
+- and whether Cookie-header-name detection justifies the `extraHeaders` sensitivity and performance cost.
 
 Download permissions remain unrequested until the corresponding feature is implemented.

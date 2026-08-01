@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   boundarySourceLabel,
+  cookieHeaderDetectionLabel,
   classificationConfidenceLabel,
   frameContextLabel,
   inputOriginLabel,
   networkCorrelationLabel,
   networkMechanismLabel,
   networkPayloadObservationLabel,
+  pageObservationTimingLabel,
   isUserInputObservation,
   observationActionLabel,
   observationScopeLabel,
@@ -116,24 +118,40 @@ describe('observation presentation', () => {
   });
   it('labels network metadata without implying payload transmission', () => {
     const record = makeRecord({
-      triggerType: 'network_activity_during_input',
+      triggerType: 'network_activity_after_content_edit',
       observationScope: 'network_metadata_only',
       operationEvidence: 'browser_network_api_observation',
       networkMethod: 'POST',
       networkMechanism: 'fetch_or_xhr',
-      networkCorrelation: 'recent_input_activity',
+      networkCorrelation: 'recent_content_edit',
       networkPayloadObservation: 'not_requested',
+      cookieHeaderDetection: 'detected',
+      pageObservationTiming: 'within_5s_of_page_observation',
       destinationRelation: 'cross_origin',
       destinationScheme: 'https',
       destinationHost: 'api.example.test',
     });
 
-    expect(triggerTypeLabel(record.triggerType)).toBe('入力操作と近接した通信開始を観測');
+    expect(triggerTypeLabel(record.triggerType)).toBe('内容変更操作と近接した通信開始を観測');
     expect(observationScopeLabel(record)).toBe('通信開始メタデータのみを観測');
     expect(operationEvidenceLabel(record.operationEvidence)).toBe('ブラウザ通信APIの通知を観測');
     expect(boundarySourceLabel(record)).toBe('ブラウザ通信メタデータ');
     expect(networkMechanismLabel(record)).toBe('fetch/XHR系');
-    expect(networkCorrelationLabel(record)).toBe('入力操作から2.5秒以内の時間相関');
+    expect(networkCorrelationLabel(record)).toBe('内容変更操作から2.5秒以内の時間相関');
+    expect(pageObservationTimingLabel(record)).toBe('ページ観測開始から5秒以内');
+    expect(cookieHeaderDetectionLabel(record)).toBe('検出');
     expect(networkPayloadObservationLabel(record)).toBe('本文を要求していない');
+  });
+
+  it('uses detection language rather than claiming Cookie absence', () => {
+    expect(cookieHeaderDetectionLabel(makeRecord({ cookieHeaderDetection: 'not_detected' }))).toBe(
+      '未検出',
+    );
+    expect(cookieHeaderDetectionLabel(makeRecord({ cookieHeaderDetection: 'not_observed' }))).toBe(
+      '未観測',
+    );
+    expect(cookieHeaderDetectionLabel(makeRecord({ cookieHeaderDetection: 'unavailable' }))).toBe(
+      '判定不能',
+    );
   });
 });

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>DSSI Sprint 2 Submission Boundary Fixture</title>
+    <title>DSSI Core A Sprint 3.1 Manual Fixture</title>
     <style>
       body {
         max-width: 760px;
@@ -33,8 +33,11 @@
     </style>
   </head>
   <body>
-    <h1>DSSI Sprint 2 手動確認ページ</h1>
-    <p>各入力面へフォーカスし、キー入力・貼り付け・ブラウザ自動入力を試してください。</p>
+    <h1>DSSI Core A Sprint 3.1 手動確認ページ</h1>
+    <p>
+      各入力面でキー入力・貼り付け・ブラウザ自動入力を試してください。フォーカスは通常ログに保存せず、Level
+      3、またはLevel 2の機密入力面でチップだけを表示します。
+    </p>
     <p>
       通常の貼り付けでは「貼り付けイベントを観測」と「貼り付け反映を確認」の2段階を確認できます。
       貼り付け禁止欄ではイベントだけが記録され、反映確認は記録されません。
@@ -126,14 +129,30 @@
       <button type="submit">GET送信</button>
     </form>
 
-    <button type="button" id="custom-fetch-button">
-      JavaScript通信（Sprint 3通信メタデータ試験）
-    </button>
+    <section>
+      <button type="button" id="set-probe-cookie">試験用Cookieを設定</button>
+      <button type="button" id="clear-probe-cookie">試験用Cookieを削除</button>
+      <button type="button" id="custom-fetch-button">
+        JavaScript通信（Sprint 3.1通信メタデータ試験）
+      </button>
+      <p>
+        自由記述欄を編集してから2.5秒以内に通信ボタンを押します。Cookieを設定した場合は「検出」、
+        削除した場合は「未検出」が期待値ですが、ChromeがヘッダーをDSSIへ提供しない場合は「判定不能」になり得ます。
+      </p>
+    </section>
 
     <script>
       for (const form of document.querySelectorAll('form')) {
         form.addEventListener('submit', (event) => event.preventDefault());
       }
+
+      document.querySelector('#set-probe-cookie').addEventListener('click', () => {
+        document.cookie = 'dssi_probe=present; SameSite=Lax; path=/';
+      });
+
+      document.querySelector('#clear-probe-cookie').addEventListener('click', () => {
+        document.cookie = 'dssi_probe=; Max-Age=0; SameSite=Lax; path=/';
+      });
 
       document.querySelector('#custom-fetch-button').addEventListener('click', () => {
         void fetch('/dssi-sprint3-probe/private-path?token=must-not-be-logged', {

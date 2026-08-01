@@ -16,8 +16,10 @@ describe('network analyzer', () => {
       destinationScheme: 'https',
       destinationHost: 'api.example.test',
       mechanism: 'fetch_or_xhr',
-      correlation: 'recent_input_activity',
+      correlation: 'recent_content_edit',
       payloadObservation: 'not_requested',
+      cookieHeaderDetection: 'not_observed',
+      pageObservationTiming: 'unknown',
     });
   });
 
@@ -46,6 +48,8 @@ describe('network analyzer', () => {
     ).toMatchObject({
       mechanism: 'beacon_or_ping',
       payloadObservation: 'not_requested',
+      cookieHeaderDetection: 'not_observed',
+      pageObservationTiming: 'unknown',
     });
   });
 
@@ -73,8 +77,25 @@ describe('network analyzer', () => {
       destinationScheme: 'unknown',
       destinationHost: 'unknown',
       mechanism: 'fetch_or_xhr',
-      correlation: 'recent_input_activity',
+      correlation: 'recent_content_edit',
       payloadObservation: 'not_requested',
+      cookieHeaderDetection: 'not_observed',
+      pageObservationTiming: 'unknown',
+    });
+  });
+  it('retains only the closed Cookie detection state and neutral page timing category', () => {
+    expect(
+      analyzeNetworkRequest({
+        requestUrl: 'https://example.test/private?secret=1',
+        method: 'POST',
+        initiator: 'https://example.test',
+        resourceType: 'xmlhttprequest',
+        cookieHeaderDetection: 'detected',
+        pageObservationTiming: 'within_5s_of_page_observation',
+      }),
+    ).toMatchObject({
+      cookieHeaderDetection: 'detected',
+      pageObservationTiming: 'within_5s_of_page_observation',
     });
   });
 });

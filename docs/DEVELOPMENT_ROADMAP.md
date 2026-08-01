@@ -67,7 +67,7 @@
 - [x] enforce a closed ObservationRecord persistence schema
 - [x] validate records at Content Script, Service Worker, and storage boundaries
 - [x] add optional `webRequest` and optional HTTP/HTTPS host permissions
-- [x] observe `xmlhttprequest` and `ping` request starts without body/header access
+- [x] observe `xmlhttprequest` and `ping` request starts without request-body access
 - [x] correlate network activity with input activity in the same tab/frame
 - [x] retain only method, scheme, host, relation, mechanism, and payload-not-requested state
 - [x] add operational glossary and purge-boundary documentation
@@ -75,6 +75,20 @@
 - [ ] add browser integration tests
 
 The original product functional specification placed the network metadata spike later. It was advanced after the v0.3 understanding-recovery review exposed data-lifecycle and persistence-boundary requirements. Network observation remains auxiliary rather than the primary Core A boundary.
+
+## Sprint 3.1 — Content-Edit Correlation Refinement
+
+- [x] remove focus from normal logs and network-correlation pulses
+- [x] retain focus only as a viscosity-controlled transient cue
+- [x] refresh the transient pulse for every trusted content edit independently of log deduplication
+- [x] timestamp pulses at the Content Script observation boundary
+- [x] distinguish new content-edit correlation records from legacy input-activity records
+- [x] detect only the `Cookie` request-header name and reduce it to closed states
+- [x] record neutral page-observation timing without purpose inference
+- [x] preserve the low-obstruction semi-transparent fact-chip presentation
+- [ ] run full maintainer `npm run check` in the repository environment
+- [ ] complete real-browser tests for Cookie detected / not detected / unavailable states
+- [ ] add browser integration tests for focus exclusion and repeated edit pulse refresh
 
 ## Sprint 4 and later
 

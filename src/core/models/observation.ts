@@ -21,6 +21,7 @@ export type TriggerType =
   | 'consent_control_checked'
   | 'live_sync_surface_detected'
   | 'network_activity_during_input'
+  | 'network_activity_after_content_edit'
   | 'partially_observable_surface'
   | 'unobservable_surface';
 
@@ -86,10 +87,12 @@ import type {
   NetworkMechanism,
   NetworkMethod,
   NetworkPayloadObservation,
+  CookieHeaderDetection,
+  PageObservationTiming,
 } from './network';
 
 export interface ObservationLogRecord {
-  schemaVersion?: 1 | 2 | 3 | 4 | 5 | 6;
+  schemaVersion?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
   eventId: string;
   timestamp: number;
   sessionId: string;
@@ -120,6 +123,8 @@ export interface ObservationLogRecord {
   networkMechanism?: NetworkMechanism;
   networkCorrelation?: NetworkCorrelation;
   networkPayloadObservation?: NetworkPayloadObservation;
+  cookieHeaderDetection?: CookieHeaderDetection;
+  pageObservationTiming?: PageObservationTiming;
   surfaceTagName?: string;
   surfaceInputType?: string;
   surfaceRole?: string;

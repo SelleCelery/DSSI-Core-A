@@ -30,7 +30,6 @@ function ensureHost(): ShadowRoot {
 
   const host = document.createElement('div');
   host.id = HOST_ID;
-
   host.style.setProperty('all', 'initial');
   host.style.setProperty('position', 'fixed');
   host.style.setProperty('right', '10px');
@@ -40,11 +39,10 @@ function ensureHost(): ShadowRoot {
 
   const root = host.attachShadow({ mode: 'open' });
   const style = document.createElement('style');
-
   style.textContent = `
     .chip {
       box-sizing: border-box;
-      max-width: min(360px, calc(100vw - 32px));
+      max-width: min(360px, calc(100vw - 20px));
       padding: 6px 10px;
       border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 8px;
@@ -59,23 +57,19 @@ function ensureHost(): ShadowRoot {
       transform: translateY(8px);
       transition: opacity 120ms ease, transform 120ms ease;
     }
-
     .chip[data-visible="true"] {
       opacity: 1;
       transform: translateY(0);
     }
-
     .title {
       display: block;
       margin-bottom: 2px;
       font-weight: 600;
     }
-
     .detail {
       color: rgba(255, 255, 255, 0.68);
     }
   `;
-
   root.append(style);
   document.documentElement.append(host);
   return root;
@@ -118,9 +112,17 @@ export class FactChipPresenter {
             : '通信先関係不明';
     const host = descriptor.destinationHost === 'unknown' ? '' : ` · ${descriptor.destinationHost}`;
     const mechanism = descriptor.mechanism === 'fetch_or_xhr' ? 'fetch/XHR系' : 'Beacon/Ping系';
+    const cookie =
+      descriptor.cookieHeaderDetection === 'detected'
+        ? 'Cookieヘッダー検出'
+        : descriptor.cookieHeaderDetection === 'not_detected'
+          ? 'Cookieヘッダー未検出'
+          : descriptor.cookieHeaderDetection === 'unavailable'
+            ? 'Cookieヘッダー判定不能'
+            : 'Cookieヘッダー未観測';
     this.#render(
-      '入力操作と近接した通信開始を観測',
-      `${mechanism} · ${descriptor.method} · ${relation}${host}。本文は取得せず、入力内容との因果関係も確認していません。`,
+      '内容変更と近接した通信開始を観測',
+      `${mechanism} · ${descriptor.method} · ${relation}${host} · ${cookie}。本文は取得せず、入力内容との因果関係も確認していません。`,
       viscosityLevel,
     );
   }

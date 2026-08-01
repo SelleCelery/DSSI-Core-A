@@ -1,19 +1,22 @@
 import type { SurfaceType } from './models/observation';
 import type { ViscosityLevel } from './models/settings';
 
-const SILENT_MODE_VISIBLE_SURFACES: ReadonlySet<SurfaceType> = new Set(['password', 'payment']);
+const LEVEL_2_SENSITIVE_FOCUS_SURFACES: ReadonlySet<SurfaceType> = new Set([
+  'password',
+  'payment',
+  'personal_information',
+]);
 
-export function shouldPresentCue(
+/**
+ * Focus is a transient awareness cue, not an activity-log fact and not a
+ * network-correlation pulse. Level 3 shows all input-surface focus cues;
+ * Level 2 shows only sensitive surfaces; Level 1 stays silent.
+ */
+export function shouldPresentFocusCue(
   viscosityLevel: ViscosityLevel,
   surfaceType: SurfaceType,
 ): boolean {
-  if (viscosityLevel === 1) {
-    return SILENT_MODE_VISIBLE_SURFACES.has(surfaceType);
-  }
-
-  if (viscosityLevel === 2) {
-    return surfaceType !== 'unknown' && surfaceType !== 'page';
-  }
-
-  return surfaceType !== 'page';
+  if (viscosityLevel === 3) return surfaceType !== 'page';
+  if (viscosityLevel === 2) return LEVEL_2_SENSITIVE_FOCUS_SURFACES.has(surfaceType);
+  return false;
 }

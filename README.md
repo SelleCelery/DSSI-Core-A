@@ -8,14 +8,14 @@ The extension is designed to present observable facts and observation limits bef
 
 ## Status
 
-Sprint 3 — Data Lifecycle and Optional Network Metadata Observation
+Sprint 3.1 — Content-Edit Correlation and Header-Name Detection
 
 This repository currently provides:
 
 - Manifest V3 extension scaffold
 - TypeScript and esbuild build pipeline
 - password / email-ID / payment / personal-information / free-text classification
-- focus, keyboard, paste, input, and dynamically-added field observation
+- keyboard, paste, input, focus-cue, and dynamically-added field observation
 - trusted-event correlation and conservative input-origin inference
 - viscosity-controlled factual chips
 - local settings and separate session-only activity / diagnostic metadata logs
@@ -26,10 +26,10 @@ This repository currently provides:
 - same-form correlation between submit candidates and later submit events
 - Level 3 factual chips for inferred input route
 - closed-schema privacy boundary with three-stage validation
-- optional browser network metadata observation for input-near fetch/XHR and Beacon/Ping requests
+- optional browser network metadata observation for content-edit-near fetch/XHR and Beacon/Ping requests
 - lint, format, typecheck, test, and build commands
 
-Sprint 3 formalizes transient evidence, reduced metadata, persistent records, and future user-preserved records as separate data states. Optional `webRequest` observation can record request-start metadata near recent input activity, but request bodies and headers are not requested, full URL paths and queries are not persisted, and no payload relation or server receipt is claimed.
+Sprint 3.1 keeps focus out of the activity log and network-correlation path, refreshes the transient correlation pulse on every trusted content edit independently of duplicate activity-log suppression, and observes supported request headers only to detect the `Cookie` header name. Header values are not accessed by DSSI logic and are never copied into messages, records, storage, or UI. Request bodies are not requested, full URL paths and queries are not persisted, and no payload relation, authentication purpose, or server receipt is claimed.
 
 ## Requirements
 
@@ -62,12 +62,12 @@ The initial build does not persist:
 - payment numbers
 - clipboard contents
 - prompt, comment, email, or message bodies
-- raw request bodies or headers
+- request bodies and raw request-header values
 - URL paths, queries, fragments, or credentials in observation records
 
 The session log stores structural metadata only and can be cleared from the options page.
 
-See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](./docs/SPRINT1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.1 implementation guide](./docs/SPRINT1_1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.2 implementation guide](./docs/SPRINT1_2_IMPLEMENTATION_GUIDE.md), [the Sprint 2 implementation guide](./docs/SPRINT2_IMPLEMENTATION_GUIDE.md), [the Sprint 2.1 implementation guide](./docs/SPRINT2_1_IMPLEMENTATION_GUIDE.md), [the Sprint 2.2 implementation guide](./docs/SPRINT2_2_IMPLEMENTATION_GUIDE.md), [the Sprint 3 implementation guide](./docs/SPRINT3_IMPLEMENTATION_GUIDE.md), [the data lifecycle and purge boundary](./docs/DATA_LIFECYCLE_AND_PURGE_BOUNDARY_v0.4.ja.md), [the operational glossary](./docs/DSSI_Core_A_Operational_Glossary.ja.md), and the product documents under [docs/product](./docs/product).
+See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](./docs/SPRINT1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.1 implementation guide](./docs/SPRINT1_1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.2 implementation guide](./docs/SPRINT1_2_IMPLEMENTATION_GUIDE.md), [the Sprint 2 implementation guide](./docs/SPRINT2_IMPLEMENTATION_GUIDE.md), [the Sprint 2.1 implementation guide](./docs/SPRINT2_1_IMPLEMENTATION_GUIDE.md), [the Sprint 2.2 implementation guide](./docs/SPRINT2_2_IMPLEMENTATION_GUIDE.md), [the Sprint 3 implementation guide](./docs/SPRINT3_IMPLEMENTATION_GUIDE.md), [the Sprint 3.1 implementation guide](./docs/SPRINT3_1_IMPLEMENTATION_GUIDE.md), [the data lifecycle and purge boundary](./docs/DATA_LIFECYCLE_AND_PURGE_BOUNDARY_v0.4.ja.md), [the operational glossary](./docs/DSSI_Core_A_Operational_Glossary.ja.md), and the product documents under [docs/product](./docs/product).
 
 ## License
 
@@ -87,6 +87,8 @@ The normal activity log now contains only observations relevant to user actions 
 
 ## Sprint 3: transient evidence and optional communication metadata
 
-Network metadata observation is disabled by default. When the user enables it, the options page requests optional `webRequest` and HTTP/HTTPS host permissions. DSSI records only supported request-start metadata that occurs within 2.5 seconds of an input-surface event in the same tab, frame, and document when a document identifier is available.
+Network metadata observation is disabled by default. When the user enables it, the options page requests optional `webRequest` and HTTP/HTTPS host permissions. DSSI records supported request metadata only when a trusted content edit was observed within 2.5 seconds in the same tab and frame, with document correlation when the browser provides a document identifier.
 
-The browser API temporarily supplies a complete request URL, but DSSI reduces it immediately to scheme, host, method, resource-class-derived mechanism, and same/cross-origin relation. Path, query, fragment, credentials, request body, headers, response body, and server receipt are not persisted or claimed.
+The browser API temporarily supplies a complete request URL and, in Sprint 3.1, a request-header collection. DSSI immediately reduces the URL to scheme, host, method, resource-class-derived mechanism, and same/cross-origin relation. It scans header names only for `Cookie` and reduces the result to a closed detection state. Path, query, fragment, credentials, request body, header values, response body, and server receipt are not persisted or claimed.
+
+Focus is no longer an activity-log fact or a network-correlation pulse. It remains a transient awareness cue at Level 3, and at Level 2 for password, payment, and personal-information fields.

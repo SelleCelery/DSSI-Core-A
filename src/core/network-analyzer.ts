@@ -1,4 +1,10 @@
-import type { NetworkDescriptor, NetworkMechanism, NetworkMethod } from './models/network';
+import type {
+  CookieHeaderDetection,
+  NetworkDescriptor,
+  NetworkMechanism,
+  NetworkMethod,
+  PageObservationTiming,
+} from './models/network';
 import type { DestinationRelation } from './models/submission';
 
 export interface NetworkRequestSnapshot {
@@ -6,6 +12,8 @@ export interface NetworkRequestSnapshot {
   method: string;
   initiator?: string;
   resourceType: string;
+  cookieHeaderDetection?: CookieHeaderDetection;
+  pageObservationTiming?: PageObservationTiming;
 }
 
 function normalizeMethod(method: string): NetworkMethod {
@@ -44,15 +52,26 @@ function relationFor(destination: URL, initiator: string | undefined): Destinati
   }
 }
 
+function observationContext(
+  snapshot: NetworkRequestSnapshot,
+): Pick<NetworkDescriptor, 'cookieHeaderDetection' | 'pageObservationTiming'> {
+  return {
+    cookieHeaderDetection: snapshot.cookieHeaderDetection ?? 'not_observed',
+    pageObservationTiming: snapshot.pageObservationTiming ?? 'unknown',
+  };
+}
+
 /**
  * Converts a raw browser request URL into the minimum metadata DSSI may retain.
- * Path, query, fragment, credentials, headers and request body are not returned.
+ * Path, query, fragment, credentials, header values and request body are not returned.
  */
 export function analyzeNetworkRequest(
   snapshot: NetworkRequestSnapshot,
 ): NetworkDescriptor | undefined {
   const mechanism = normalizeMechanism(snapshot.resourceType);
   if (!mechanism) return undefined;
+
+  const context = observationContext(snapshot);
 
   try {
     const destination = new URL(snapshot.requestUrl);
@@ -62,8 +81,9 @@ export function analyzeNetworkRequest(
       destinationScheme: destination.protocol.replace(':', ''),
       destinationHost: destination.host || 'unknown',
       mechanism,
-      correlation: 'recent_input_activity',
+      correlation: 'recent_content_edit',
       payloadObservation: 'not_requested',
+      ...context,
     };
   } catch {
     return {
@@ -72,8 +92,9 @@ export function analyzeNetworkRequest(
       destinationScheme: 'unknown',
       destinationHost: 'unknown',
       mechanism,
-      correlation: 'recent_input_activity',
+      correlation: 'recent_content_edit',
       payloadObservation: 'not_requested',
+      ...context,
     };
   }
 }

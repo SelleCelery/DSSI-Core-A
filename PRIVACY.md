@@ -22,7 +22,7 @@ The extension must not persist:
 - payment card numbers
 - clipboard contents
 - prompt, comment, email, chat, or message bodies
-- raw request bodies or headers
+- request bodies and raw request-header values
 - URL paths, queries, fragments, or credentials in observation records
 
 ## Observation boundary
@@ -51,11 +51,15 @@ For an unclassified input surface, DSSI may retain only limited structural metad
 
 Sprint 3 distinguishes transient raw evidence from retained metadata. Structural strings used for input classification remain local to the classification call and do not enter the observation record.
 
-Optional communication-metadata observation uses Chrome `webRequest` only after the user grants the optional permission and matching HTTP/HTTPS host access. The listener does not request request-body or header access.
+Optional communication-metadata observation uses Chrome `webRequest` only after the user grants the optional permission and matching HTTP/HTTPS host access. Request-body access is not requested.
 
-The browser callback temporarily provides the full request URL. DSSI immediately reduces it to method, scheme, host, resource class, and same/cross-origin relation. It does not retain path, query, fragment, credentials, request body, headers, or response content.
+Sprint 3.1 uses the send-header observation phase because Chrome exposes the `Cookie` header only through request-header observation with the additional header view. The callback object may therefore contain header values before DSSI code receives it. DSSI logic reads only each header name, reduces the result to `detected`, `not_detected`, `not_observed`, or `unavailable`, and does not copy, classify, log, display, or persist header values.
 
-Only request starts within 2500ms of recent input-surface activity in the same tab, frame, and document when a document identifier is available are recorded. This time correlation does not prove that input content was included in the request.
+The browser callback also temporarily provides the full request URL. DSSI immediately reduces it to method, scheme, host, resource class, and same/cross-origin relation. It does not retain path, query, fragment, credentials, request body, header values, or response content.
+
+Only request starts within 2500ms of a trusted content edit in the same tab, frame, and document when a document identifier is available are recorded. Focus does not create a correlation pulse. This time correlation does not prove that input content was included in the request.
+
+`not_detected` means only that the `Cookie` header name was not found in the header collection Chrome exposed to DSSI. It is not proof that no Cookie existed or that no state-bearing information accompanied the request.
 
 Observation records are validated before a Content Script message, after Service Worker receipt, and immediately before `chrome.storage.session` persistence. Unknown fields, nested payloads, and raw URL-like host values are rejected.
 

@@ -1,17 +1,18 @@
-# ソース一式について
+# DSSI Core A 0.4.1 ソース・ビルド注記
 
-このアーカイブには古い生成物の混入を避けるため `dist/` を含めていません。
+この配布物はTypeScriptソースを含む。Chromeへ読み込むのは`src`ではなく、ユーザー環境でビルドされた`dist`である。
 
 ```powershell
-npm.cmd install
 npm.cmd run format
 npm.cmd run check
 ```
 
-を実行すると、検査後に `dist/` が生成されます。
+`check`はtypecheck、lint、format check、Vitest、esbuildを順に実行する。
 
-## Sprint 3補足
+この作成環境では依存パッケージ取得先の制約により正式な`npm run check`全体を完走していない。TypeScriptソースとテストの型整合は代替型環境で確認したが、最終成果物はユーザー環境の正式コマンドを通したものを正とする。
 
-Sprint 3の配布物はソース更新である。任意`webRequest`権限、通信メタデータ観測、閉じた保存スキーマを反映した`dist`は、利用者環境で`npm.cmd run check`を実行して生成する。
+ビルド後:
 
-この生成前ソースについては、型スタブを使ったTypeScript整合確認と純関数のsanity checkを実施した。依存パッケージの取得が実行環境で完了しなかったため、正式なESLint、Prettier、Vitest、esbuild一括検査は利用者環境で行う必要がある。
+1. `chrome://extensions`で拡張機能を再読み込みする。
+2. 観測対象ページも再読み込みする。
+3. `dist/manifest.json`が0.4.1であることを確認する。

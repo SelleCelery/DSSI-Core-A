@@ -1,5 +1,7 @@
 # Sprint 3 Implementation Guide
 
+> Historical baseline: this document describes v0.4.0. Sprint 3.1 changes focus, correlation, and header handling; see `SPRINT3_1_IMPLEMENTATION_GUIDE.md`.
+
 ## Version
 
 DSSI Core A 0.4.0

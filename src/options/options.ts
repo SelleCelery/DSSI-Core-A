@@ -46,7 +46,7 @@ save.addEventListener('click', () => {
 
     if (networkEnabled) {
       status.textContent =
-        '通信メタデータ観測を有効にしました。本文・headers・URL path/queryは保存しません。';
+        '通信メタデータ観測を有効にしました。本文・URL path/query・ヘッダー値は保存しません。';
     } else if (!wantsNetworkObservation) {
       status.textContent = '設定を保存しました。通信メタデータ観測は無効です。';
     }

@@ -38,7 +38,7 @@ export function createObservationRecord(
   input: ObservationRecordInput,
 ): ObservationLogRecord {
   const record: ObservationLogRecord = {
-    schemaVersion: 6,
+    schemaVersion: 8,
     eventId: crypto.randomUUID(),
     timestamp: Date.now(),
     sessionId: context.sessionId,
@@ -87,6 +87,8 @@ export function createObservationRecord(
     record.networkMechanism = input.network.mechanism;
     record.networkCorrelation = input.network.correlation;
     record.networkPayloadObservation = input.network.payloadObservation;
+    record.cookieHeaderDetection = input.network.cookieHeaderDetection;
+    record.pageObservationTiming = input.network.pageObservationTiming;
   }
 
   return record;

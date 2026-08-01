@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.1 - Sprint 3.1
+
+- Removed input-surface focus from the normal activity log and from network-correlation pulses.
+- Kept focus as a transient chip at Level 3 and at Level 2 for password, payment, and personal-information surfaces.
+- Decoupled transient content-edit pulse refresh from duplicate activity-log suppression.
+- Added the content-script observation timestamp to the closed transient pulse so the 2500ms window is measured from the observed edit rather than Service Worker receipt.
+- Renamed new network correlation records to content-edit correlation while preserving legacy record rendering.
+- Moved optional network observation to `onBeforeSendHeaders` and added `Cookie` request-header-name detection.
+- Added closed Cookie detection states: detected, not detected, not observed, and unavailable.
+- Added neutral page-observation timing states without inferring initialization, authentication, or application purpose.
+- Added Cookie-name, focus-policy, page-timing, pulse, and privacy-boundary tests.
+- Updated the page chip to the approved low-obstruction semi-transparent presentation.
+
 ## 0.4.0 - Sprint 3
 
 - Added an explicit transient-evidence, reduction, persistence, and purge lifecycle.

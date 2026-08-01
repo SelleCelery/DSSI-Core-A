@@ -7,6 +7,7 @@ const validPulse = {
   surfaceType: 'free_text',
   classificationConfidence: 'generic',
   viscosityLevel: 2,
+  observedAt: 1_000,
 } as const;
 
 describe('privacy-safe input activity pulse', () => {
@@ -21,8 +22,10 @@ describe('privacy-safe input activity pulse', () => {
     ).toBe(false);
   });
 
-  it('rejects unknown classifications and viscosity levels', () => {
+  it('rejects unknown classifications, viscosity levels, and invalid timestamps', () => {
     expect(isPrivacySafeInputActivityPulse({ ...validPulse, surfaceType: 'mystery' })).toBe(false);
     expect(isPrivacySafeInputActivityPulse({ ...validPulse, viscosityLevel: 4 })).toBe(false);
+    expect(isPrivacySafeInputActivityPulse({ ...validPulse, observedAt: -1 })).toBe(false);
+    expect(isPrivacySafeInputActivityPulse({ ...validPulse, observedAt: Number.NaN })).toBe(false);
   });
 });

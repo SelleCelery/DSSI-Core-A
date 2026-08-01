@@ -526,7 +526,7 @@ Network Observer は補助観測であり、Core Aの主戦場ではない。
 
 ### 9.2 Observable Metadata
 
-`webRequest` 等で取得可能な範囲において、次を観測する。
+`webRequest` 等で取得可能な範囲において、次を観測する。v0.4.1の実装は`onBeforeSendHeaders`を用い、request bodyは要求せず、request-header集合はCookieヘッダー名の検出にだけ一時利用する。
 
 - request URL
 - request method
@@ -535,6 +535,8 @@ Network Observer は補助観測であり、Core Aの主戦場ではない。
 - tab / frame / document identifiers
 - timestamp
 - request body availability state
+- Cookie request-header name detection state
+- relation to DSSI page-observation start
 
 ### 9.3 Request Body
 
@@ -544,7 +546,7 @@ request body がAPIから提供される場合でも、初期配布版は本文�
 
 ### 9.4 Input Correlation
 
-入力イベントと同一タブの通信イベントを時間窓で相関する。
+信頼済みの内容変更イベントと、同一タブ・同一フレームの通信イベントを時間窓で相関する。フォーカスは相関パルスを生成しない。v0.4.1では各内容変更時にパルスを更新し、活動ログの重複抑制とは独立させる。
 
 出力状態：
 
@@ -557,6 +559,23 @@ correlation_unavailable
 ```
 
 時間相関だけで、入力内容の送信を断定しない。
+
+### 9.4.1 Cookie Header Name Detection
+
+v0.4.1では、Chromeが提供したrequest-header集合についてヘッダー名だけを走査し、`Cookie`の検出状態を次の閉じた値へ縮約する。
+
+```text
+detected
+not_detected
+not_observed
+unavailable
+```
+
+request-header値はDSSIの処理で参照、分類、コピー、保存、表示しない。`not_detected`は、提供された集合内で検出されなかったことだけを意味し、Cookie不存在や認証情報不存在を保証しない。
+
+### 9.4.2 Page-Observation Timing
+
+通信時刻はDSSI自身のページ観測開始との関係だけを、5秒以内、5秒超、不明として保持できる。初期化、認証、状態復元、分析等の用途分類には使用しない。
 
 ### 9.5 WebSocket / Persistent Connections
 
@@ -683,7 +702,7 @@ JavaScriptやサーバーによる自動遷移は、事前UIを保証しない�
 
 - DSSIはこの入力面の送信構造を確認できません。
 - このページでは、一部の入力面を観測できませんでした。
-- 入力中に通信が発生しましたが、その通信に入力内容が含まれるかは確認できません。
+- 内容変更操作と近接して通信が発生しましたが、その通信に入力内容が含まれるかは確認できません。
 - 警告が表示されていないことは、安全であることを意味しません。
 
 ---

@@ -1,4 +1,4 @@
-# DSSI Core A データライフサイクルとパージ境界 v0.4
+# DSSI Core A データライフサイクルとパージ境界 v0.4.1
 
 ## 位置づけ
 
@@ -39,6 +39,7 @@ DOM属性、ブラウザAPIから渡されたURLなど、分類・縮約のた�
 - 関連ラベル文字列
 - 意味分類用の周辺文字列
 - `webRequest`コールバックへ渡される完全なrequest URL
+- `onBeforeSendHeaders`コールバックへ渡されるrequest-header集合
 
 これらは、分類またはURL解析を終えた後、返り値、runtime message、ObservationRecord、storage、UI、consoleへ移してはならない。
 
@@ -52,7 +53,7 @@ JavaScriptの一般的な文字列について、アプリケーションがメ�
 
 - pasteとinputの相関: 300ms
 - click / Enterとsubmitの相関: 1500ms
-- 入力面操作と通信開始の相関: 2500ms
+- 信頼済み内容変更と通信開始の相関: 2500ms
 - 同一通信メタデータの重複抑制: 1200ms
 
 通信相関用の入力パルスは、次だけを含む。
@@ -62,6 +63,7 @@ JavaScriptの一般的な文字列について、アプリケーションがメ�
 - 入力面分類
 - 分類確度
 - 粘性レベル
+- Content Scriptで内容変更を観測した壁時計時刻
 
 入力値、ラベル文字列、URL、クリップボード本文は含まない。Service Workerのメモリ上にのみ置き、storageへ書かない。
 
@@ -135,29 +137,34 @@ Service Workerは、受信したObservationRecordを再検査する。
 
 ## ネットワーク観測における取得と縮約
 
-Sprint 3では、任意権限の`webRequest`を使用し、`xmlhttprequest`と`ping`分類の通信開始を補助観測する。
+Sprint 3.1では、任意権限の`webRequest`を使用し、`xmlhttprequest`と`ping`分類の送信前通信を補助観測する。
 
-ブラウザAPIのコールバックでは、完全なrequest URLが一時的に渡される。DSSIはこれをURL解析へ使うが、次だけを返す。
+`webRequest.onBeforeSendHeaders`のコールバックでは、完全なrequest URLとrequest-header集合が一時的に渡され得る。DSSIはURLを解析し、ヘッダーについては各要素の`name`だけを走査する。返すのは次だけである。
 
 - method
 - resource classに基づくmechanism
 - destination scheme
 - destination host
 - initiatorとのsame-origin / cross-origin関係
-- 入力操作との時間近接
+- 信頼済み内容変更との時間近接
+- DSSIのページ観測開始との中立的時間関係
+- Cookieヘッダー名の検出状態
 
 次は要求または保存しない。
 
 - request body
-- request headers
 - response headers
 - response body
 - URL path
 - URL query
 - URL fragment
 - URL credentials
+- request-header値
+- Cookie名、Cookie値、Cookie個数
 
-`webRequest.onBeforeRequest`のextraInfoSpecは空配列で登録し、request bodyを要求するオプションを指定しない。
+request bodyを取得するextraInfoSpecは指定しない。request headersは`Cookie`というヘッダー名を検出するために`requestHeaders`と`extraHeaders`を指定するが、DSSIの検出関数はヘッダー値へアクセスしない。Chromeがコールバックオブジェクトへ値を配置する可能性自体はあるため、「値がメモリへ一切入らない」とは主張しない。保証するのは、DSSIの処理が値を参照、コピー、分類、runtime message化、ObservationRecord化、保存、表示、console出力しないことである。
+
+`not_detected`は、Chromeが提供したヘッダー集合内でCookieヘッダー名を検出しなかったことだけを意味し、Cookie不存在の保証ではない。
 
 ## パージの定義
 
@@ -183,7 +190,7 @@ DSSIにおけるパージとは、次を意味する。
 
 ## 検査強度
 
-現行v0.4は次を採用する。
+現行v0.4.1は次を採用する。
 
 1. 保存型に生情報項目を持たせない。
 2. Record Factoryが安全メタデータだけをコピーする。
@@ -192,6 +199,8 @@ DSSIにおけるパージとは、次を意味する。
 5. payload観測状態を`not_requested`へ固定する。
 6. Content Script、Service Worker、storageの三境界で検査する。
 7. 単体テストで禁止項目、未知項目、ネスト、偽装URLを拒否する。
+8. Cookie検出関数がヘッダー値へアクセスしないことをgetter検査で確認する。
+9. フォーカス表示と内容変更相関を別の方針関数で固定する。
 
 今後必要な強化:
 

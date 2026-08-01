@@ -1,11 +1,13 @@
 import {
   boundarySourceLabel,
+  cookieHeaderDetectionLabel,
   classificationConfidenceLabel,
   frameContextLabel,
   observationActionLabel,
   networkCorrelationLabel,
   networkMechanismLabel,
   networkPayloadObservationLabel,
+  pageObservationTimingLabel,
   observationScopeLabel,
   operationEvidenceLabel,
   submissionAssociationLabel,
@@ -80,6 +82,8 @@ function render(records: ObservationLogRecord[]): void {
       makeCell(submissionEncodingLabel(record)),
       makeCell(networkMechanismLabel(record)),
       makeCell(networkCorrelationLabel(record)),
+      makeCell(pageObservationTimingLabel(record)),
+      makeCell(cookieHeaderDetectionLabel(record)),
       makeCell(networkPayloadObservationLabel(record)),
       makeCell(record.cuePresented ? '表示' : '非表示'),
     );

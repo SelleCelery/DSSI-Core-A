@@ -1,4 +1,5 @@
-import { shouldPresentCue } from '../core/cue-policy';
+import { shouldPresentFocusCue } from '../core/cue-policy';
+import { shouldRefreshNetworkPulse } from '../core/input-activity-policy';
 import { assessInputOrigin } from '../core/input-origin';
 import type { InputSurfaceClassification } from '../core/models/input-surface';
 import type {
@@ -28,23 +29,6 @@ interface SurfaceRuntimeState {
   lastInputType?: string;
   keyboardLogged: boolean;
   inferredOrigins: Set<InputOrigin>;
-}
-
-function focusTrigger(classification: InputSurfaceClassification): TriggerType {
-  switch (classification.surfaceType) {
-    case 'password':
-      return 'password_field_focus';
-    case 'email_or_id':
-      return 'email_or_id_field_focus';
-    case 'payment':
-      return 'payment_field_focus';
-    case 'personal_information':
-      return 'personal_info_field_focus';
-    case 'free_text':
-      return 'free_text_surface_focus';
-    default:
-      return 'unknown_input_surface_focus';
-  }
 }
 
 function triggerForInputOrigin(origin: InputOrigin): TriggerType {
@@ -178,28 +162,15 @@ export class InputSurfaceObserver {
     const descriptor = describeInputSurface(surface);
     const classification = classifyInputSurface(descriptor);
     this.#knownSurfaces.add(surface);
-    const isFocusCue =
-      triggerType.endsWith('_field_focus') ||
-      triggerType === 'free_text_surface_focus' ||
-      triggerType === 'unknown_input_surface_focus';
-    const surfaceCuePresented = isFocusCue
-      ? shouldPresentCue(this.#settings.viscosityLevel, classification.surfaceType)
-      : false;
-    const inputOriginCuePresented =
-      inputOrigin !== undefined && this.#settings.viscosityLevel === 3;
-    const cuePresented = surfaceCuePresented || inputOriginCuePresented;
+    const cuePresented = inputOrigin !== undefined && this.#settings.viscosityLevel === 3;
 
-    if (surfaceCuePresented) {
-      this.#presenter.show(classification.surfaceType, this.#settings.viscosityLevel);
-    } else if (inputOriginCuePresented && inputOrigin !== undefined) {
+    if (cuePresented && inputOrigin !== undefined) {
       this.#presenter.showInputOrigin(
         inputOrigin,
         classification.surfaceType,
         this.#settings.viscosityLevel,
       );
     }
-
-    this.#sendInputActivityPulse(classification);
 
     void this.#sendRecord(
       createObservationRecord(
@@ -236,6 +207,7 @@ export class InputSurfaceObserver {
           surfaceType: classification.surfaceType,
           classificationConfidence: classification.confidence,
           viscosityLevel: this.#settings.viscosityLevel,
+          observedAt: Date.now(),
         },
       })
       .catch(() => {
@@ -258,14 +230,12 @@ export class InputSurfaceObserver {
 
   readonly #onFocusIn = (event: FocusEvent): void => {
     const surface = resolveInputSurface(event);
-    if (!surface) return;
+    if (!surface || !event.isTrusted) return;
 
     const classification = this.#classificationFor(surface);
-    this.#reportSurfaceEvent(
-      surface,
-      focusTrigger(classification),
-      event.isTrusted ? 'direct_trusted_event' : 'untrusted_or_unknown',
-    );
+    if (shouldPresentFocusCue(this.#settings.viscosityLevel, classification.surfaceType)) {
+      this.#presenter.show(classification.surfaceType, this.#settings.viscosityLevel);
+    }
   };
 
   readonly #onFocusOut = (event: FocusEvent): void => {
@@ -300,6 +270,10 @@ export class InputSurfaceObserver {
     state.lastPasteAt = performance.now();
     state.lastPasteTrusted = event.isTrusted;
 
+    if (shouldRefreshNetworkPulse('paste', event.isTrusted)) {
+      this.#sendInputActivityPulse(this.#classificationFor(surface));
+    }
+
     this.#reportSurfaceEvent(
       surface,
       'paste_event_observed',
@@ -321,6 +295,12 @@ export class InputSurfaceObserver {
     const state = this.#stateFor(surface);
     const inputEvent = event instanceof InputEvent ? event : undefined;
     const now = performance.now();
+
+    // Correlation pulses represent fresh trusted edits and are intentionally
+    // independent from activity-log duplicate suppression below.
+    if (shouldRefreshNetworkPulse('input', event.isTrusted)) {
+      this.#sendInputActivityPulse(this.#classificationFor(surface));
+    }
     const assessment = assessInputOrigin({
       now,
       ...(state.lastKeyboardAt === undefined ? {} : { lastKeyboardAt: state.lastKeyboardAt }),

@@ -1,10 +1,12 @@
 import type { InputActivityPulse, NetworkDescriptor } from '../core/models/network';
 import type { ObservationLogRecord } from '../core/models/observation';
+import { detectCookieHeader } from '../core/cookie-header-detection';
 import { isPrivacySafeInputActivityPulse } from '../core/input-activity-pulse';
 import { analyzeNetworkRequest } from '../core/network-analyzer';
 import { NETWORK_PERMISSION_REQUEST } from '../core/network-permission';
+import { classifyPageObservationTiming } from '../core/page-observation-timing';
 import {
-  NETWORK_EXTRA_INFO_SPEC,
+  NETWORK_REQUEST_HEADER_EXTRA_INFO_SPEC,
   NETWORK_RESOURCE_TYPES,
   NETWORK_URL_PATTERNS,
 } from '../core/network-observation-policy';
@@ -47,9 +49,15 @@ interface RecentInputActivity extends InputActivityPulse {
   documentId?: string;
 }
 
+interface PageObservationStart {
+  observedAt: number;
+  documentId?: string;
+}
+
 const PAGE_START_DEDUP_WINDOW_MS = 5000;
 const recentPageStarts = new Map<string, number>();
 const recentInputByFrame = new Map<string, RecentInputActivity>();
+const pageObservationStartByFrame = new Map<string, PageObservationStart>();
 const recentNetworkRecords = new Map<string, number>();
 let networkSettingPromise = loadSettings().then((settings) => settings.networkObservationEnabled);
 
@@ -101,6 +109,55 @@ function purgeTransientMaps(now: number): void {
   for (const [key, observedAt] of recentNetworkRecords) {
     if (now - observedAt > 10_000) recentNetworkRecords.delete(key);
   }
+  for (const [key, start] of pageObservationStartByFrame) {
+    if (now - start.observedAt > 86_400_000) pageObservationStartByFrame.delete(key);
+  }
+}
+
+function clearTabScopedState(tabId: number): void {
+  const prefix = `${tabId}:`;
+  for (const key of recentInputByFrame.keys()) {
+    if (key.startsWith(prefix)) recentInputByFrame.delete(key);
+  }
+  for (const key of pageObservationStartByFrame.keys()) {
+    if (key.startsWith(prefix)) pageObservationStartByFrame.delete(key);
+  }
+  for (const key of recentNetworkRecords.keys()) {
+    if (key.startsWith(prefix)) recentNetworkRecords.delete(key);
+  }
+  for (const key of recentPageStarts.keys()) {
+    if (key.startsWith(prefix)) recentPageStarts.delete(key);
+  }
+}
+
+chrome.tabs.onRemoved.addListener((tabId) => clearTabScopedState(tabId));
+
+function rememberPageObservationStart(sender: chrome.runtime.MessageSender): void {
+  if (sender.tab?.id === undefined) return;
+  const key = frameKey(sender.tab.id, sender.frameId ?? 0);
+  recentInputByFrame.delete(key);
+  pageObservationStartByFrame.set(key, {
+    observedAt: Date.now(),
+    ...(sender.documentId === undefined ? {} : { documentId: sender.documentId }),
+  });
+}
+
+function pageTimingForRequest(
+  tabId: number,
+  frameId: number,
+  documentId: string | undefined,
+  now: number,
+) {
+  const start = pageObservationStartByFrame.get(frameKey(tabId, frameId));
+  if (start === undefined) return classifyPageObservationTiming(undefined, now);
+  if (
+    start.documentId !== undefined &&
+    documentId !== undefined &&
+    start.documentId !== documentId
+  ) {
+    return classifyPageObservationTiming(undefined, now);
+  }
+  return classifyPageObservationTiming(start.observedAt, now);
 }
 
 function shouldSuppressTopPageStart(
@@ -178,11 +235,13 @@ async function topLevelDomainForTab(tabId: number): Promise<string> {
   }
 }
 
-type OnBeforeRequestListener = Parameters<typeof chrome.webRequest.onBeforeRequest.addListener>[0];
+type OnBeforeSendHeadersListener = Parameters<
+  typeof chrome.webRequest.onBeforeSendHeaders.addListener
+>[0];
 
-type OnBeforeRequestDetails = Parameters<OnBeforeRequestListener>[0];
+type OnBeforeSendHeadersDetails = Parameters<OnBeforeSendHeadersListener>[0];
 
-async function handleNetworkRequest(details: OnBeforeRequestDetails): Promise<void> {
+async function handleNetworkRequestHeaders(details: OnBeforeSendHeadersDetails): Promise<void> {
   if (!(await networkSettingPromise)) return;
   if (details.tabId < 0 || details.frameId < 0) return;
 
@@ -203,6 +262,13 @@ async function handleNetworkRequest(details: OnBeforeRequestDetails): Promise<vo
     method: details.method,
     ...(details.initiator === undefined ? {} : { initiator: details.initiator }),
     resourceType: details.type,
+    cookieHeaderDetection: detectCookieHeader(details.requestHeaders),
+    pageObservationTiming: pageTimingForRequest(
+      details.tabId,
+      details.frameId,
+      details.documentId,
+      now,
+    ),
   });
   if (!descriptor) return;
 
@@ -235,7 +301,7 @@ async function handleNetworkRequest(details: OnBeforeRequestDetails): Promise<vo
       },
       {
         surfaceType: input.surfaceType,
-        triggerType: 'network_activity_during_input',
+        triggerType: 'network_activity_after_content_edit',
         observationScope: 'network_metadata_only',
         operationEvidence: 'browser_network_api_observation',
         cuePresented,
@@ -251,8 +317,8 @@ async function handleNetworkRequest(details: OnBeforeRequestDetails): Promise<vo
   await appendSessionRecord(record);
 }
 
-const networkRequestListener: OnBeforeRequestListener = (details) => {
-  void handleNetworkRequest(details);
+const networkRequestHeaderListener: OnBeforeSendHeadersListener = (details) => {
+  void handleNetworkRequestHeaders(details);
   return undefined;
 };
 
@@ -260,20 +326,20 @@ let networkListenerRegistered = false;
 
 function registerNetworkListener(): void {
   if (networkListenerRegistered) return;
-  chrome.webRequest.onBeforeRequest.addListener(
-    networkRequestListener,
+  chrome.webRequest.onBeforeSendHeaders.addListener(
+    networkRequestHeaderListener,
     {
       urls: [...NETWORK_URL_PATTERNS],
       types: [...NETWORK_RESOURCE_TYPES],
     },
-    [...NETWORK_EXTRA_INFO_SPEC],
+    [...NETWORK_REQUEST_HEADER_EXTRA_INFO_SPEC],
   );
   networkListenerRegistered = true;
 }
 
 function unregisterNetworkListener(): void {
   if (!networkListenerRegistered) return;
-  chrome.webRequest.onBeforeRequest.removeListener(networkRequestListener);
+  chrome.webRequest.onBeforeSendHeaders.removeListener(networkRequestHeaderListener);
   networkListenerRegistered = false;
 }
 
@@ -300,7 +366,6 @@ chrome.runtime.onMessage.addListener(
 
       recentInputByFrame.set(frameKey(sender.tab.id, sender.frameId ?? 0), {
         ...message.pulse,
-        observedAt: Date.now(),
         ...(sender.documentId === undefined ? {} : { documentId: sender.documentId }),
       });
       sendResponse({ ok: true });
@@ -311,6 +376,10 @@ chrome.runtime.onMessage.addListener(
       try {
         const boundaryChecked = createPrivacySafeRecord(message.record);
         const enriched = createPrivacySafeRecord(enrichFrameContext(boundaryChecked, sender));
+
+        if (enriched.triggerType === 'page_observation_started') {
+          rememberPageObservationStart(sender);
+        }
 
         // Subframe initialization is extremely noisy on real pages. Keep actual
         // subframe interactions, but suppress page-start-only records.

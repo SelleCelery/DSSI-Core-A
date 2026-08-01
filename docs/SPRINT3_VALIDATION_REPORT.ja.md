@@ -1,5 +1,7 @@
 # Sprint 3 検証記録
 
+> 履歴文書: この報告はv0.4.0時点の検証である。v0.4.1は`SPRINT3_1_VALIDATION_REPORT.ja.md`を参照する。
+
 ## 対象
 
 DSSI Core A 0.4.0 / Sprint 3

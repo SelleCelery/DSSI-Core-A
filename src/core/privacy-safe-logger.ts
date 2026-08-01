@@ -50,6 +50,8 @@ const ALLOWED_RECORD_KEYS = new Set<keyof ObservationLogRecord>([
   'networkMechanism',
   'networkCorrelation',
   'networkPayloadObservation',
+  'cookieHeaderDetection',
+  'pageObservationTiming',
   'surfaceTagName',
   'surfaceInputType',
   'surfaceRole',
@@ -107,6 +109,7 @@ const ENUM_FIELDS: Readonly<Partial<Record<keyof ObservationLogRecord, ReadonlyS
     'consent_control_checked',
     'live_sync_surface_detected',
     'network_activity_during_input',
+    'network_activity_after_content_edit',
     'partially_observable_surface',
     'unobservable_surface',
   ]),
@@ -174,8 +177,14 @@ const ENUM_FIELDS: Readonly<Partial<Record<keyof ObservationLogRecord, ReadonlyS
     'UNKNOWN',
   ]),
   networkMechanism: new Set(['fetch_or_xhr', 'beacon_or_ping']),
-  networkCorrelation: new Set(['recent_input_activity']),
+  networkCorrelation: new Set(['recent_input_activity', 'recent_content_edit']),
   networkPayloadObservation: new Set(['not_requested']),
+  cookieHeaderDetection: new Set(['detected', 'not_detected', 'not_observed', 'unavailable']),
+  pageObservationTiming: new Set([
+    'within_5s_of_page_observation',
+    'after_5s_of_page_observation',
+    'unknown',
+  ]),
 };
 
 const BOOLEAN_FIELDS = new Set<keyof ObservationLogRecord>([
@@ -268,7 +277,10 @@ function assertEnumField(
 }
 
 function assertScalarFields(payload: ObservationLogRecord): void {
-  if (payload.schemaVersion !== undefined && ![1, 2, 3, 4, 5, 6].includes(payload.schemaVersion)) {
+  if (
+    payload.schemaVersion !== undefined &&
+    ![1, 2, 3, 4, 5, 6, 7, 8].includes(payload.schemaVersion)
+  ) {
     throw new PrivacyBoundaryError('Unsupported observation schema version.');
   }
   if (!Number.isFinite(payload.timestamp) || payload.timestamp < 0) {

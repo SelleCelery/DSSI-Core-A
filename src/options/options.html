@@ -26,8 +26,9 @@
         </label>
         <p class="small">
           有効化時だけ、ChromeのwebRequest権限とHTTP/HTTPSサイトへの追加アクセスを求めます。
-          観測対象は入力操作から2.5秒以内に始まったfetch/XHR系またはBeacon/Ping系の通信です。
-          request bodyとheadersは要求せず、URLのpath・query・fragmentは保存しません。
+          観測対象は信頼済みの内容変更操作から2.5秒以内に始まったfetch/XHR系またはBeacon/Ping系の通信です。
+          request bodyは要求せず、URLのpath・query・fragmentは保存しません。 request
+          headersはCookieというヘッダー名の検出にだけ一時利用し、値はDSSIの処理で参照・分類・保存・表示しません。
         </p>
         <label class="row">
           <span>永続履歴</span>
