@@ -1,8 +1,8 @@
 {
   "name": "dssi-core-a",
-  "version": "0.4.6",
+  "version": "0.5.0",
   "private": true,
-  "description": "DSSI Core A - awareness-first cognitive safety layer for Chromium browsers",
+  "description": "ConnectBits Public Preview - local browser observation and read-only log collation developed under DSSI Core A",
   "license": "GPL-3.0-or-later",
   "type": "module",
   "scripts": {
@@ -14,7 +14,9 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run build"
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run build",
+    "prepare:release": "npm run build && node scripts/prepare-release.mjs",
+    "package:release:windows": "powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1"
   },
   "engines": {
     "node": ">=20"

@@ -1,34 +1,15 @@
-# DSSI Core A v0.4.0 TypeScript型修正
+# ConnectBits Sprint 3.5-B UI language test hotfix v0.5.1
 
-対象: `src/background/service-worker.ts`
+## 修正内容
 
-## 原因
+`permissionJudgmentBoundary` の英語文言を、テストおよび日英用語対応表で用いる名詞形 `appropriateness` に統一しました。
 
-- `@types/chrome` 0.2.2 には `chrome.webRequest.WebRequestBodyDetails` という公開型がない。
-- `onBeforeRequest.addListener` のコールバック型は、現在の型定義上 `BlockingResponse | undefined` を返す形になっており、明示的な `(): void` と一致しない。
+変更前:
 
-## 修正
+`Granting a permission does not establish that the processing is necessary or appropriate.`
 
-イベント定義そのものから、リスナー型とdetails型を抽出する。
+変更後:
 
-```ts
-type OnBeforeRequestListener = Parameters<typeof chrome.webRequest.onBeforeRequest.addListener>[0];
+`Granting a permission does not establish the necessity or appropriateness of the processing.`
 
-type OnBeforeRequestDetails = Parameters<OnBeforeRequestListener>[0];
-```
-
-リスナーは `undefined` を明示的に返す。
-
-```ts
-const networkRequestListener: OnBeforeRequestListener = (details) => {
-  void handleNetworkRequest(details);
-  return undefined;
-};
-```
-
-## 適用後
-
-```powershell
-npm.cmd run format
-npm.cmd run check
-```
+意味上の変更はありません。実装ではなく、英語UI文言と境界語彙テストの整合修正です。

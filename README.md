@@ -1,14 +1,27 @@
-# DSSI Core A
+# ConnectBits
 
-DSSI Core A is an awareness-first cognitive safety layer for Chromium browsers.
+**ConnectBits** is the public product name of a local browser observation interface developed under the DSSI Core A project line.
 
-> 最後に止めるのではなく、最初に気づけるようにする。
+> Return hidden connections as fragments people can judge.
 
-The extension is designed to present observable facts and observation limits before or during high-impact browser actions. It does not substitute the user's judgment and does not claim complete interception or complete safety.
+ConnectBits presents selected input-surface, submission-boundary, and request-start observations together with known observation limits. It does not collect network payloads, replace user judgment, certify safety, or explain a service's actual communication purpose on behalf of its operator.
+
+Development designation: **DSSI Core A**. Current release target: **v0.5.0 Public Preview**.
 
 ## Status
 
-Sprint 3.4 — Domain Observation Profiles and Log Export Boundaries
+Sprint 3.5-B — ConnectBits UI and Boundary Alignment
+
+Public-preview additions in v0.5 include:
+
+- ConnectBits public branding while retaining DSSI Core A as the development lineage
+- Japanese and English interface messages with browser-language or explicit selection
+- a first-run local setup and optional-permission review
+- linked Setup & Privacy, Observation Log, Log Reader, and setup-review pages
+- click-open communication-pulse reading guidance near the compact stream
+- boundary-aligned Cookie-header and network-payload wording
+- local read-only log collation in ConnectBits Log Reader
+- reproducible unpacked-release and Windows ZIP packaging scripts
 
 This repository currently provides:
 
@@ -39,6 +52,12 @@ This repository currently provides:
 - lint, format, typecheck, test, and build commands
 
 Sprint 3.4 retains the Sprint 3.3 communication-pulse and privacy boundaries while adding hostname-scoped display profiles and explicit log export. A host profile describes only how densely observations are displayed; it is not a trust, safety, permission, or reputation decision. Communication display can be reduced without suppressing viscosity-bound attention chips for password, payment, and personal-information surfaces. JSON export preserves DSSI primary observation records together with referenced settings snapshots, the Coverage Manifest, export scope, and use boundaries. CSV is a flat derivative for spreadsheet use and is accompanied by context JSON when selected alone. Exported files are not encrypted, signed, or protected against later editing in this version.
+
+## Public-preview installation
+
+See [Japanese installation instructions](./docs/release/INSTALL.ja.md) or [English installation instructions](./docs/release/INSTALL.en.md). After reloading the extension from `chrome://extensions`, reload pages that were already open so the current content script is injected.
+
+The first installation opens a local setup review. Optional network-observation permission may be declined; local DOM observation can still be used within the remaining boundary.
 
 ## Requirements
 

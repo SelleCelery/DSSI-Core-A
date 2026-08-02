@@ -1,5 +1,4 @@
 import { buildCoverageManifest } from '../core/coverage-manifest';
-import { NETWORK_PERMISSION_REQUEST } from '../core/network-permission';
 import type {
   CommunicationPulseColor,
   CommunicationPulseDurationMs,
@@ -8,6 +7,15 @@ import type {
   FactChipPosition,
   ReportingMode,
 } from '../core/models/settings';
+import { NETWORK_PERMISSION_REQUEST } from '../core/network-permission';
+import {
+  applyDocumentTranslations,
+  browserUiLanguage,
+  resolveUiLanguage,
+  t,
+  type UiLanguage,
+  type UiLanguageSetting,
+} from '../i18n/ui';
 import { loadSettings, saveSettings } from '../storage/settings-store';
 import { renderCoverageManifest } from '../ui/coverage-renderer';
 import { requiredElement } from '../ui/required-element';
@@ -31,10 +39,19 @@ const communicationPulseWebRequestColor = requiredElement<HTMLSelectElement>(
   '#communicationPulseWebRequestColor',
 );
 const communicationPulseOpacity = requiredElement<HTMLSelectElement>('#communicationPulseOpacity');
+const uiLanguage = requiredElement<HTMLSelectElement>('#uiLanguage');
 const coverageBody = requiredElement<HTMLDivElement>('#coverageBody');
+const permissionState = requiredElement<HTMLElement>('#permissionState');
 const save = requiredElement<HTMLButtonElement>('#save');
 const clearSession = requiredElement<HTMLButtonElement>('#clearSession');
 const status = requiredElement<HTMLElement>('#status');
+const openLog = requiredElement<HTMLButtonElement>('#openLog');
+const openReader = requiredElement<HTMLButtonElement>('#openReader');
+const openOnboarding = requiredElement<HTMLButtonElement>('#openOnboarding');
+const openPulseGuide = requiredElement<HTMLButtonElement>('#openPulseGuide');
+const pulseGuideDialog = requiredElement<HTMLDialogElement>('#pulseGuideDialog');
+
+let language: UiLanguage = 'ja';
 
 async function hasNetworkPermission(): Promise<boolean> {
   return chrome.permissions.contains(NETWORK_PERMISSION_REQUEST);
@@ -42,6 +59,10 @@ async function hasNetworkPermission(): Promise<boolean> {
 
 function asReportingMode(value: string): ReportingMode {
   return value === 'max_coverage' ? 'max_coverage' : 'standard';
+}
+
+function asUiLanguageSetting(value: string): UiLanguageSetting {
+  return value === 'ja' || value === 'en' ? value : 'auto';
 }
 
 function asFactChipPosition(value: string): FactChipPosition {
@@ -95,19 +116,35 @@ function asCommunicationPulseOpacity(value: string): CommunicationPulseOpacity {
   return opacity === 1 || opacity === 0.8 || opacity === 0.6 || opacity === 0.4 ? opacity : 0.8;
 }
 
+function applyLanguage(next: UiLanguage): void {
+  language = next;
+  applyDocumentTranslations(document, language);
+  document.title = `${t(language, 'productName')} — ${t(language, 'setupTitle')}`;
+}
+
 async function renderCoverage(): Promise<void> {
   const [settings, permissionGranted] = await Promise.all([loadSettings(), hasNetworkPermission()]);
+  permissionState.textContent = t(
+    language,
+    permissionGranted ? 'permissionGranted' : 'permissionNotGranted',
+  );
   renderCoverageManifest(
     coverageBody,
-    buildCoverageManifest({
-      networkObservationEnabled: settings.networkObservationEnabled,
-      networkPermissionGranted: permissionGranted,
-    }),
+    buildCoverageManifest(
+      {
+        networkObservationEnabled: settings.networkObservationEnabled,
+        networkPermissionGranted: permissionGranted,
+      },
+      language,
+    ),
+    language,
   );
 }
 
 async function refresh(): Promise<void> {
   const [settings, permissionGranted] = await Promise.all([loadSettings(), hasNetworkPermission()]);
+  uiLanguage.value = settings.uiLanguage;
+  applyLanguage(resolveUiLanguage(settings.uiLanguage, browserUiLanguage()));
   localClassification.checked = settings.localClassificationEnabled;
   networkObservation.checked = settings.networkObservationEnabled && permissionGranted;
   reportingMode.value = settings.reportingMode;
@@ -137,10 +174,11 @@ save.addEventListener('click', () => {
 
   void permissionOperation.then(async (networkEnabled: boolean) => {
     const current = await loadSettings();
+    const languageSetting = asUiLanguageSetting(uiLanguage.value);
 
     if (wantsNetworkObservation && !networkEnabled) {
       networkObservation.checked = false;
-      status.textContent = '通信メタデータ観測の権限が付与されなかったため、無効のままです。';
+      status.textContent = t(language, 'statusPermissionDenied');
     }
 
     await saveSettings({
@@ -158,23 +196,37 @@ save.addEventListener('click', () => {
         communicationPulseWebRequestColor.value,
       ),
       communicationPulseOpacity: asCommunicationPulseOpacity(communicationPulseOpacity.value),
+      uiLanguage: languageSetting,
     });
 
+    applyLanguage(resolveUiLanguage(languageSetting, browserUiLanguage()));
     if (networkEnabled) {
-      status.textContent =
-        '設定を保存しました。通信本文・URL path/query・ヘッダー値は保存しません。対象ページの再読み込み後に確実に反映されます。';
+      status.textContent = t(language, 'statusNetworkEnabled');
     } else if (!wantsNetworkObservation) {
-      status.textContent =
-        '設定を保存しました。通信メタデータ観測は無効です。対象ページの再読み込み後に確実に反映されます。';
+      status.textContent = t(language, 'statusNetworkDisabled');
     }
     await renderCoverage();
   });
 });
 
+uiLanguage.addEventListener('change', () => {
+  const setting = asUiLanguageSetting(uiLanguage.value);
+  applyLanguage(resolveUiLanguage(setting, browserUiLanguage()));
+});
 clearSession.addEventListener('click', () => {
   void chrome.runtime.sendMessage({ type: 'DSSI_CLEAR_SESSION_LOG' }).then(() => {
-    status.textContent = 'セッション観測ログを消去しました。';
+    status.textContent = t(language, 'statusSessionCleared');
   });
 });
+openLog.addEventListener('click', () => {
+  void chrome.tabs.create({ url: chrome.runtime.getURL('logs.html') });
+});
+openReader.addEventListener('click', () => {
+  void chrome.tabs.create({ url: chrome.runtime.getURL('reader.html') });
+});
+openOnboarding.addEventListener('click', () => {
+  void chrome.tabs.create({ url: chrome.runtime.getURL('onboarding.html') });
+});
+openPulseGuide.addEventListener('click', () => pulseGuideDialog.showModal());
 
 void refresh();

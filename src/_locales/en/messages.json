@@ -1,0 +1,18 @@
+{
+  "appName": {
+    "message": "ConnectBits (Public Preview)",
+    "description": "Public product name shown in the browser extension manager."
+  },
+  "appShortName": {
+    "message": "ConnectBits",
+    "description": "Short product name."
+  },
+  "appDescription": {
+    "message": "A local browser observation interface that returns selected input, submission, and request-start events as conditions for user judgment without collecting payloads.",
+    "description": "Public extension description."
+  },
+  "actionTitle": {
+    "message": "ConnectBits",
+    "description": "Toolbar action title."
+  }
+}

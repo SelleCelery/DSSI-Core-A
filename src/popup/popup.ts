@@ -1,10 +1,17 @@
+import type { ObservationLogRecord } from '../core/models/observation';
+import type { ReportingMode } from '../core/models/settings';
 import {
   isUserInputObservation,
   observationActionLabel,
   surfaceTypeLabel,
 } from '../core/observation-presentation';
-import type { ObservationLogRecord } from '../core/models/observation';
-import type { ReportingMode } from '../core/models/settings';
+import {
+  applyDocumentTranslations,
+  browserUiLanguage,
+  resolveUiLanguage,
+  t,
+  type UiLanguage,
+} from '../i18n/ui';
 import { loadSettings, saveSettings } from '../storage/settings-store';
 import { getSessionRecords } from '../storage/session-buffer';
 import { requiredElement } from '../ui/required-element';
@@ -20,14 +27,24 @@ const count = requiredElement<HTMLElement>('#count');
 const recentList = requiredElement<HTMLUListElement>('#recentList');
 const recentEmpty = requiredElement<HTMLElement>('#recentEmpty');
 const openLog = requiredElement<HTMLButtonElement>('#openLog');
+const openReader = requiredElement<HTMLButtonElement>('#openReader');
 const openOptions = requiredElement<HTMLButtonElement>('#openOptions');
+const openOnboarding = requiredElement<HTMLButtonElement>('#openOnboarding');
+
+let language: UiLanguage = 'ja';
 
 function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString('ja-JP', {
+  return new Date(timestamp).toLocaleTimeString(language === 'ja' ? 'ja-JP' : 'en-US', {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
   });
+}
+
+function applyLanguage(next: UiLanguage): void {
+  language = next;
+  applyDocumentTranslations(document, language);
+  document.title = t(language, 'productName');
 }
 
 function renderRecent(records: ObservationLogRecord[]): void {
@@ -42,10 +59,10 @@ function renderRecent(records: ObservationLogRecord[]): void {
     item.className = 'observation-item';
 
     const action = document.createElement('strong');
-    action.textContent = observationActionLabel(record);
+    action.textContent = observationActionLabel(record, language);
 
     const detail = document.createElement('span');
-    detail.textContent = `${formatTime(record.timestamp)} · ${surfaceTypeLabel(record.surfaceType)} · ${record.domainKey}`;
+    detail.textContent = `${formatTime(record.timestamp)} · ${surfaceTypeLabel(record.surfaceType, language)} · ${record.domainKey}`;
 
     item.append(action, detail);
     recentList.append(item);
@@ -58,6 +75,7 @@ function asReportingMode(value: string): ReportingMode {
 
 async function refresh(): Promise<void> {
   const [settings, records] = await Promise.all([loadSettings(), getSessionRecords()]);
+  applyLanguage(resolveUiLanguage(settings.uiLanguage, browserUiLanguage()));
   enabled.checked = settings.enabled;
   viscosity.value = String(settings.viscosityLevel);
   reportingMode.value = settings.reportingMode;
@@ -77,8 +95,8 @@ async function persist(): Promise<void> {
   });
   status.textContent =
     reportingMode.value === 'max_coverage'
-      ? 'MAX報告モードを保存しました。対象ページの再読み込み後に反映されます。'
-      : '設定を保存しました。';
+      ? t(language, 'statusMaxSaved')
+      : t(language, 'statusSaved');
 }
 
 enabled.addEventListener('change', () => void persist());
@@ -88,11 +106,17 @@ communicationPulseEnabled.addEventListener('change', () => void persist());
 openLog.addEventListener('click', () => {
   void chrome.tabs.create({ url: chrome.runtime.getURL('logs.html') });
 });
+openReader.addEventListener('click', () => {
+  void chrome.tabs.create({ url: chrome.runtime.getURL('reader.html') });
+});
 openOptions.addEventListener('click', () => void chrome.runtime.openOptionsPage());
+openOnboarding.addEventListener('click', () => {
+  void chrome.tabs.create({ url: chrome.runtime.getURL('onboarding.html') });
+});
 
 chrome.storage.onChanged.addListener(
   (_changes: Record<string, chrome.storage.StorageChange>, areaName: string) => {
-    if (areaName === 'session') void refresh();
+    if (areaName === 'session' || areaName === 'local') void refresh();
   },
 );
 

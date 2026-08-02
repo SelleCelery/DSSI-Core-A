@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.5.0 - Sprint 3.5-B ConnectBits UI and Boundary Alignment
+
+- Adopted ConnectBits as the public product name while retaining DSSI Core A as the development lineage.
+- Added Japanese and English UI messages with browser-language or explicit language selection.
+- Added a first-install local setup review that separates developer declarations, user review, user judgment, optional permission, and support limits.
+- Added a normal local-only start path that does not grant optional network-observation permission.
+- Linked Setup & Privacy, Observation Log, ConnectBits Log Reader, and setup review pages.
+- Made the compact observation stream the primary log view while retaining the detailed table as an advanced view.
+- Moved communication-pulse reading guidance into click-open dialogs near the compact stream and setup controls.
+- Changed payload wording to “not requested or collected” and Cookie wording to header-presence detection without value collection.
+- Added bilingual observation tips that preserve the difference between observed facts, unknowns, general possibilities, non-invasive checks, and operator responsibility.
+- Localized exported use-boundary text according to the selected UI language without changing the stable log keys.
+- Added reproducible unpacked-release preparation and a Windows ZIP packaging prototype with SHA-256 output.
+- Added boundary-alignment, UI-message, UI-observation, installation, and developer code-reading documents.
+- Updated package and extension version to 0.5.0 Public Preview.
+
 ## 0.4.6 - Sprint 3.4 domain profiles and log export boundaries
 
 - Added independent global DOM and webRequest pulse-color choices: magenta, cyan, yellow, or neutral.

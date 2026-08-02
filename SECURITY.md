@@ -1,6 +1,6 @@
-# Security Policy
+# ConnectBits / DSSI Core A Security Policy
 
-DSSI Core A is under active development and has not yet reached a production security release.
+ConnectBits, developed under DSSI Core A, is under active development and has not yet reached a production security release.
 
 ## Reporting
 
@@ -27,3 +27,12 @@ Do not include passwords, payment data, private prompts, or other sensitive user
 - A JSON `integrity.status` value of `not_provided` is explicit; it must not be interpreted as a successful integrity check.
 - Exported files can be modified after download. DSSI must not claim that a later file is unchanged or that it proves intent, responsibility, communication content, harmfulness, or safety.
 - Future encryption or signing work must preserve user control over keys, disclosure, deletion, and verification, and must be designed against coercive monitoring and responsibility attribution.
+
+## v0.5 local Reader and release boundary
+
+- The Log Reader must accept only a user-selected local JSON file and must not evaluate code, load an external URL, write back to the source file, or transmit the file.
+- Reader rendering must use DOM text nodes rather than untrusted HTML insertion.
+- The first-run setup must request optional network permission only from an explicit user action and must provide an equal path to start without it.
+- UI localization must not alter internal record values or weaken the meaning of privacy-boundary states.
+- Release packaging must include only the built extension, localization messages, icons, and installation note. Source, tests, `node_modules`, local logs, and working archives are excluded.
+- ConnectBits v0.5 remains a public preview and does not provide automatic update signing, forensic integrity, or evidentiary preservation.

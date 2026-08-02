@@ -458,3 +458,793 @@ button {
   padding-left: 10px;
   border-left: 3px solid color-mix(in srgb, currentColor 24%, transparent);
 }
+
+/* ConnectBits Log Reader */
+.reader-page {
+  background: Canvas;
+  color: CanvasText;
+}
+
+.panel-reader {
+  max-width: 1480px;
+}
+
+.reader-header,
+.reader-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.reader-kicker {
+  margin: 0 0 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  opacity: 0.7;
+}
+
+.reader-badge {
+  display: inline-block;
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.reader-boundary {
+  margin: 18px 0;
+  padding: 12px 14px;
+  border-left: 4px solid color-mix(in srgb, currentColor 42%, transparent);
+  background: color-mix(in srgb, CanvasText 4%, Canvas);
+}
+
+.reader-boundary h2,
+.reader-boundary p {
+  margin-top: 0;
+}
+
+.reader-boundary p:last-child {
+  margin-bottom: 0;
+}
+
+.reader-section {
+  margin-top: 20px;
+  padding-top: 4px;
+  border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.reader-section h3 {
+  margin: 0 0 8px;
+  font-size: 0.96rem;
+}
+
+.reader-section h4 {
+  margin: 14px 0 4px;
+  font-size: 0.9rem;
+}
+
+.reader-file-field {
+  display: grid;
+  gap: 6px;
+  max-width: 680px;
+  padding: 12px;
+  border: 1px dashed color-mix(in srgb, currentColor 32%, transparent);
+  border-radius: 10px;
+}
+
+.reader-file-field input,
+.reader-filter-grid input,
+.reader-filter-grid select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 7px;
+  background: Canvas;
+  color: CanvasText;
+  font: inherit;
+}
+
+.reader-message-list {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reader-message {
+  padding: 7px 10px;
+  border-left: 3px solid color-mix(in srgb, currentColor 35%, transparent);
+  background: color-mix(in srgb, CanvasText 4%, Canvas);
+  overflow-wrap: anywhere;
+}
+
+.reader-message-error {
+  border-left-style: double;
+  border-left-width: 6px;
+}
+
+.reader-message-warning {
+  border-left-style: dashed;
+}
+
+.reader-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 9px;
+  margin: 12px 0 0;
+}
+
+.reader-summary-grid > div {
+  padding: 9px 10px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 8px;
+}
+
+.reader-summary-grid dt {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.reader-summary-grid dd {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.reader-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 8px 14px;
+}
+
+.reader-filter-grid .field {
+  margin: 0;
+}
+
+.reader-filter-wide {
+  grid-column: span 2;
+}
+
+.reader-filter-details {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 9px;
+}
+
+.reader-filter-details summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.reader-filter-grid-selects {
+  margin-top: 10px;
+}
+
+.reader-filter-grid-selects select {
+  min-height: 8.5rem;
+  padding: 4px;
+}
+
+.reader-group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.reader-group-grid > section {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, currentColor 17%, transparent);
+  border-radius: 9px;
+}
+
+.reader-group-list,
+.reader-tips-list {
+  display: grid;
+  gap: 5px;
+}
+
+.reader-group-button,
+.reader-tip-button,
+.reader-record-button {
+  margin: 0;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-radius: 7px;
+  background: Canvas;
+  color: CanvasText;
+  text-align: left;
+}
+
+.reader-group-button,
+.reader-tip-button {
+  width: 100%;
+  padding: 6px 8px;
+  overflow-wrap: anywhere;
+}
+
+.reader-tip-button[data-status='not_applicable'] {
+  border-style: dashed;
+  opacity: 0.68;
+}
+
+.reader-tip-button[aria-pressed='true'] {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
+.reader-record-button {
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+
+.reader-table-scroll {
+  max-height: 68vh;
+}
+
+.reader-table tbody tr[data-selected='true'] {
+  outline: 2px solid color-mix(in srgb, currentColor 65%, transparent);
+  outline-offset: -2px;
+}
+
+.reader-table td {
+  max-width: 23rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reader-pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reader-pagination button {
+  margin: 0;
+}
+
+.reader-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+  gap: 22px;
+}
+
+.reader-detail-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 7px 14px;
+}
+
+.reader-detail-list > div {
+  min-width: 0;
+  padding: 7px 0;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.reader-detail-list dt {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.reader-detail-list dd {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.reader-raw-json {
+  max-height: 420px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, CanvasText 5%, Canvas);
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.82rem;
+}
+
+.reader-tip-detail {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 9px;
+}
+
+.reader-tip-detail h3,
+.reader-tip-detail p {
+  margin-top: 0;
+}
+
+.reader-tip-detail ul {
+  margin-top: 4px;
+  padding-left: 1.3rem;
+}
+
+.reader-tip-status {
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.reader-responsibility-return {
+  padding-left: 10px;
+  border-left: 3px solid color-mix(in srgb, currentColor 30%, transparent);
+}
+
+@media (max-width: 900px) {
+  .reader-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .reader-filter-wide {
+    grid-column: auto;
+  }
+
+  .reader-header,
+  .reader-section-heading {
+    flex-direction: column;
+  }
+
+  .reader-table th:nth-child(3),
+  .reader-table td:nth-child(3),
+  .reader-table th:nth-child(8),
+  .reader-table td:nth-child(8) {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .panel-reader {
+    padding: 12px;
+  }
+
+  .reader-table th:nth-child(5),
+  .reader-table td:nth-child(5),
+  .reader-table th:nth-child(7),
+  .reader-table td:nth-child(7) {
+    display: none;
+  }
+
+  .reader-summary-grid,
+  .reader-filter-grid,
+  .reader-group-grid,
+  .reader-detail-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ConnectBits v0.5 public-preview presentation layer */
+.connectbits-surface {
+  background:
+    radial-gradient(
+      circle at 18% 0%,
+      color-mix(in srgb, CanvasText 4%, transparent),
+      transparent 34rem
+    ),
+    Canvas;
+  color: CanvasText;
+}
+
+.product-header,
+.compact-product-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+}
+
+.compact-product-header {
+  padding-bottom: 8px;
+}
+
+.product-header h1,
+.compact-product-header h1 {
+  margin-bottom: 4px;
+  letter-spacing: -0.025em;
+}
+
+.product-header p,
+.compact-product-header p {
+  margin: 4px 0;
+}
+
+.product-kicker,
+.reader-kicker {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.075em;
+  opacity: 0.62;
+  text-transform: uppercase;
+}
+
+.page-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 14px 0 18px;
+  padding: 5px;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, CanvasText 3%, transparent);
+}
+
+.page-nav button {
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+}
+
+.page-nav button[aria-current='page'] {
+  border-color: color-mix(in srgb, currentColor 22%, transparent);
+  background: color-mix(in srgb, CanvasText 8%, transparent);
+  font-weight: 700;
+  cursor: default;
+}
+
+.quiet-button {
+  border-color: color-mix(in srgb, currentColor 16%, transparent);
+  background: transparent;
+  color: inherit;
+}
+
+.compact-actions button {
+  flex: 1 1 9.5rem;
+  margin: 0;
+}
+
+.compact-language-field {
+  display: grid;
+  gap: 5px;
+  min-width: 12rem;
+  font-size: 0.85rem;
+}
+
+.compact-field {
+  max-width: 24rem;
+}
+
+.permission-boundary,
+.boundary-callout,
+.reader-boundary {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  border-left-width: 3px;
+  border-radius: 8px;
+  background: color-mix(in srgb, CanvasText 3%, transparent);
+}
+
+.permission-boundary p,
+.boundary-callout p,
+.reader-boundary p {
+  margin: 6px 0 0;
+}
+
+.section-heading-inline,
+.stream-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-heading-inline h3,
+.stream-toolbar p {
+  margin: 12px 0 4px;
+}
+
+.compact-dialog {
+  width: min(680px, calc(100vw - 32px));
+}
+
+.pulse-guide-list {
+  display: grid;
+  gap: 8px;
+  padding-left: 1.35rem;
+}
+
+.advanced-reading-details {
+  margin-top: 20px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-radius: 9px;
+}
+
+.advanced-reading-details summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.reading-notes {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.reading-notes p {
+  margin: 0;
+}
+
+.export-panel {
+  margin: 18px 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: 10px;
+}
+
+.export-panel h2 {
+  margin-top: 0;
+}
+
+.export-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+}
+
+.export-controls label {
+  display: grid;
+  gap: 4px;
+}
+
+.export-controls button {
+  margin: 0;
+}
+
+.panel-reader {
+  max-width: 1320px;
+}
+
+.reader-header {
+  margin-bottom: 0;
+}
+
+.reader-badge {
+  display: inline-block;
+  padding: 4px 9px;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.reader-section {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-radius: 10px;
+}
+
+.reader-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reader-section-heading h2 {
+  margin-top: 0;
+}
+
+.reader-file-field {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px dashed color-mix(in srgb, currentColor 26%, transparent);
+  border-radius: 8px;
+}
+
+.reader-summary-grid,
+.reader-detail-list,
+.boundary-definition-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 8px 14px;
+  margin: 0;
+}
+
+.reader-summary-grid > div,
+.reader-detail-list > div,
+.boundary-definition-list > div {
+  padding: 8px 10px;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.reader-summary-grid dt,
+.reader-detail-list dt,
+.boundary-definition-list dt {
+  font-size: 0.78rem;
+  opacity: 0.66;
+}
+
+.reader-summary-grid dd,
+.reader-detail-list dd,
+.boundary-definition-list dd {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.reader-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 8px 12px;
+}
+
+.reader-filter-wide {
+  grid-column: 1 / -1;
+}
+
+.reader-filter-details {
+  margin-top: 12px;
+}
+
+.reader-filter-details summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.reader-group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 12px;
+}
+
+.reader-group-grid h3 {
+  margin: 0 0 6px;
+  font-size: 0.92rem;
+}
+
+.reader-group-list,
+.reader-tips-list {
+  display: grid;
+  gap: 5px;
+}
+
+.reader-group-list button,
+.reader-tip-button {
+  width: 100%;
+  margin: 0;
+  text-align: left;
+}
+
+.reader-pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reader-pagination button {
+  margin: 0;
+}
+
+.reader-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr);
+  gap: 18px;
+}
+
+.reader-raw-json {
+  max-height: 30rem;
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, CanvasText 4%, transparent);
+  font-size: 0.78rem;
+}
+
+.reader-tip-detail {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: 8px;
+}
+
+.reader-message-list {
+  display: grid;
+  gap: 5px;
+  padding-left: 1.2rem;
+}
+
+.reader-message-error {
+  font-weight: 700;
+}
+
+.observation-table tr[data-selected='true'] {
+  outline: 2px solid color-mix(in srgb, currentColor 36%, transparent);
+  outline-offset: -2px;
+}
+
+.onboarding-page {
+  min-width: 0;
+}
+
+.panel-onboarding {
+  max-width: 820px;
+}
+
+.onboarding-progress {
+  display: grid;
+  grid-template-columns: auto minmax(10rem, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.onboarding-progress progress {
+  width: 100%;
+}
+
+.onboarding-step,
+.onboarding-complete {
+  min-height: 18rem;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: 10px;
+}
+
+.boundary-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.boundary-columns section {
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, currentColor 13%, transparent);
+  border-radius: 8px;
+}
+
+.acknowledgement-list {
+  display: grid;
+  gap: 8px;
+}
+
+.acknowledgement-list label {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 9px;
+  align-items: start;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 7px;
+}
+
+.onboarding-controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.onboarding-choice-row button {
+  flex: 1 1 18rem;
+}
+
+@media (max-width: 760px) {
+  .product-header,
+  .reader-header {
+    flex-direction: column;
+  }
+
+  .boundary-columns,
+  .reader-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .page-nav button {
+    flex: 1 1 10rem;
+  }
+}

@@ -111,8 +111,11 @@ const fallbackContextByFrame = new Map<string, FallbackPageContext>();
 const recentNetworkRecords = new Map<string, number>();
 let settingsPromise = loadSettings();
 
-chrome.runtime.onInstalled.addListener(() => {
-  void ensureDefaultSettings();
+chrome.runtime.onInstalled.addListener((details) => {
+  void ensureDefaultSettings().then(() => {
+    if (details.reason !== 'install') return;
+    void chrome.tabs.create({ url: chrome.runtime.getURL('onboarding.html') });
+  });
 });
 
 chrome.runtime.onStartup.addListener(() => {

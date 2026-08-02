@@ -1,3 +1,5 @@
+import type { UiLanguage } from '../i18n/ui';
+import { t } from '../i18n/ui';
 import {
   coverageReasonLabel,
   coverageStatusLabel,
@@ -7,6 +9,7 @@ import {
 export function renderCoverageManifest(
   container: HTMLElement,
   entries: CoverageManifestEntry[],
+  language: UiLanguage = 'ja',
 ): void {
   container.replaceChildren();
 
@@ -22,18 +25,20 @@ export function renderCoverageManifest(
 
     const statusBadge = document.createElement('span');
     statusBadge.className = `coverage-status coverage-${entry.status}`;
-    statusBadge.textContent = coverageStatusLabel(entry.status);
+    statusBadge.textContent = coverageStatusLabel(entry.status, language);
 
     const reasonBadge = document.createElement('span');
     reasonBadge.className = 'coverage-reason';
-    reasonBadge.textContent = coverageReasonLabel(entry.reason);
+    reasonBadge.textContent = coverageReasonLabel(entry.reason, language);
 
     badges.append(statusBadge, reasonBadge);
 
     if (entry.permissionGranted !== undefined) {
       const permissionBadge = document.createElement('span');
       permissionBadge.className = 'coverage-reason';
-      permissionBadge.textContent = entry.permissionGranted ? '権限あり' : '権限なし';
+      permissionBadge.textContent = entry.permissionGranted
+        ? t(language, 'permissionYes')
+        : t(language, 'permissionNo');
       badges.append(permissionBadge);
     }
 
@@ -42,7 +47,7 @@ export function renderCoverageManifest(
 
     const availability = document.createElement('p');
     availability.className = 'small';
-    availability.textContent = entry.enabled ? '現在有効' : '現在は観測経路へ未接続';
+    availability.textContent = entry.enabled ? t(language, 'active') : t(language, 'inactive');
 
     article.append(heading, badges, detail, availability);
     container.append(article);

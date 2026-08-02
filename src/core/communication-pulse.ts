@@ -1,3 +1,4 @@
+import type { UiLanguage } from '../i18n/ui';
 import type { CookieHeaderDetection, NetworkDescriptor, NetworkMethod } from './models/network';
 import type { SubmissionDescriptor, SubmissionMethod } from './models/submission';
 
@@ -50,10 +51,6 @@ export function communicationPulseFromSubmission(
   };
 }
 
-/**
- * Center glyphs identify the communication mechanism. The HTTP method is
- * carried by the outer geometry instead of another letter.
- */
 export function communicationPulseKindGlyph(kind: CommunicationPulseKind): string {
   switch (kind) {
     case 'dom_submit':
@@ -100,10 +97,6 @@ export function communicationPulseMethodShape(
   }
 }
 
-/**
- * Compact top-right marker. `not_detected` is not proof of Cookie absence;
- * it only reports that the header name was not found in Chrome's exposed set.
- */
 export function communicationPulseCookieGlyph(state: CommunicationPulseCookieState): string {
   switch (state) {
     case 'detected':
@@ -119,53 +112,78 @@ export function communicationPulseCookieGlyph(state: CommunicationPulseCookieSta
   }
 }
 
-export function communicationPulseKindLabel(kind: CommunicationPulseKind): string {
+export function communicationPulseKindLabel(
+  kind: CommunicationPulseKind,
+  language: UiLanguage = 'ja',
+): string {
   switch (kind) {
     case 'dom_submit':
-      return 'DOM上の標準form送信境界';
+      return language === 'ja'
+        ? 'DOM上の標準form送信境界'
+        : 'Standard-form submission boundary observed in the DOM';
     case 'fetch_or_xhr':
-      return 'webRequestで観測したfetch/XHR系通信';
+      return language === 'ja'
+        ? 'webRequestで観測したfetch/XHR系通信'
+        : 'fetch/XHR request observed through webRequest';
     case 'beacon_or_ping':
-      return 'webRequestで観測したBeacon/Ping系通信';
+      return language === 'ja'
+        ? 'webRequestで観測したBeacon/Ping系通信'
+        : 'Beacon/Ping request observed through webRequest';
   }
 }
 
-export function communicationPulseCookieLabel(state: CommunicationPulseCookieState): string {
+export function communicationPulseCookieLabel(
+  state: CommunicationPulseCookieState,
+  language: UiLanguage = 'ja',
+): string {
   switch (state) {
     case 'detected':
-      return 'Cookieヘッダー名を検出';
+      return language === 'ja'
+        ? 'Cookieヘッダーの存在を検出。値は未取得'
+        : 'Cookie header presence detected; values not collected';
     case 'not_detected':
-      return 'Cookieヘッダー名は観測範囲内で未検出';
+      return language === 'ja'
+        ? 'Cookieヘッダーは観測範囲内で未検出。不在の証明ではない'
+        : 'Cookie header not detected in the observed set; not proof of absence';
     case 'not_observed':
-      return 'Cookieヘッダーは未観測';
+      return language === 'ja' ? 'Cookieヘッダーは未観測' : 'Cookie header not observed';
     case 'unavailable':
-      return 'Cookieヘッダーは判定不能';
+      return language === 'ja' ? 'Cookieヘッダーは判定不能' : 'Cookie-header state unavailable';
     case 'not_applicable':
-      return 'DOM観測のためCookieヘッダー判定なし';
+      return language === 'ja'
+        ? 'DOM観測のためCookieヘッダー判定なし'
+        : 'Cookie-header state not applicable to DOM observation';
   }
 }
 
 export function communicationPulseDestinationLabel(
   relation: CommunicationPulseDescriptor['destinationRelation'],
+  language: UiLanguage = 'ja',
 ): string {
   switch (relation) {
     case 'same_origin':
-      return '同一オリジン';
+      return language === 'ja' ? '同一オリジン' : 'Same origin';
     case 'cross_origin':
-      return '別オリジン';
+      return language === 'ja' ? '別オリジン' : 'Cross origin';
     case 'non_http':
-      return 'HTTP以外';
+      return language === 'ja' ? 'HTTP以外' : 'Non-HTTP';
     case 'unknown':
-      return '通信先関係不明';
+      return language === 'ja' ? '通信先関係不明' : 'Destination relation unknown';
   }
 }
 
-export function communicationPulseAriaLabel(descriptor: CommunicationPulseDescriptor): string {
+export function communicationPulseAriaLabel(
+  descriptor: CommunicationPulseDescriptor,
+  language: UiLanguage = 'ja',
+): string {
+  const separator = language === 'ja' ? '、' : ', ';
   return [
-    communicationPulseKindLabel(descriptor.kind),
+    communicationPulseKindLabel(descriptor.kind, language),
     descriptor.method,
-    communicationPulseDestinationLabel(descriptor.destinationRelation),
-    communicationPulseCookieLabel(descriptor.cookieState),
-    '本文未観測',
-  ].join('、');
+    communicationPulseDestinationLabel(descriptor.destinationRelation, language),
+    communicationPulseCookieLabel(descriptor.cookieState, language),
+    language === 'ja'
+      ? '通信本文は要求・取得していない'
+      : 'Network payload not requested or collected',
+  ].join(separator);
 }

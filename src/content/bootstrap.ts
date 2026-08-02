@@ -10,6 +10,7 @@ import {
   loadHostDisplayProfile,
   markHostObserved,
 } from '../storage/host-display-profile-store';
+import { browserUiLanguage, resolveUiLanguage } from '../i18n/ui';
 import { loadSettings } from '../storage/settings-store';
 import { CommunicationPulsePresenter } from '../ui/communication-pulse';
 import { FactChipPresenter } from '../ui/fact-chip';
@@ -31,6 +32,7 @@ async function bootstrap(): Promise<void> {
   ]);
   const settings = applyHostDisplayProfile(globalSettings, hostProfile);
   if (!settings.enabled) return;
+  const language = resolveUiLanguage(settings.uiLanguage, browserUiLanguage());
 
   initializeTransientDisplayState({
     communicationTextVisible: settings.communicationTextChipEnabled,
@@ -40,12 +42,10 @@ async function bootstrap(): Promise<void> {
   const sessionId = crypto.randomUUID();
   const inputObserver = new InputSurfaceObserver(settings, sessionId);
   inputObserver.start();
-  const submissionObserver = new SubmissionObserver(settings, sessionId);
+  const submissionObserver = new SubmissionObserver(settings, sessionId, hostProfile !== undefined);
   submissionObserver.start();
 
-  const presenter = new FactChipPresenter(settings.factChipPosition, {
-    hostname,
-  });
+  const presenter = new FactChipPresenter(settings.factChipPosition, language);
   const pulsePresenter = new CommunicationPulsePresenter({
     hostname,
     position: settings.factChipPosition,
@@ -55,6 +55,8 @@ async function bootstrap(): Promise<void> {
     domColor: settings.communicationPulseDomColor,
     webRequestColor: settings.communicationPulseWebRequestColor,
     opacity: settings.communicationPulseOpacity,
+    hostProfileApplied: hostProfile !== undefined,
+    language,
   });
 
   if (window.top === window) {

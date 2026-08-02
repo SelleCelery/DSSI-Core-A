@@ -1,3 +1,5 @@
+import type { UiLanguageSetting } from '../../i18n/ui';
+
 export type ViscosityLevel = 1 | 2 | 3;
 export type ReportingMode = 'standard' | 'max_coverage';
 export type FactChipPosition =
@@ -23,6 +25,7 @@ export interface DssiSettings {
   networkObservationEnabled: boolean;
   downloadObservationEnabled: boolean;
   persistentHistoryEnabled: boolean;
+  uiLanguage: UiLanguageSetting;
 }
 
 export const DEFAULT_SETTINGS: Readonly<DssiSettings> = Object.freeze({
@@ -41,6 +44,7 @@ export const DEFAULT_SETTINGS: Readonly<DssiSettings> = Object.freeze({
   networkObservationEnabled: false,
   downloadObservationEnabled: false,
   persistentHistoryEnabled: false,
+  uiLanguage: 'auto',
 });
 
 export function effectiveCueLevel(

@@ -1,3 +1,4 @@
+import type { UiLanguage } from '../i18n/ui';
 import type { CoverageManifestEntry } from './coverage-manifest';
 import type { ObservationLogRecord } from './models/observation';
 import type { DssiSettings } from './models/settings';
@@ -50,6 +51,7 @@ export interface BuildLogExportInput {
   applicationVersion: string;
   scope: LogExportScope;
   exportedAt?: Date;
+  language?: UiLanguage;
 }
 
 function recordSchemaVersion(records: ObservationLogRecord[]): number {
@@ -104,17 +106,30 @@ export function buildDssiObservationLogExport(
         'url_path_query_fragment',
       ],
     },
-    useBoundary: {
-      primaryPurpose: '利用者自身による照合と判断支援',
-      nonProofClaims: [
-        '利用者の意図を証明しない',
-        '利用者の責任を証明しない',
-        '通信内容を証明しない',
-        '有害性または安全性を証明しない',
-      ],
-      transferNotice:
-        '保存後のファイルは利用者の管理領域へ移り、共有・提出・第三者利用の影響は保存ファイルの管理条件に依存します。',
-    },
+    useBoundary:
+      input.language === 'en'
+        ? {
+            primaryPurpose: 'User-controlled collation and decision support',
+            nonProofClaims: [
+              'Does not prove user intent',
+              'Does not prove user responsibility',
+              'Does not prove communication payload contents',
+              'Does not prove harmfulness or safety',
+            ],
+            transferNotice:
+              'After export, the file enters the user’s management boundary. The effects of sharing, submission, or third-party use depend on how the exported file is managed.',
+          }
+        : {
+            primaryPurpose: '利用者自身による照合と判断支援',
+            nonProofClaims: [
+              '利用者の意図を証明しない',
+              '利用者の責任を証明しない',
+              '通信内容を証明しない',
+              '有害性または安全性を証明しない',
+            ],
+            transferNotice:
+              '保存後のファイルは利用者の管理領域へ移り、共有・提出・第三者利用の影響は保存ファイルの管理条件に依存します。',
+          },
     records: input.records.map((record) => ({ ...record })),
     integrity: { status: 'not_provided' },
   };
@@ -167,24 +182,13 @@ function csvCell(value: unknown): string {
 }
 
 function serializeCsvValue(value: unknown): string {
-  if (value === null || value === undefined) {
-    return '';
-  }
-
-  if (typeof value === 'string') {
-    return value;
-  }
-
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
   if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
     return String(value);
   }
-
-  if (value instanceof Date) {
-    return value.toISOString();
-  }
-
-  const serialized = JSON.stringify(value);
-  return serialized ?? '';
+  if (value instanceof Date) return value.toISOString();
+  return JSON.stringify(value) ?? '';
 }
 
 export function observationRecordsToCsv(records: ObservationLogRecord[]): string {

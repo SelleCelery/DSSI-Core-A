@@ -24,6 +24,7 @@ describe('default settings', () => {
       networkObservationEnabled: false,
       downloadObservationEnabled: false,
       persistentHistoryEnabled: false,
+      uiLanguage: 'auto',
     });
   });
 

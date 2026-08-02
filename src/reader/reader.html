@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ConnectBits Log Reader</title>
+    <link rel="stylesheet" href="base.css" />
+  </head>
+  <body class="dssi-page reader-page connectbits-surface">
+    <main class="panel panel-reader">
+      <header class="reader-header product-header">
+        <div>
+          <p class="reader-kicker" data-i18n="readerKicker">
+            DSSI Core A / Local Read-Only Collation Interface
+          </p>
+          <h1 data-i18n="readerTitle">ConnectBits Log Reader</h1>
+          <p class="small" data-i18n="productTagline">
+            見えなかった接続を、判断できる断片として返す。
+          </p>
+        </div>
+        <span class="reader-badge" data-i18n="readerLocalOnly">読取専用・ローカル</span>
+      </header>
+      <nav class="page-nav" aria-label="ConnectBits">
+        <button id="openOptions" type="button" data-i18n="navSetup">設置とプライバシー</button>
+        <button id="openLog" type="button" data-i18n="navLog">観測ログ</button>
+        <button type="button" aria-current="page" data-i18n="navReader">Log Reader</button>
+        <button id="openOnboarding" type="button" data-i18n="navSetupReview">
+          導入説明を見直す
+        </button>
+      </nav>
+
+      <section class="reader-boundary" aria-labelledby="boundaryHeading">
+        <h2 id="boundaryHeading" data-i18n="readerBoundaryHeading">利用境界</h2>
+        <p data-i18n="readerBoundary1">
+          このリーダーは原ログを変更しません。並べ替え、絞り込み、集計は表示上の変換です。
+        </p>
+        <p data-i18n="readerBoundary2">
+          このログは利用者自身の判断支援を目的とし、完全性、網羅性、証拠能力を保証しません。
+        </p>
+        <p data-i18n="readerBoundary3">
+          一般的な技術用途の説明は、当該サイトの実際の目的を示すものではありません。実際の目的、必要性、保存条件、第三者提供、停止方法を説明できるのは運営者です。
+        </p>
+      </section>
+
+      <section class="reader-section" aria-labelledby="loadHeading">
+        <div class="reader-section-heading">
+          <div>
+            <h2 id="loadHeading" data-i18n="loadLog">観測ログを読み込む</h2>
+            <p class="small" data-i18n="supportedFormat">
+              対応形式: dssi-observation-log / formatVersion 1 / record schemaVersion 1〜10
+            </p>
+          </div>
+        </div>
+        <label class="reader-file-field" for="fileInput">
+          <span data-i18n="jsonFile">JSONファイル</span>
+          <input id="fileInput" type="file" accept="application/json,.json" />
+        </label>
+        <p id="fileMeta" class="small" data-i18n="noFile">ファイルは選択されていません。</p>
+        <p id="readerStatus" class="status" role="status" aria-live="polite" data-i18n="waiting">
+          読込待機中です。
+        </p>
+        <ul id="validationMessages" class="reader-message-list" aria-live="polite"></ul>
+      </section>
+
+      <div id="loadedArea" hidden>
+        <section class="reader-section" aria-labelledby="summaryHeading">
+          <div class="reader-section-heading">
+            <h2 id="summaryHeading" data-i18n="summary">概要</h2>
+            <p id="summaryIntegrity" class="small"></p>
+          </div>
+          <dl class="reader-summary-grid">
+            <div>
+              <dt data-i18n="exportedAt">エクスポート日時</dt>
+              <dd id="summaryExportedAt">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="appVersion">アプリ版</dt>
+              <dd id="summaryAppVersion">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="format">形式</dt>
+              <dd id="summaryFormat">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="recordSchema">レコードschema</dt>
+              <dd id="summarySchemas">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="sourceRecordCount">原記録件数</dt>
+              <dd id="summarySourceCount">0</dd>
+            </div>
+            <div>
+              <dt data-i18n="visibleRecordCount">表示中件数</dt>
+              <dd id="summaryVisibleCount">0</dd>
+            </div>
+            <div>
+              <dt data-i18n="visiblePeriod">表示中期間</dt>
+              <dd id="summaryPeriod">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="browsingSiteCount">閲覧サイト数</dt>
+              <dd id="summaryDomainCount">0</dd>
+            </div>
+            <div>
+              <dt data-i18n="destinationHostCount">通信先ホスト数</dt>
+              <dd id="summaryHostCount">0</dd>
+            </div>
+            <div>
+              <dt data-i18n="originRelation">同一／別オリジン</dt>
+              <dd id="summaryRelationCount">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="operationCorrelation">操作相関</dt>
+              <dd id="summaryCorrelationCount">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="cueState">表示対象</dt>
+              <dd id="summaryCueCount">—</dd>
+            </div>
+            <div>
+              <dt data-i18n="settingsSnapshots">設定スナップショット</dt>
+              <dd id="summarySettings">—</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="reader-section" aria-labelledby="queryHeading">
+          <div class="reader-section-heading">
+            <div>
+              <h2 id="queryHeading" data-i18n="queryHeading">絞り込みと並べ替え</h2>
+              <p id="activeFilterSummary" class="small" data-i18n="noFilters">フィルターなし</p>
+            </div>
+            <button id="clearFilters" type="button" data-i18n="clearFilters">すべて解除</button>
+          </div>
+
+          <div class="reader-filter-grid">
+            <label class="field reader-filter-wide">
+              <span data-i18n="searchLabel">検索（閲覧サイト・通信先・triggerType）</span>
+              <input id="searchText" type="search" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span data-i18n="sort">並べ替え</span>
+              <select id="sortOrder">
+                <option value="timestamp_descending" data-i18n="sortTimestampDesc">
+                  時刻 降順
+                </option>
+                <option value="timestamp_ascending" data-i18n="sortTimestampAsc">時刻 昇順</option>
+                <option value="domain_ascending" data-i18n="sortDomain">閲覧サイト</option>
+                <option value="destination_ascending" data-i18n="sortDestination">通信先</option>
+                <option value="trigger_ascending" data-i18n="sortTrigger">triggerType</option>
+              </select>
+            </label>
+            <label class="field">
+              <span data-i18n="cueState">表示対象</span>
+              <select id="cuePresentedFilter">
+                <option value="all" data-i18n="all">すべて</option>
+                <option value="true">cuePresented = true</option>
+                <option value="false">cuePresented = false</option>
+              </select>
+            </label>
+            <label class="field"
+              ><span data-i18n="dateFrom">日時（以降）</span
+              ><input id="timestampFrom" type="datetime-local"
+            /></label>
+            <label class="field"
+              ><span data-i18n="dateTo">日時（以前）</span
+              ><input id="timestampTo" type="datetime-local"
+            /></label>
+          </div>
+
+          <details class="reader-filter-details">
+            <summary data-i18n="detailFilters">詳細フィルター</summary>
+            <p class="small" data-i18n="multiSelectHelp">
+              同一欄の複数選択はOR、異なる欄どうしはANDです。CtrlまたはCommandキーで複数選択できます。
+            </p>
+            <div class="reader-filter-grid reader-filter-grid-selects">
+              <label class="field"
+                ><span data-i18n="browsingSite">閲覧サイト</span
+                ><select id="domainFilter" multiple size="6"></select
+              ></label>
+              <label class="field"
+                ><span data-i18n="destination">通信先</span
+                ><select id="destinationFilter" multiple size="6"></select
+              ></label>
+              <label class="field"
+                ><span>triggerType</span
+                ><select id="triggerFilter" multiple size="6"></select
+              ></label>
+              <label class="field"
+                ><span>surfaceType</span
+                ><select id="surfaceFilter" multiple size="6"></select
+              ></label>
+              <label class="field"
+                ><span>logLayer</span
+                ><select id="logLayerFilter" multiple size="4"></select
+              ></label>
+              <label class="field"
+                ><span>frameType</span
+                ><select id="frameFilter" multiple size="4"></select
+              ></label>
+              <label class="field"
+                ><span>destinationRelation</span
+                ><select id="relationFilter" multiple size="5"></select
+              ></label>
+              <label class="field"
+                ><span>networkMechanism</span
+                ><select id="mechanismFilter" multiple size="4"></select
+              ></label>
+              <label class="field"
+                ><span>networkCorrelation</span
+                ><select id="correlationFilter" multiple size="6"></select
+              ></label>
+              <label class="field"
+                ><span>pageObservationTiming</span
+                ><select id="timingFilter" multiple size="5"></select
+              ></label>
+              <label class="field"
+                ><span>viscosityLevel</span
+                ><select id="viscosityFilter" multiple size="3"></select
+              ></label>
+            </div>
+          </details>
+        </section>
+
+        <section class="reader-section" aria-labelledby="groupsHeading">
+          <h2 id="groupsHeading" data-i18n="groupsHeading">まとまりから原記録へ戻る</h2>
+          <p class="small" data-i18n="groupsHelp">
+            件数を選ぶと対応するフィルターを適用し、時系列一覧へ移動します。
+          </p>
+          <div class="reader-group-grid">
+            <section>
+              <h3 data-i18n="byBrowsingSite">閲覧サイト別</h3>
+              <div id="domainGroups" class="reader-group-list"></div>
+            </section>
+            <section>
+              <h3 data-i18n="byDestination">通信先別</h3>
+              <div id="destinationGroups" class="reader-group-list"></div>
+            </section>
+            <section>
+              <h3 data-i18n="byCorrelation">操作相関別</h3>
+              <div id="correlationGroups" class="reader-group-list"></div>
+            </section>
+            <section>
+              <h3 data-i18n="byMechanism">通信方式別</h3>
+              <div id="mechanismGroups" class="reader-group-list"></div>
+            </section>
+            <section>
+              <h3 data-i18n="byOrigin">同一／別オリジン別</h3>
+              <div id="relationGroups" class="reader-group-list"></div>
+            </section>
+            <section>
+              <h3 data-i18n="byCue">表示対象別</h3>
+              <div id="cueGroups" class="reader-group-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="recordsSection" class="reader-section" aria-labelledby="recordsHeading">
+          <div class="reader-section-heading">
+            <div>
+              <h2 id="recordsHeading" data-i18n="recordsHeading">時系列一覧</h2>
+              <p id="recordCountLabel" class="small">0</p>
+            </div>
+            <div class="reader-pagination" aria-label="Pagination">
+              <button id="previousPage" type="button" data-i18n="previous">前へ</button>
+              <span id="pageLabel">1 / 1</span>
+              <button id="nextPage" type="button" data-i18n="next">次へ</button>
+            </div>
+          </div>
+          <p id="recordsEmpty" class="small" hidden data-i18n="noMatchingRecords">
+            条件に一致するレコードはありません。
+          </p>
+          <div class="table-scroll reader-table-scroll">
+            <table class="observation-table reader-table">
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="time">時刻</th>
+                  <th scope="col" data-i18n="browsingSite">閲覧サイト</th>
+                  <th scope="col" data-i18n="frame">フレーム</th>
+                  <th scope="col" data-i18n="observation">観測</th>
+                  <th scope="col" data-i18n="mechanism">方式</th>
+                  <th scope="col" data-i18n="destination">通信先</th>
+                  <th scope="col" data-i18n="operationCorrelation">操作相関</th>
+                  <th scope="col" data-i18n="cueState">表示対象</th>
+                </tr>
+              </thead>
+              <tbody id="recordsBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="reader-section reader-detail-layout" aria-labelledby="detailHeading">
+          <div>
+            <h2 id="detailHeading" data-i18n="selectedRecord">選択レコード</h2>
+            <p id="detailEmpty" class="small" data-i18n="selectRecord">
+              時系列一覧から一件を選択してください。
+            </p>
+            <div id="recordDetail" hidden>
+              <dl id="recordDetailList" class="reader-detail-list"></dl>
+              <h3 data-i18n="rawValue">原値（読取専用）</h3>
+              <pre id="rawRecordJson" class="reader-raw-json" tabindex="0"></pre>
+            </div>
+          </div>
+          <aside aria-labelledby="tipsHeading">
+            <h2 id="tipsHeading" data-i18n="observationTips">観測パターン別チップス</h2>
+            <p class="small" data-i18n="tipsNotDiagnosis">
+              自動診断ではありません。この表示範囲に関連し得る読解補助です。
+            </p>
+            <div id="tipsList" class="reader-tips-list"></div>
+            <div id="tipDetail" class="reader-tip-detail" hidden></div>
+          </aside>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="reader.js"></script>
+  </body>
+</html>

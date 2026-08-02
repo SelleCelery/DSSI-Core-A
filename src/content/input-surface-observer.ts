@@ -11,6 +11,7 @@ import type {
 import { effectiveCueLevel, type DssiSettings } from '../core/models/settings';
 import { createObservationRecord } from '../core/observation-factory';
 import { createPrivacySafeRecord } from '../core/privacy-safe-logger';
+import { browserUiLanguage, resolveUiLanguage } from '../i18n/ui';
 import { classifyInputSurface } from '../core/surface-classifier';
 import { FactChipPresenter } from '../ui/fact-chip';
 import {
@@ -58,9 +59,10 @@ export class InputSurfaceObserver {
   public constructor(settings: DssiSettings, sessionId: string) {
     this.#settings = settings;
     this.#sessionId = sessionId;
-    this.#presenter = new FactChipPresenter(settings.factChipPosition, {
-      hostname: this.#domainKey,
-    });
+    this.#presenter = new FactChipPresenter(
+      settings.factChipPosition,
+      resolveUiLanguage(settings.uiLanguage, browserUiLanguage()),
+    );
     this.#networkPulseEnabled = settings.networkObservationEnabled;
   }
 

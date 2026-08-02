@@ -3,115 +3,153 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>DSSI Core A 設定</title>
+    <title>ConnectBits — Setup & Privacy</title>
     <link rel="stylesheet" href="base.css" />
   </head>
-  <body class="dssi-page">
+  <body class="dssi-page connectbits-surface">
     <main class="panel">
-      <h1>DSSI Core A</h1>
-      <h2>設定とプライバシー</h2>
-      <p>
-        DSSIは入力本文、パスワード、決済番号、クリップボード本文、送信本文を保存しません。
-        保存対象は設定と、本文を含まない観測メタデータだけです。
+      <header class="product-header">
+        <div>
+          <p class="product-kicker">
+            <span data-i18n="projectLineage">DSSI Core A 開発系列</span> ·
+            <span data-i18n="previewLabel">Public Preview</span>
+          </p>
+          <h1 data-i18n="productName">ConnectBits</h1>
+          <p data-i18n="productTagline">見えなかった接続を、判断できる断片として返す。</p>
+        </div>
+      </header>
+      <nav class="page-nav" aria-label="ConnectBits">
+        <button type="button" aria-current="page" data-i18n="navSetup">設置とプライバシー</button>
+        <button id="openLog" type="button" data-i18n="navLog">観測ログ</button>
+        <button id="openReader" type="button" data-i18n="navReader">Log Reader</button>
+        <button id="openOnboarding" type="button" data-i18n="navSetupReview">
+          導入説明を見直す
+        </button>
+      </nav>
+
+      <h2 data-i18n="setupTitle">設置とプライバシー</h2>
+      <p data-i18n="setupIntro">
+        ConnectBitsは入力本文、パスワード、決済番号、クリップボード本文、通信本文を保存しません。保存対象は設定と、本文を含まない観測メタデータです。
       </p>
+
+      <label class="field compact-field">
+        <span data-i18n="navLanguage">表示言語</span>
+        <select id="uiLanguage">
+          <option value="auto" data-i18n="languageAuto">ブラウザーに合わせる</option>
+          <option value="ja" data-i18n="languageJapanese">日本語</option>
+          <option value="en" data-i18n="languageEnglish">English</option>
+        </select>
+      </label>
+
       <fieldset>
-        <legend>ローカル機能</legend>
+        <legend data-i18n="localFunctions">ローカル機能</legend>
         <label class="row">
-          <span>ローカル内容分類</span>
+          <span data-i18n="localClassification">ローカル内容分類</span>
           <input id="localClassificationEnabled" type="checkbox" />
         </label>
         <label class="row">
-          <span>通信メタデータ補助観測（任意権限）</span>
+          <span data-i18n="networkObservation">通信開始メタデータの補助観測（任意権限）</span>
           <input id="networkObservationEnabled" type="checkbox" />
         </label>
-        <p class="small">
-          有効化時だけ、ChromeのwebRequest権限とHTTP/HTTPSサイトへの追加アクセスを求めます。
-          標準モードでは内容変更または標準form送信操作に近接した通信を通常ログへ残します。
-          MAXでは対象通信のうち相関可能な利用者操作を確認できない通信も診断ログへ記録します。
-          request bodyは要求せず、URLのpath・query・fragmentは保存しません。 request
-          headersはCookieというヘッダー名の検出にだけ一時利用し、値は保存・表示しません。
+        <p class="small" data-i18n="networkObservationExplanation">
+          有効化時だけ、ChromeのwebRequest権限とHTTP/HTTPSサイトへの追加アクセスを求めます。標準モードでは内容変更または標準form送信操作に近接した通信を通常ログへ残します。MAXでは相関可能な利用者操作を確認できない対象通信も診断ログへ記録します。通信本文は要求・取得せず、URLのpath・query・fragmentは保存しません。request
+          headersはCookieヘッダーの存在検出にだけ一時利用し、値は保存・表示しません。
         </p>
+        <div class="permission-boundary">
+          <strong id="permissionState"></strong>
+          <p class="small" data-i18n="permissionJudgmentBoundary">
+            権限の許可は、処理の必要性や妥当性が確認されたことを意味しません。
+          </p>
+        </div>
         <label class="field">
-          <span>報告モード</span>
+          <span data-i18n="reportingMode">報告モード</span>
           <select id="reportingMode">
-            <option value="standard">標準 — 選別された観測を報告</option>
-            <option value="max_coverage">MAX — 診断事象と既知の観測限界を最大限表示</option>
+            <option value="standard" data-i18n="reportingStandardLong">
+              標準 — 選別された観測を報告
+            </option>
+            <option value="max_coverage" data-i18n="reportingMax">
+              MAX — 診断と観測限界を最大限表示
+            </option>
           </select>
         </label>
-        <p class="small">
+        <p class="small" data-i18n="maxScopeExplanation">
           MAXは権限や取得内容を増やすモードではありません。現在の観測面で取得できた診断事象と、見ない・見えない領域の説明量を増やします。
         </p>
         <label class="field">
-          <span>チップ・通信パルス表示位置</span>
+          <span data-i18n="chipPosition">チップ・通信パルス表示位置</span>
           <select id="factChipPosition">
-            <option value="top">上</option>
-            <option value="top_right">右上</option>
-            <option value="right">右</option>
-            <option value="bottom_right">右下</option>
-            <option value="bottom">下</option>
-            <option value="bottom_left">左下</option>
-            <option value="left">左</option>
-            <option value="top_left">左上</option>
+            <option value="top" data-i18n="positionTop">上</option>
+            <option value="top_right" data-i18n="positionTopRight">右上</option>
+            <option value="right" data-i18n="positionRight">右</option>
+            <option value="bottom_right" data-i18n="positionBottomRight">右下</option>
+            <option value="bottom" data-i18n="positionBottom">下</option>
+            <option value="bottom_left" data-i18n="positionBottomLeft">左下</option>
+            <option value="left" data-i18n="positionLeft">左</option>
+            <option value="top_left" data-i18n="positionTopLeft">左上</option>
           </select>
         </label>
-        <p class="small">
+        <p class="small" data-i18n="positionHelp">
           表示中の文章チップ右上にある移動ボタンでも、時計回りに位置を変更できます。
         </p>
 
-        <h3>通信パルス表示</h3>
+        <div class="section-heading-inline">
+          <h3 data-i18n="pulseDisplayHeading">通信パルス表示</h3>
+          <button id="openPulseGuide" type="button" class="quiet-button" data-i18n="pulseGuideOpen">
+            読み方を確認
+          </button>
+        </div>
         <label class="row">
-          <span>小型通信パルスを表示</span>
+          <span data-i18n="pulseDisplayEnabled">小型通信パルスを表示</span>
           <input id="communicationPulseEnabled" type="checkbox" />
         </label>
         <label class="row">
-          <span>通信の文章チップも表示</span>
+          <span data-i18n="communicationTextEnabled">通信の文章チップも表示</span>
           <input id="communicationTextChipEnabled" type="checkbox" />
         </label>
-        <p class="small">
+        <p class="small" data-i18n="pulseDisplayExplanation">
           Level
-          2・3またはMAXで、標準formのDOM送信境界と、webRequestで観測した通信を小型の幾何アイコンとして表示します。
-          通信の文章チップは初期状態では無効です。色は観測経路の識別補助であり、安全・危険・注意を示しません。ネットワークパルスはすべて本文未観測です。
+          2・3またはMAXで、標準formのDOM送信境界と、webRequestで観測した通信を小型の幾何アイコンとして表示します。通信の文章チップは初期状態では無効です。色は観測経路の識別補助であり、安全・危険・注意を示しません。通信本文は要求・取得していません。
         </p>
         <label class="field">
-          <span>表示時間</span>
+          <span data-i18n="duration">表示時間</span>
           <select id="communicationPulseDuration">
-            <option value="300">瞬間 — 300ms</option>
-            <option value="700">短い — 700ms</option>
-            <option value="1500">標準 — 1500ms</option>
-            <option value="3000">長い — 3秒</option>
-            <option value="10000">確認 — 10秒</option>
-            <option value="30000">調査 — 30秒</option>
-            <option value="60000">長時間 — 60秒</option>
-            <option value="0">固定 — 手動で消すまで</option>
+            <option value="300" data-i18n="duration300">瞬間 — 300ms</option>
+            <option value="700" data-i18n="duration700">短い — 700ms</option>
+            <option value="1500" data-i18n="duration1500">標準 — 1500ms</option>
+            <option value="3000" data-i18n="duration3000">長い — 3秒</option>
+            <option value="10000" data-i18n="duration10000">確認 — 10秒</option>
+            <option value="30000" data-i18n="duration30000">調査 — 30秒</option>
+            <option value="60000" data-i18n="duration60000">長時間 — 60秒</option>
+            <option value="0" data-i18n="duration0">固定 — 手動で消すまで</option>
           </select>
         </label>
         <label class="field">
-          <span>アイコンサイズ</span>
+          <span data-i18n="iconSize">アイコンサイズ</span>
           <select id="communicationPulseSize">
-            <option value="small">小 — 約4.2mm相当</option>
-            <option value="medium">中 — 約4.8mm相当</option>
+            <option value="small" data-i18n="iconSmall">小 — 約4.2mm相当</option>
+            <option value="medium" data-i18n="iconMedium">中 — 約4.8mm相当</option>
           </select>
         </label>
         <label class="field">
-          <span>DOM観測の色</span>
+          <span data-i18n="domColor">DOM観測の色</span>
           <select id="communicationPulseDomColor">
-            <option value="magenta">マゼンタ</option>
-            <option value="cyan">シアン</option>
-            <option value="yellow">イエロー</option>
-            <option value="neutral">無色</option>
+            <option value="magenta" data-i18n="colorMagenta">マゼンタ</option>
+            <option value="cyan" data-i18n="colorCyan">シアン</option>
+            <option value="yellow" data-i18n="colorYellow">イエロー</option>
+            <option value="neutral" data-i18n="colorNeutral">無色</option>
           </select>
         </label>
         <label class="field">
-          <span>webRequest観測の色</span>
+          <span data-i18n="webRequestColor">webRequest観測の色</span>
           <select id="communicationPulseWebRequestColor">
-            <option value="magenta">マゼンタ</option>
-            <option value="cyan">シアン</option>
-            <option value="yellow">イエロー</option>
-            <option value="neutral">無色</option>
+            <option value="magenta" data-i18n="colorMagenta">マゼンタ</option>
+            <option value="cyan" data-i18n="colorCyan">シアン</option>
+            <option value="yellow" data-i18n="colorYellow">イエロー</option>
+            <option value="neutral" data-i18n="colorNeutral">無色</option>
           </select>
         </label>
         <label class="field">
-          <span>通信パルスの不透明度</span>
+          <span data-i18n="pulseOpacity">通信パルスの不透明度</span>
           <select id="communicationPulseOpacity">
             <option value="1">100%</option>
             <option value="0.8">80%</option>
@@ -119,29 +157,61 @@
             <option value="0.4">40%</option>
           </select>
         </label>
-        <p class="small pulse-legend">
-          外周形はmethodを示します（GET＝円、POST＝四角、PUT＝ひし形、PATCH＝六角形、DELETE＝三角形）。中央のS/F/Bは標準form・fetch/XHR・Beacon/Pingを示します。DOMとwebRequestの色は、マゼンタ／シアン／イエロー／無色から個別に選択できます。同色または無色でも、外周形と中央文字による識別は残ります。右上はCookieヘッダー名の状態で、●＝検出、−＝未検出、·＝未観測、?＝判定不能。左上の短線は別オリジンです。色は安全・危険・注意を示しません。注意チップの透明度は固定され、通信表示の設定から独立します。
-          ページ上の小型操作部から、パルスの一時停止・消去・表示切替、通信説明チップの表示切替、DOM色、webRequest色、不透明度を変更できます。表示切替・位置・色・不透明度はhostname単位の表示プロファイルとして自動保存されます。↺でそのホストの設定を解除し、全体設定へ戻せます。粘性に基づく注意チップは通信表示の抑制では隠れません。
-        </p>
-
         <label class="row">
-          <span>永続履歴</span>
+          <span data-i18n="persistentHistory">永続履歴</span>
           <input id="persistentHistoryEnabled" type="checkbox" disabled />
         </label>
       </fieldset>
-      <button id="save" type="button">保存</button>
-      <button id="clearSession" type="button">セッション観測ログを消去</button>
+      <div class="button-row">
+        <button id="save" type="button" data-i18n="save">保存</button>
+        <button id="clearSession" type="button" class="quiet-button" data-i18n="clearSession">
+          セッション観測ログを消去
+        </button>
+      </div>
       <p id="status" class="status" role="status"></p>
 
       <section aria-labelledby="coverageHeading">
-        <h2 id="coverageHeading">現在の観測範囲</h2>
-        <p>
-          DSSIが観測するもの、観測後に縮約するもの、主権保全のため接続しないもの、現在の仕組みでは見えないものを分けて表示します。
-          この一覧自体も完全ではなく、未列挙の未知が残ります。
+        <h2 id="coverageHeading" data-i18n="currentCoverage">現在の観測範囲</h2>
+        <p data-i18n="coverageIntro">
+          ConnectBitsが観測するもの、観測後に縮約するもの、主権保全のため接続しないもの、現在の仕組みでは見えないものを分けて表示します。この一覧自体も完全ではなく、未列挙の未知が残ります。
         </p>
         <div id="coverageBody" class="coverage-list"></div>
       </section>
     </main>
+
+    <dialog
+      id="pulseGuideDialog"
+      class="coverage-dialog compact-dialog"
+      aria-labelledby="pulseGuideTitle"
+    >
+      <div class="coverage-dialog-header">
+        <h2 id="pulseGuideTitle" data-i18n="howToReadPulses">通信パルスの読み方</h2>
+        <form method="dialog"><button type="submit" data-i18n="close">閉じる</button></form>
+      </div>
+      <ul class="pulse-guide-list">
+        <li data-i18n="pulseGuideIntro">パルスは通信または送信操作の観測を示します。</li>
+        <li data-i18n="pulseGuide1">
+          外周形はHTTP
+          methodを示します。GETは円、POSTは四角、PUTはひし形、PATCHは六角形、DELETEは三角形です。
+        </li>
+        <li data-i18n="pulseGuide2">中央のS／F／Bは標準form、fetch/XHR、Beacon/Pingを示します。</li>
+        <li data-i18n="pulseGuide3">色は観測経路を示し、安全性・危険性・注意を示しません。</li>
+        <li data-i18n="pulseGuide4">
+          右上の●／−／·／?はCookieヘッダーの存在検出状態です。Cookie値は取得しません。
+        </li>
+        <li data-i18n="pulseGuide5">左上の短線は別オリジンを示します。</li>
+        <li data-i18n="pulseGuide6">
+          操作との時間的相関は、因果関係、通信目的、利用者の意図を証明しません。
+        </li>
+        <li data-i18n="pulseGuide7">
+          パルスが表示されなかったことは、通信がなかったことを意味しません。
+        </li>
+        <li data-i18n="pulseGuide8">ConnectBitsは通信本文を要求・取得していません。</li>
+      </ul>
+      <p class="small" data-i18n="pulseGuideProfile">
+        ページ上の操作部では表示を一時変更できます。ピン操作でhostname別に保存し、解除すると全体設定へ戻ります。粘性に基づく注意チップは通信表示の抑制から独立します。
+      </p>
+    </dialog>
     <script type="module" src="options.js"></script>
   </body>
 </html>

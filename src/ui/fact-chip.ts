@@ -4,28 +4,47 @@ import type { NetworkDescriptor, NetworkMethod } from '../core/models/network';
 import type { InputOrigin, SurfaceType } from '../core/models/observation';
 import type { FactChipPosition, ViscosityLevel } from '../core/models/settings';
 import type { SubmissionDescriptor } from '../core/models/submission';
+import type { UiLanguage } from '../i18n/ui';
 import { inputOriginLabel, surfaceTypeLabel } from '../core/observation-presentation';
-import { saveHostDisplayProfile } from '../storage/host-display-profile-store';
 import { setCommunicationTextVisible, transientDisplayState } from './transient-display-state';
 
 const HOST_ID = 'dssi-core-a-fact-chip-host';
 
-const SURFACE_MESSAGES: Readonly<Record<SurfaceType, string>> = {
-  page: 'このページの観測を開始しました。',
-  password: 'パスワード入力欄として検出しました。',
-  email_or_id: 'メールアドレスまたはIDの入力欄として検出しました。',
-  payment: '決済情報の入力欄として検出しました。',
-  personal_information: '個人情報の入力欄として検出しました。',
-  free_text: '自由記述欄として検出しました。送信前に内容の種類を確認してください。',
-  ai_prompt: '生成AIへの入力面として検出しました。',
-  comment: 'コメント入力面として検出しました。',
-  chat: 'チャット入力面として検出しました。',
-  webmail: 'メール本文の入力面として検出しました。',
-  cloud_editor: 'クラウド編集面として検出しました。',
-  consent: '同意操作面として検出しました。',
-  download_link: 'ダウンロード操作として検出しました。',
-  external_navigation: '外部サイトへの遷移として検出しました。',
-  unknown: '入力面として検出しましたが、種類は判定できません。',
+const SURFACE_MESSAGES: Readonly<Record<UiLanguage, Readonly<Record<SurfaceType, string>>>> = {
+  ja: {
+    page: 'このページの観測を開始しました。',
+    password: 'パスワード入力欄として検出しました。',
+    email_or_id: 'メールアドレスまたはIDの入力欄として検出しました。',
+    payment: '決済情報の入力欄として検出しました。',
+    personal_information: '個人情報の入力欄として検出しました。',
+    free_text: '自由記述欄として検出しました。送信前に内容の種類を確認してください。',
+    ai_prompt: '生成AIへの入力面として検出しました。',
+    comment: 'コメント入力面として検出しました。',
+    chat: 'チャット入力面として検出しました。',
+    webmail: 'メール本文の入力面として検出しました。',
+    cloud_editor: 'クラウド編集面として検出しました。',
+    consent: '同意操作面として検出しました。',
+    download_link: 'ダウンロード操作として検出しました。',
+    external_navigation: '外部サイトへの遷移として検出しました。',
+    unknown: '入力面として検出しましたが、種類は判定できません。',
+  },
+  en: {
+    page: 'Page observation started.',
+    password: 'Detected a password field.',
+    email_or_id: 'Detected an email-address or ID field.',
+    payment: 'Detected a payment-information field.',
+    personal_information: 'Detected a personal-information field.',
+    free_text: 'Detected a free-text surface. Review the kind of information before submission.',
+    ai_prompt: 'Detected a generative-AI input surface.',
+    comment: 'Detected a comment surface.',
+    chat: 'Detected a chat surface.',
+    webmail: 'Detected an email-body surface.',
+    cloud_editor: 'Detected a cloud-editing surface.',
+    consent: 'Detected a consent control.',
+    download_link: 'Detected a download action.',
+    external_navigation: 'Detected navigation to an external site.',
+    unknown: 'Detected an input surface, but its type could not be classified.',
+  },
 };
 
 interface ChipHost {
@@ -163,29 +182,44 @@ function ensureHost(initialPosition: FactChipPosition): ChipHost {
   return { host, root };
 }
 
-function detailForCurrentPage(): string {
+function detailForCurrentPage(language: UiLanguage): string {
   if (location.protocol === 'http:') {
-    return 'このページはHTTPです。通信経路は暗号化されていません。';
+    return language === 'ja'
+      ? 'このページはHTTPです。通信経路は暗号化されていません。'
+      : 'This page uses HTTP. The transport path is not encrypted.';
   }
-  return 'DSSIは入力内容そのものを保存しません。';
+  return language === 'ja'
+    ? 'ConnectBitsは入力内容そのものを保存しません。'
+    : 'ConnectBits does not store the input content itself.';
 }
 
-function mechanismLabel(mechanism: NetworkDescriptor['mechanism']): string {
-  return mechanism === 'fetch_or_xhr' ? 'fetch/XHR系' : 'Beacon/Ping系';
+function mechanismLabel(mechanism: NetworkDescriptor['mechanism'], language: UiLanguage): string {
+  return mechanism === 'fetch_or_xhr'
+    ? language === 'ja'
+      ? 'fetch/XHR系'
+      : 'fetch/XHR'
+    : language === 'ja'
+      ? 'Beacon/Ping系'
+      : 'Beacon/Ping';
 }
 
-function destinationRelationLabel(descriptor: NetworkDescriptor): string {
+function destinationRelationLabel(descriptor: NetworkDescriptor, language: UiLanguage): string {
+  if (language === 'ja') {
+    return descriptor.destinationRelation === 'same_origin'
+      ? '同一オリジン'
+      : descriptor.destinationRelation === 'cross_origin'
+        ? '別オリジン'
+        : descriptor.destinationRelation === 'non_http'
+          ? 'HTTP以外'
+          : '通信先関係不明';
+  }
   return descriptor.destinationRelation === 'same_origin'
-    ? '同一オリジン'
+    ? 'same origin'
     : descriptor.destinationRelation === 'cross_origin'
-      ? '別オリジン'
+      ? 'cross origin'
       : descriptor.destinationRelation === 'non_http'
-        ? 'HTTP以外'
-        : '通信先関係不明';
-}
-
-interface FactChipPresenterOptions {
-  hostname?: string;
+        ? 'non-HTTP'
+        : 'destination relation unknown';
 }
 
 export class FactChipPresenter {
@@ -193,14 +227,11 @@ export class FactChipPresenter {
   #diagnosticTimer: number | undefined;
   #diagnosticAggregate: DiagnosticNetworkAggregate | undefined;
   readonly #initialPosition: FactChipPosition;
-  readonly #hostname: string;
+  readonly #language: UiLanguage;
 
-  public constructor(
-    initialPosition: FactChipPosition = 'right',
-    options: FactChipPresenterOptions = {},
-  ) {
+  public constructor(initialPosition: FactChipPosition = 'right', language: UiLanguage = 'ja') {
     this.#initialPosition = initialPosition;
-    this.#hostname = options.hostname ?? location.hostname ?? 'unknown';
+    this.#language = language;
   }
 
   #canShowCommunicationText(): boolean {
@@ -209,8 +240,8 @@ export class FactChipPresenter {
 
   public show(surfaceType: SurfaceType, viscosityLevel: ViscosityLevel): void {
     this.#render(
-      SURFACE_MESSAGES[surfaceType],
-      detailForCurrentPage(),
+      SURFACE_MESSAGES[this.#language][surfaceType],
+      detailForCurrentPage(this.#language),
       viscosityLevel,
       'attention',
     );
@@ -218,8 +249,10 @@ export class FactChipPresenter {
 
   public showCoverageBoundary(viscosityLevel: ViscosityLevel): void {
     this.#render(
-      'MAX報告モード',
-      '観測可能な診断事象を表示します。本文、保存Cookie、ページ内部メモリ、確立済み通信路などは観測外です。',
+      this.#language === 'ja' ? 'MAX報告モード' : 'MAX reporting mode',
+      this.#language === 'ja'
+        ? '観測可能な診断事象を表示します。通信本文、保存Cookie、ページ内部メモリ、確立済み通信路などは観測外です。'
+        : 'Shows observable diagnostic events. Network payloads, stored Cookies, page-internal memory, and established communication streams remain outside the observation boundary.',
       viscosityLevel,
       'attention',
     );
@@ -227,8 +260,10 @@ export class FactChipPresenter {
 
   public showFirstHostObservation(viscosityLevel: ViscosityLevel): void {
     this.#render(
-      '初回観測ホスト',
-      'このホストでは、保存済みの観測表示履歴がありません。粘性レベルは自動変更していません。',
+      this.#language === 'ja' ? '初回観測ホスト' : 'First observation of this host',
+      this.#language === 'ja'
+        ? 'このホストでは、保存済みの観測表示履歴がありません。粘性レベルは自動変更していません。'
+        : 'No saved display profile exists for this host. ConnectBits did not change the viscosity level automatically.',
       viscosityLevel,
       'attention',
     );
@@ -236,8 +271,10 @@ export class FactChipPresenter {
 
   public showHostProfileReview(viscosityLevel: ViscosityLevel): void {
     this.#render(
-      'ホスト表示設定の再確認',
-      'このホストの表示設定は長期間更新されていません。必要に応じて全体設定へ戻して再観測できます。',
+      this.#language === 'ja' ? 'ホスト表示設定の再確認' : 'Review host display settings',
+      this.#language === 'ja'
+        ? 'このホストの表示設定は長期間更新されていません。必要に応じて全体設定へ戻して再観測できます。'
+        : 'This host display profile has not been updated for an extended period. You can return to global settings and observe again.',
       viscosityLevel,
       'attention',
     );
@@ -249,8 +286,10 @@ export class FactChipPresenter {
     viscosityLevel: ViscosityLevel,
   ): void {
     this.#render(
-      inputOriginLabel(inputOrigin),
-      `${surfaceTypeLabel(surfaceType)}として観測しました。入力内容は取得していません。`,
+      inputOriginLabel(inputOrigin, this.#language),
+      this.#language === 'ja'
+        ? `${surfaceTypeLabel(surfaceType, this.#language)}として観測しました。入力内容は取得していません。`
+        : `Observed as ${surfaceTypeLabel(surfaceType, this.#language)}. Input content was not collected.`,
       viscosityLevel,
       'attention',
     );
@@ -258,26 +297,37 @@ export class FactChipPresenter {
 
   public showNetwork(descriptor: NetworkDescriptor, viscosityLevel: ViscosityLevel): void {
     if (!this.#canShowCommunicationText()) return;
-    const relation = destinationRelationLabel(descriptor);
+    const relation = destinationRelationLabel(descriptor, this.#language);
     const host = descriptor.destinationHost === 'unknown' ? '' : ` · ${descriptor.destinationHost}`;
     const cookie =
       descriptor.cookieHeaderDetection === 'detected'
-        ? 'Cookieヘッダー検出'
+        ? this.#language === 'ja'
+          ? 'Cookieヘッダーの存在を検出（値は未取得）'
+          : 'Cookie header presence detected; values not collected'
         : descriptor.cookieHeaderDetection === 'not_detected'
-          ? 'Cookieヘッダー未検出'
+          ? this.#language === 'ja'
+            ? 'Cookieヘッダー未検出（不存在の証明ではない）'
+            : 'Cookie header not detected; not proof of absence'
           : descriptor.cookieHeaderDetection === 'unavailable'
-            ? 'Cookieヘッダー判定不能'
-            : 'Cookieヘッダー未観測';
+            ? this.#language === 'ja'
+              ? 'Cookieヘッダー判定不能'
+              : 'Cookie-header state unavailable'
+            : this.#language === 'ja'
+              ? 'Cookieヘッダー未観測'
+              : 'Cookie header not observed';
     const title =
       descriptor.correlation === 'recent_submit_operation'
-        ? '送信操作と近接した通信開始を観測'
-        : '内容変更と近接した通信開始を観測';
-    this.#render(
-      title,
-      `${mechanismLabel(descriptor.mechanism)} · ${descriptor.method} · ${relation}${host} · ${cookie}。本文は取得せず、入力内容との因果関係も確認していません。`,
-      viscosityLevel,
-      'communication',
-    );
+        ? this.#language === 'ja'
+          ? '送信操作と近接した通信開始を観測'
+          : 'Request start observed near a submission action'
+        : this.#language === 'ja'
+          ? '内容変更と近接した通信開始を観測'
+          : 'Request start observed near a content edit';
+    const detail =
+      this.#language === 'ja'
+        ? `${mechanismLabel(descriptor.mechanism, this.#language)} · ${descriptor.method} · ${relation}${host} · ${cookie}。通信本文は要求・取得せず、入力内容との因果関係も確認していません。`
+        : `${mechanismLabel(descriptor.mechanism, this.#language)} · ${descriptor.method} · ${relation}${host} · ${cookie}. Network payloads were not requested or collected, and no causal relation to input content was established.`;
+    this.#render(title, detail, viscosityLevel, 'communication');
   }
 
   public queueDiagnosticNetwork(
@@ -318,22 +368,46 @@ export class FactChipPresenter {
       const methodSummary = [...completed.methods.entries()]
         .map(([method, count]) => `${method} ${count}`)
         .join(' / ');
-      const mechanismSummary = [...completed.mechanisms].map(mechanismLabel).join('・');
+      const mechanismSummary = [...completed.mechanisms]
+        .map((mechanism) => mechanismLabel(mechanism, this.#language))
+        .join(' · ');
       const relationParts: string[] = [];
-      if (completed.sameOriginCount > 0) relationParts.push(`同一 ${completed.sameOriginCount}`);
-      if (completed.crossOriginCount > 0) relationParts.push(`別 ${completed.crossOriginCount}`);
+      if (completed.sameOriginCount > 0) {
+        relationParts.push(
+          this.#language === 'ja'
+            ? `同一 ${completed.sameOriginCount}`
+            : `same ${completed.sameOriginCount}`,
+        );
+      }
+      if (completed.crossOriginCount > 0) {
+        relationParts.push(
+          this.#language === 'ja'
+            ? `別 ${completed.crossOriginCount}`
+            : `cross ${completed.crossOriginCount}`,
+        );
+      }
       const relationSummary = relationParts.length > 0 ? ` · ${relationParts.join(' / ')}` : '';
       const hostSummary =
         completed.destinationHosts.size === 1
           ? ` · ${[...completed.destinationHosts][0] ?? ''}`
           : completed.destinationHosts.size > 1
-            ? ' · 複数通信先'
+            ? this.#language === 'ja'
+              ? ' · 複数通信先'
+              : ' · multiple destinations'
             : '';
-      const cookie = completed.cookieDetected ? ' · Cookieヘッダー検出を含む' : '';
+      const cookie = completed.cookieDetected
+        ? this.#language === 'ja'
+          ? ' · Cookieヘッダーの存在検出を含む（値は未取得）'
+          : ' · includes Cookie-header presence detection; values not collected'
+        : '';
 
       this.#render(
-        `通信活動 ${completed.count}件`,
-        `${methodSummary} · ${mechanismSummary}${relationSummary}${hostSummary}${cookie}。相関可能な利用者操作は確認していません。本文と通信目的は未確認です。`,
+        this.#language === 'ja'
+          ? `通信活動 ${completed.count}件`
+          : `${completed.count} communication events`,
+        this.#language === 'ja'
+          ? `${methodSummary} · ${mechanismSummary}${relationSummary}${hostSummary}${cookie}。相関可能な利用者操作は確認していません。通信本文と通信目的は未確認です。`
+          : `${methodSummary} · ${mechanismSummary}${relationSummary}${hostSummary}${cookie}. No correlatable user action was observed. Network payload and purpose remain unconfirmed.`,
         completed.viscosityLevel,
         'communication',
       );
@@ -348,23 +422,41 @@ export class FactChipPresenter {
     if (!this.#canShowCommunicationText()) return;
     const relation =
       descriptor.destinationRelation === 'same_origin'
-        ? '同一オリジン'
+        ? this.#language === 'ja'
+          ? '同一オリジン'
+          : 'same origin'
         : descriptor.destinationRelation === 'cross_origin'
-          ? '別オリジン'
+          ? this.#language === 'ja'
+            ? '別オリジン'
+            : 'cross origin'
           : descriptor.destinationRelation === 'non_http'
-            ? 'HTTP以外'
-            : '送信先不明';
+            ? this.#language === 'ja'
+              ? 'HTTP以外'
+              : 'non-HTTP'
+            : this.#language === 'ja'
+              ? '送信先不明'
+              : 'destination unknown';
     const title = confirmed
       ? descriptor.association === 'correlated_submit_event'
-        ? 'フォーム操作とsubmitイベントを相関'
-        : 'フォームsubmitイベントを観測'
+        ? this.#language === 'ja'
+          ? 'フォーム操作とsubmitイベントを相関'
+          : 'Form action correlated with a submit event'
+        : this.#language === 'ja'
+          ? 'フォームsubmitイベントを観測'
+          : 'Form submit event observed'
       : descriptor.association === 'declared_submit_control'
-        ? 'フォーム関連submit要素を観測'
-        : 'Enterによる送信候補を観測';
+        ? this.#language === 'ja'
+          ? 'フォーム関連submit要素を観測'
+          : 'Form-associated submit element observed'
+        : this.#language === 'ja'
+          ? 'Enterによる送信候補を観測'
+          : 'Enter-based submission candidate observed';
     const host = descriptor.destinationHost === 'unknown' ? '' : ` · ${descriptor.destinationHost}`;
     this.#render(
       title,
-      `${descriptor.method} · ${relation}${host}。実際の通信成立やサーバー到達は未確認です。`,
+      this.#language === 'ja'
+        ? `${descriptor.method} · ${relation}${host}。実際の通信成立やサーバー到達は未確認です。`
+        : `${descriptor.method} · ${relation}${host}. Request completion and server receipt were not confirmed.`,
       viscosityLevel,
       'communication',
     );
@@ -400,8 +492,16 @@ export class FactChipPresenter {
       (host.dataset.position as FactChipPosition | undefined) ?? this.#initialPosition;
     const next = nextFactChipPosition(current);
     move.textContent = '↻';
-    move.setAttribute('aria-label', `チップ表示位置を${factChipPositionLabel(next)}へ変更`);
-    move.title = `${factChipPositionLabel(next)}へ移動`;
+    move.setAttribute(
+      'aria-label',
+      this.#language === 'ja'
+        ? `チップ表示位置を${factChipPositionLabel(next, this.#language)}へ変更`
+        : `Move chip to ${factChipPositionLabel(next, this.#language)}`,
+    );
+    move.title =
+      this.#language === 'ja'
+        ? `${factChipPositionLabel(next, this.#language)}へ移動`
+        : `Move to ${factChipPositionLabel(next, this.#language)}`;
     move.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -410,9 +510,16 @@ export class FactChipPresenter {
       applyHostPosition(host, to);
       window.dispatchEvent(new CustomEvent('dssi-core-a-chip-position-changed', { detail: to }));
       const following = nextFactChipPosition(to);
-      move.setAttribute('aria-label', `チップ表示位置を${factChipPositionLabel(following)}へ変更`);
-      move.title = `${factChipPositionLabel(following)}へ移動`;
-      void saveHostDisplayProfile(this.#hostname, { position: to });
+      move.setAttribute(
+        'aria-label',
+        this.#language === 'ja'
+          ? `チップ表示位置を${factChipPositionLabel(following, this.#language)}へ変更`
+          : `Move chip to ${factChipPositionLabel(following, this.#language)}`,
+      );
+      move.title =
+        this.#language === 'ja'
+          ? `${factChipPositionLabel(following, this.#language)}へ移動`
+          : `Move to ${factChipPositionLabel(following, this.#language)}`;
     });
 
     const controls = document.createElement('span');
@@ -423,15 +530,17 @@ export class FactChipPresenter {
       mute.className = 'control mute';
       mute.type = 'button';
       mute.textContent = 'T';
-      mute.setAttribute('aria-label', 'このホストの通信説明チップを非表示にして保存');
-      mute.title = '通信説明チップを非表示にして保存';
+      const muteLabel =
+        this.#language === 'ja'
+          ? 'このページで通信説明チップを一時的に非表示'
+          : 'Temporarily hide communication text chips on this page';
+      mute.setAttribute('aria-label', muteLabel);
+      mute.title = muteLabel;
       mute.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
         setCommunicationTextVisible(false);
-        void saveHostDisplayProfile(this.#hostname, {
-          communicationTextVisible: false,
-        });
+        window.dispatchEvent(new CustomEvent('dssi-core-a-host-profile-temporary-change'));
         chip.setAttribute('data-visible', 'false');
         window.setTimeout(() => chip.remove(), 180);
       });

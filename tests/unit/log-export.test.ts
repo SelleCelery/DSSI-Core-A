@@ -68,6 +68,24 @@ describe('observation log export', () => {
     expect(exported.integrity.status).toBe('not_provided');
   });
 
+  it('exports the use boundary in the selected UI language', () => {
+    const exported = buildDssiObservationLogExport({
+      records: [record],
+      settings: { ...DEFAULT_SETTINGS, uiLanguage: 'en' },
+      settingsSnapshots: [],
+      coverageManifest: [],
+      applicationVersion: '0.5.0',
+      scope: { type: 'all_records', viewMode: 'all', filterApplied: false },
+      exportedAt: new Date('2026-08-01T10:00:00.000Z'),
+      language: 'en',
+    });
+
+    expect(exported.useBoundary.primaryPurpose).toBe(
+      'User-controlled collation and decision support',
+    );
+    expect(exported.useBoundary.nonProofClaims).toContain('Does not prove user intent');
+  });
+
   it('exports flat CSV columns without presentation labels or aggregation', () => {
     const csv = observationRecordsToCsv([record]);
     expect(csv).toContain('"settingsSnapshotId"');

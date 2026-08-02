@@ -31,6 +31,13 @@ import {
   surfaceStructureLabel,
   surfaceTypeLabel,
 } from '../core/observation-presentation';
+import {
+  applyDocumentTranslations,
+  browserUiLanguage,
+  resolveUiLanguage,
+  t,
+  type UiLanguage,
+} from '../i18n/ui';
 import { loadSettings } from '../storage/settings-store';
 import { getObservationSettingsSnapshots } from '../storage/settings-snapshot-store';
 import {
@@ -40,8 +47,8 @@ import {
   getDiagnosticRecords,
   getSessionRecords,
 } from '../storage/session-buffer';
-import { renderCoverageManifest } from '../ui/coverage-renderer';
 import { createCommunicationPulseIcon } from '../ui/communication-pulse-icon';
+import { renderCoverageManifest } from '../ui/coverage-renderer';
 import { requiredElement } from '../ui/required-element';
 
 type ViewMode = 'all' | 'activity' | 'diagnostic';
@@ -74,17 +81,41 @@ const exportLogsButton = requiredElement<HTMLButtonElement>('#exportLogs');
 const status = requiredElement<HTMLElement>('#status');
 const coverageDialog = requiredElement<HTMLDialogElement>('#coverageDialog');
 const coverageDialogBody = requiredElement<HTMLDivElement>('#coverageDialogBody');
+const pulseGuideDialog = requiredElement<HTMLDialogElement>('#pulseGuideDialog');
+const openPulseGuideButton = requiredElement<HTMLButtonElement>('#openPulseGuide');
+const openOptionsButton = requiredElement<HTMLButtonElement>('#openOptions');
+const openReaderButton = requiredElement<HTMLButtonElement>('#openReader');
+const openOnboardingButton = requiredElement<HTMLButtonElement>('#openOnboarding');
+const advancedReadingBody = requiredElement<HTMLDivElement>('#advancedReadingBody');
 const tableScrollTop = requiredElement<HTMLDivElement>('#tableScrollTop');
 const tableScrollTopSizer = requiredElement<HTMLDivElement>('#tableScrollTopSizer');
 const tableScroll = requiredElement<HTMLDivElement>('#tableScroll');
 const observationTable = requiredElement<HTMLTableElement>('#observationTable');
+
 let viewMode: ViewMode = 'all';
 let displayMode: DisplayMode = 'simple';
 let scrollSyncInProgress = false;
 let currentSettings: DssiSettings | undefined;
+let language: UiLanguage = 'ja';
+
+function local(ja: string, en: string): string {
+  return language === 'ja' ? ja : en;
+}
+
+function locale(): string {
+  return language === 'ja' ? 'ja-JP' : 'en-US';
+}
+
+function applyLanguage(next: UiLanguage): void {
+  language = next;
+  applyDocumentTranslations(document, language);
+  document.title = `${t(language, 'productName')} — ${t(language, 'logTitle')}`;
+  renderColumnLabels();
+  renderAdvancedReading();
+}
 
 function formatTimestamp(timestamp: number): string {
-  return new Date(timestamp).toLocaleString('ja-JP', {
+  return new Date(timestamp).toLocaleString(locale(), {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -95,7 +126,7 @@ function formatTimestamp(timestamp: number): string {
 }
 
 function formatClock(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString('ja-JP', {
+  return new Date(timestamp).toLocaleTimeString(locale(), {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
@@ -106,6 +137,67 @@ function makeCell(text: string): HTMLTableCellElement {
   const cell = document.createElement('td');
   cell.textContent = text;
   return cell;
+}
+
+function renderColumnLabels(): void {
+  const labels: Readonly<Record<string, readonly [string, string]>> = {
+    time: ['時刻', 'Time'],
+    layer: ['区分', 'Layer'],
+    frameHost: ['観測フレーム', 'Observed frame'],
+    frameRelation: ['フレーム関係', 'Frame relation'],
+    surface: ['入力面', 'Input surface'],
+    structure: ['安全な構造情報', 'Safe structure'],
+    fact: ['観測事実', 'Observed fact'],
+    evidence: ['操作証拠', 'Operation evidence'],
+    classification: ['入力面分類根拠', 'Classification basis'],
+    scope: ['境界観測範囲', 'Observation scope'],
+    boundary: ['境界種別', 'Boundary type'],
+    association: ['送信関連づけ', 'Submission association'],
+    destination: ['送信先／通信先', 'Declared / observed destination'],
+    mechanism: ['通信方式', 'Communication mechanism'],
+    correlation: ['操作相関', 'Operation correlation'],
+    timing: ['ページ観測との時間関係', 'Relation to page observation'],
+    cookie: ['Cookieヘッダー', 'Cookie header'],
+    payload: ['通信本文', 'Network payload'],
+    presentation: ['表示方針', 'Presentation policy'],
+  };
+  for (const heading of document.querySelectorAll<HTMLElement>('[data-column]')) {
+    const key = heading.dataset.column;
+    const pair = key === undefined ? undefined : labels[key];
+    if (pair) heading.textContent = language === 'ja' ? pair[0] : pair[1];
+  }
+}
+
+function renderAdvancedReading(): void {
+  const notes =
+    language === 'ja'
+      ? [
+          '「トップフレーム」はタブの最上位文書です。「埋め込みフレーム」はその中に置かれた別文書です。',
+          '「安全な構造情報」はタグ名、標準type、role、contenteditable、autocompleteトークンだけです。name、id、ラベル、placeholder、入力値は保存しません。',
+          '標準formの操作とsubmit成立は、実際の通信完了やサーバー到達を意味しません。',
+          '通信の時間相関は、入力内容の送信、因果関係、目的、利用者の意図を証明しません。',
+          'MAXは権限や取得内容を増やさず、現在の観測面にある診断事象と既知の死角を多く表示します。',
+          'ページ観測開始からの時間関係は、初期化、認証、分析などの用途を分類するものではありません。',
+          'Cookieヘッダーは存在だけを検出します。Cookie値や端末内の保存Cookie一覧は取得しません。未検出は不存在の証明ではありません。',
+          '通信本文は要求・取得していません。表示はYes／No判定ではなく、現在の設計境界を示します。',
+        ]
+      : [
+          '“Top frame” is the top-level document in a tab. An embedded frame is a separate document inside it.',
+          '“Safe structure” contains only tag names, standard input types, roles, contenteditable state, and autocomplete tokens. Names, IDs, labels, placeholders, and values are not stored.',
+          'A standard-form action or observed submit event does not establish network completion or server receipt.',
+          'Temporal correlation does not establish that input content was sent, causation, purpose, or user intent.',
+          'MAX does not add permissions or collection. It presents more diagnostic events and known observation limits within the existing boundary.',
+          'Timing relative to page observation does not classify a request as initialization, authentication, analytics, or any other purpose.',
+          'Only the presence of a Cookie header is detected. Cookie values and stored-Cookie inventories are not collected. “Not detected” is not proof of absence.',
+          'Network payloads are not requested or collected. This is a design boundary, not a Yes/No reading result.',
+        ];
+  advancedReadingBody.replaceChildren(
+    ...notes.map((note) => {
+      const paragraph = document.createElement('p');
+      paragraph.textContent = note;
+      return paragraph;
+    }),
+  );
 }
 
 function updateMirrorScrollbar(): void {
@@ -131,7 +223,6 @@ function communicationDescriptorFromRecord(
       bodyObservation: 'not_observed',
     };
   }
-
   if (record.submissionMethod !== undefined) {
     return {
       kind: 'dom_submit',
@@ -141,7 +232,6 @@ function communicationDescriptorFromRecord(
       bodyObservation: 'not_observed',
     };
   }
-
   return null;
 }
 
@@ -153,7 +243,6 @@ function createStreamGlyph(record: ObservationLogRecord): HTMLSpanElement {
     wrapper.textContent = '◇';
     return wrapper;
   }
-
   const settings = currentSettings;
   const icon = createCommunicationPulseIcon(
     descriptor,
@@ -165,7 +254,7 @@ function createStreamGlyph(record: ObservationLogRecord): HTMLSpanElement {
         }
       : undefined,
   );
-  icon.title = communicationPulseAriaLabel(descriptor);
+  icon.title = communicationPulseAriaLabel(descriptor, language);
   wrapper.append(icon);
   return wrapper;
 }
@@ -173,17 +262,19 @@ function createStreamGlyph(record: ObservationLogRecord): HTMLSpanElement {
 function shortCorrelation(record: ObservationLogRecord): string {
   switch (record.networkCorrelation) {
     case 'recent_content_edit':
-      return '内容変更近接';
+      return local('内容変更近接', 'Near content edit');
     case 'recent_submit_operation':
-      return 'submit近接';
+      return local('submit近接', 'Near submit');
     case 'no_correlated_user_operation':
-      return '操作相関未確認';
+      return local('操作相関未確認', 'No action correlated');
     case 'correlation_unavailable':
-      return '相関判定不能';
+      return local('相関判定不能', 'Correlation unavailable');
     case 'recent_input_activity':
-      return '入力近接（旧）';
+      return local('入力近接（旧）', 'Near input (legacy)');
     default:
-      return record.submissionAssociation === 'correlated_submit_event' ? 'submit成立相関' : '';
+      return record.submissionAssociation === 'correlated_submit_event'
+        ? local('submit成立相関', 'Submit event correlated')
+        : '';
   }
 }
 
@@ -199,65 +290,98 @@ function detailItem(term: string, description: string): DocumentFragment {
 
 function renderSimple(records: TaggedRecord[]): void {
   simpleStream.replaceChildren();
-
   for (const { record, layer } of records) {
     const details = document.createElement('details');
     details.className = 'stream-entry';
     details.dataset.layer = layer;
-
     const summary = document.createElement('summary');
     const time = document.createElement('time');
     time.dateTime = new Date(record.timestamp).toISOString();
     time.textContent = formatClock(record.timestamp);
-
     const glyph = createStreamGlyph(record);
     glyph.dataset.layer = layer;
-
     const action = document.createElement('span');
     action.className = 'stream-action';
-    action.textContent = observationActionLabel(record);
-
+    action.textContent = observationActionLabel(record, language);
     const destination = document.createElement('span');
     destination.className = 'stream-destination';
-    const destinationText = submissionDestinationLabel(record);
+    const destinationText = submissionDestinationLabel(record, language);
     destination.textContent = destinationText === '—' ? record.domainKey : destinationText;
-
     const correlation = document.createElement('span');
     correlation.className = 'stream-correlation';
     correlation.textContent = shortCorrelation(record);
-
     summary.append(time, glyph, action, destination, correlation);
 
     const detail = document.createElement('dl');
     detail.className = 'stream-detail';
     detail.append(
-      detailItem('記録区分', layer === 'diagnostic' ? '診断ログ' : '通常ログ'),
-      detailItem('時刻', formatTimestamp(record.timestamp)),
-      detailItem('観測フレーム', record.domainKey),
-      detailItem('フレーム関係', frameContextLabel(record)),
-      detailItem('入力面', surfaceTypeLabel(record.surfaceType)),
-      detailItem('安全な構造情報', surfaceStructureLabel(record)),
-      detailItem('観測事実', observationActionLabel(record)),
-      detailItem('操作証拠', operationEvidenceLabel(record.operationEvidence)),
-      detailItem('入力面分類根拠', classificationConfidenceLabel(record.classificationConfidence)),
-      detailItem('境界観測範囲', observationScopeLabel(record)),
-      detailItem('境界種別', boundarySourceLabel(record)),
-      detailItem('送信関連づけ', submissionAssociationLabel(record)),
-      detailItem('method', submissionMethodLabel(record)),
-      detailItem('送信先／通信先', submissionDestinationLabel(record)),
-      detailItem('encoding', submissionEncodingLabel(record)),
-      detailItem('通信方式', networkMechanismLabel(record)),
-      detailItem('操作相関', networkCorrelationLabel(record)),
-      detailItem('ページ観測との時間関係', pageObservationTimingLabel(record)),
-      detailItem('Cookieヘッダー検出', cookieHeaderDetectionLabel(record)),
-      detailItem('本文観測', networkPayloadObservationLabel(record)),
-      detailItem('設定スナップショット', record.settingsSnapshotId ?? '取得不能'),
       detailItem(
-        '表示方針',
-        record.cuePresented ? '表示対象（実表示は観測時設定に依存）' : '表示対象外',
+        local('記録区分', 'Record layer'),
+        layer === 'diagnostic' ? t(language, 'diagnosticLog') : t(language, 'activityLog'),
+      ),
+      detailItem(t(language, 'time'), formatTimestamp(record.timestamp)),
+      detailItem(local('観測フレーム', 'Observed frame'), record.domainKey),
+      detailItem(local('フレーム関係', 'Frame relation'), frameContextLabel(record, language)),
+      detailItem(local('入力面', 'Input surface'), surfaceTypeLabel(record.surfaceType, language)),
+      detailItem(local('安全な構造情報', 'Safe structure'), surfaceStructureLabel(record)),
+      detailItem(local('観測事実', 'Observed fact'), observationActionLabel(record, language)),
+      detailItem(
+        local('操作証拠', 'Operation evidence'),
+        operationEvidenceLabel(record.operationEvidence, language),
+      ),
+      detailItem(
+        local('入力面分類根拠', 'Classification basis'),
+        classificationConfidenceLabel(record.classificationConfidence, language),
+      ),
+      detailItem(
+        local('境界観測範囲', 'Observation scope'),
+        observationScopeLabel(record, language),
+      ),
+      detailItem(local('境界種別', 'Boundary type'), boundarySourceLabel(record, language)),
+      detailItem(
+        local('送信関連づけ', 'Submission association'),
+        submissionAssociationLabel(record, language),
+      ),
+      detailItem('method', submissionMethodLabel(record)),
+      detailItem(
+        local('送信先／通信先', 'Declared / observed destination'),
+        submissionDestinationLabel(record, language),
+      ),
+      detailItem('encoding', submissionEncodingLabel(record)),
+      detailItem(
+        local('通信方式', 'Communication mechanism'),
+        networkMechanismLabel(record, language),
+      ),
+      detailItem(
+        local('操作相関', 'Operation correlation'),
+        networkCorrelationLabel(record, language),
+      ),
+      detailItem(
+        local('ページ観測との時間関係', 'Relation to page observation'),
+        pageObservationTimingLabel(record, language),
+      ),
+      detailItem(
+        local('Cookieヘッダー', 'Cookie header'),
+        cookieHeaderDetectionLabel(record, language),
+      ),
+      detailItem(
+        local('通信本文', 'Network payload'),
+        networkPayloadObservationLabel(record, language),
+      ),
+      detailItem(
+        local('設定スナップショット', 'Settings snapshot'),
+        record.settingsSnapshotId ?? t(language, 'unavailable'),
+      ),
+      detailItem(
+        local('表示方針', 'Presentation policy'),
+        record.cuePresented
+          ? local(
+              '表示対象（実表示は観測時設定に依存）',
+              'Eligible for presentation; actual display depended on observation-time settings',
+            )
+          : local('表示対象外', 'Not presented'),
       ),
     );
-
     details.append(summary, detail);
     simpleStream.append(details);
   }
@@ -265,36 +389,38 @@ function renderSimple(records: TaggedRecord[]): void {
 
 function renderDetailed(records: TaggedRecord[]): void {
   body.replaceChildren();
-
   for (const { record, layer } of records) {
     const row = document.createElement('tr');
     row.dataset.layer = layer;
     row.append(
       makeCell(formatTimestamp(record.timestamp)),
-      makeCell(layer === 'diagnostic' ? '診断' : '通常'),
+      makeCell(layer === 'diagnostic' ? local('診断', 'Diagnostic') : local('通常', 'Activity')),
       makeCell(record.domainKey),
-      makeCell(frameContextLabel(record)),
-      makeCell(surfaceTypeLabel(record.surfaceType)),
+      makeCell(frameContextLabel(record, language)),
+      makeCell(surfaceTypeLabel(record.surfaceType, language)),
       makeCell(surfaceStructureLabel(record)),
-      makeCell(observationActionLabel(record)),
-      makeCell(operationEvidenceLabel(record.operationEvidence)),
-      makeCell(classificationConfidenceLabel(record.classificationConfidence)),
-      makeCell(observationScopeLabel(record)),
-      makeCell(boundarySourceLabel(record)),
-      makeCell(submissionAssociationLabel(record)),
+      makeCell(observationActionLabel(record, language)),
+      makeCell(operationEvidenceLabel(record.operationEvidence, language)),
+      makeCell(classificationConfidenceLabel(record.classificationConfidence, language)),
+      makeCell(observationScopeLabel(record, language)),
+      makeCell(boundarySourceLabel(record, language)),
+      makeCell(submissionAssociationLabel(record, language)),
       makeCell(submissionMethodLabel(record)),
-      makeCell(submissionDestinationLabel(record)),
+      makeCell(submissionDestinationLabel(record, language)),
       makeCell(submissionEncodingLabel(record)),
-      makeCell(networkMechanismLabel(record)),
-      makeCell(networkCorrelationLabel(record)),
-      makeCell(pageObservationTimingLabel(record)),
-      makeCell(cookieHeaderDetectionLabel(record)),
-      makeCell(networkPayloadObservationLabel(record)),
-      makeCell(record.cuePresented ? '表示対象（設定依存）' : '表示対象外'),
+      makeCell(networkMechanismLabel(record, language)),
+      makeCell(networkCorrelationLabel(record, language)),
+      makeCell(pageObservationTimingLabel(record, language)),
+      makeCell(cookieHeaderDetectionLabel(record, language)),
+      makeCell(networkPayloadObservationLabel(record, language)),
+      makeCell(
+        record.cuePresented
+          ? local('表示対象（設定依存）', 'Eligible; setting-dependent')
+          : local('表示対象外', 'Not presented'),
+      ),
     );
     body.append(row);
   }
-
   requestAnimationFrame(updateMirrorScrollbar);
 }
 
@@ -303,7 +429,6 @@ function render(records: TaggedRecord[]): void {
   empty.hidden = records.length > 0;
   simpleStream.hidden = displayMode !== 'simple';
   detailView.hidden = displayMode !== 'detailed';
-
   if (displayMode === 'simple') {
     renderSimple(records);
     tableScrollTop.hidden = true;
@@ -324,7 +449,11 @@ function updateViewControls(): void {
   setSelected(simpleButton, displayMode === 'simple');
   setSelected(detailedButton, displayMode === 'detailed');
   viewLabel.textContent =
-    viewMode === 'all' ? '全時系列' : viewMode === 'activity' ? '通常ログ' : '診断ログ';
+    viewMode === 'all'
+      ? t(language, 'allTimeline')
+      : viewMode === 'activity'
+        ? t(language, 'activityLog')
+        : t(language, 'diagnosticLog');
 }
 
 async function allTaggedRecords(): Promise<TaggedRecord[]> {
@@ -342,8 +471,9 @@ async function recordsForCurrentView(): Promise<TaggedRecord[]> {
 }
 
 async function refresh(): Promise<void> {
-  updateViewControls();
   currentSettings = await loadSettings();
+  applyLanguage(resolveUiLanguage(currentSettings.uiLanguage, browserUiLanguage()));
+  updateViewControls();
   render(await recordsForCurrentView());
 }
 
@@ -354,10 +484,14 @@ async function showCoverage(): Promise<void> {
   ]);
   renderCoverageManifest(
     coverageDialogBody,
-    buildCoverageManifest({
-      networkObservationEnabled: settings.networkObservationEnabled,
-      networkPermissionGranted: permissionGranted,
-    }),
+    buildCoverageManifest(
+      {
+        networkObservationEnabled: settings.networkObservationEnabled,
+        networkPermissionGranted: permissionGranted,
+      },
+      language,
+    ),
+    language,
   );
   coverageDialog.showModal();
 }
@@ -419,15 +553,18 @@ async function exportLogs(): Promise<void> {
   const settingsSnapshots = await getObservationSettingsSnapshots(snapshotIds);
   const now = new Date();
   const timestamp = exportFilenameTimestamp(now);
-  const baseName = `dssi-observation-log_${timestamp}`;
+  const baseName = `connectbits-observation-log_${timestamp}`;
   const document = buildDssiObservationLogExport({
     records,
     settings,
     settingsSnapshots,
-    coverageManifest: buildCoverageManifest({
-      networkObservationEnabled: settings.networkObservationEnabled,
-      networkPermissionGranted: permissionGranted,
-    }),
+    coverageManifest: buildCoverageManifest(
+      {
+        networkObservationEnabled: settings.networkObservationEnabled,
+        networkPermissionGranted: permissionGranted,
+      },
+      language,
+    ),
     applicationVersion: chrome.runtime.getManifest().version,
     scope: {
       type: scopeType,
@@ -435,6 +572,7 @@ async function exportLogs(): Promise<void> {
       filterApplied: scopeType === 'current_view' && viewMode !== 'all',
     },
     exportedAt: now,
+    language,
   });
   const json = `${JSON.stringify(document, null, 2)}\n`;
   const contextOnly = {
@@ -459,8 +597,7 @@ async function exportLogs(): Promise<void> {
       downloadText(`${baseName}.csv`, csv, 'text/csv;charset=utf-8');
       break;
   }
-
-  status.textContent = `${records.length}件の一次観測記録を保存しました。保存時の追加集約・判定は行っていません。`;
+  status.textContent = t(language, 'statusExported', { count: records.length });
 }
 
 tableScrollTop.addEventListener('scroll', () => synchronizeScroll(tableScrollTop, tableScroll));
@@ -475,36 +612,43 @@ simpleButton.addEventListener('click', () => selectDisplay('simple'));
 detailedButton.addEventListener('click', () => selectDisplay('detailed'));
 refreshButton.addEventListener('click', () => void refresh());
 showCoverageButton.addEventListener('click', () => void showCoverage());
+openPulseGuideButton.addEventListener('click', () => pulseGuideDialog.showModal());
 exportLogsButton.addEventListener('click', () => void exportLogs());
+openOptionsButton.addEventListener('click', () => void chrome.runtime.openOptionsPage());
+openReaderButton.addEventListener('click', () => {
+  void chrome.tabs.create({ url: chrome.runtime.getURL('reader.html') });
+});
+openOnboardingButton.addEventListener('click', () => {
+  void chrome.tabs.create({ url: chrome.runtime.getURL('onboarding.html') });
+});
 clearCurrentButton.addEventListener('click', () => {
   if (viewMode === 'all') {
-    if (!window.confirm('通常ログと診断ログをすべて消去しますか？')) return;
+    if (!window.confirm(t(language, 'confirmClearAll'))) return;
     void clearSessionRecords().then(async () => {
-      status.textContent = '通常ログと診断ログを消去しました。';
+      status.textContent = t(language, 'clearedAll');
       await refresh();
     });
     return;
   }
-
-  const label = viewMode === 'activity' ? '通常ログ' : '診断ログ';
-  if (!window.confirm(`${label}を消去しますか？`)) return;
+  const label = viewMode === 'activity' ? t(language, 'activityLog') : t(language, 'diagnosticLog');
+  if (!window.confirm(t(language, 'confirmClearLayer', { label }))) return;
   const clear = viewMode === 'activity' ? clearActivityRecords : clearDiagnosticRecords;
   void clear().then(async () => {
-    status.textContent = `${label}を消去しました。`;
+    status.textContent = t(language, 'clearedLayer', { label });
     await refresh();
   });
 });
 clearAllButton.addEventListener('click', () => {
-  if (!window.confirm('現在のブラウザセッションの通常ログと診断ログをすべて消去しますか？')) return;
+  if (!window.confirm(t(language, 'confirmClearAll'))) return;
   void clearSessionRecords().then(async () => {
-    status.textContent = '通常ログと診断ログを消去しました。';
+    status.textContent = t(language, 'clearedAll');
     await refresh();
   });
 });
 
 chrome.storage.onChanged.addListener(
   (_changes: Record<string, chrome.storage.StorageChange>, areaName: string) => {
-    if (areaName === 'session') void refresh();
+    if (areaName === 'session' || areaName === 'local') void refresh();
   },
 );
 

@@ -1,8 +1,8 @@
-# DSSI Core A Privacy Baseline
+# ConnectBits / DSSI Core A Privacy Baseline
 
 > Status: Development baseline, not yet the final Chrome Web Store privacy policy.
 
-DSSI Core A exists to strengthen user judgment. It must not become a new surveillance layer.
+ConnectBits is the public implementation developed under DSSI Core A. It exists to strengthen user judgment and must not become a new surveillance layer.
 
 ## Initial data handling
 
@@ -105,3 +105,13 @@ Observation-log export is initiated explicitly from the log viewer. JSON export 
 Export does not add host aggregation, communication-purpose classification, danger or safety scoring, missing-value inference, input content, Cookie values, request bodies, or complete URLs. It performs record selection and timestamp ordering only.
 
 After download, exported files are outside `chrome.storage.session` and inside the user's file-management boundary. Version 0.4.6 does not encrypt, digitally sign, authenticate, or make exported files read-only. The files can be copied, edited, disclosed, compelled, or misinterpreted by software or people with access to them. The exported use-boundary statement therefore says that the records do not prove user intent, responsibility, communication content, harmfulness, or safety.
+
+## v0.5 interface, onboarding, and Reader boundary
+
+ConnectBits v0.5 adds Japanese and English interface text, a first-run local setup review, and a local read-only Log Reader. These additions do not add observation permissions or new data sources.
+
+The first-run review stores the displayed-language preference, the current acknowledgement state after completion, completion time, and whether optional network observation was enabled. These values remain in `chrome.storage.local`. They are not sent to the developer or an external service. The review is not treated as blanket consent to undisclosed future purposes. Material changes to purpose, storage, external transmission, or required permissions require a new review boundary.
+
+The Log Reader accepts a JSON file selected explicitly by the user. It parses and displays that file locally, does not send it to a server, does not automatically save a copy, and does not write back to the selected file. Sorting, filtering, grouping, and observation tips are derived display operations. Observation tips list general technical possibilities and do not establish the actual purpose of an observed site.
+
+UI language selection changes presentation only. The same internal observation values and privacy boundaries apply in Japanese and English.

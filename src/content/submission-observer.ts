@@ -11,6 +11,7 @@ import type {
 } from '../core/models/submission';
 import { createObservationRecord } from '../core/observation-factory';
 import { createPrivacySafeRecord } from '../core/privacy-safe-logger';
+import { browserUiLanguage, resolveUiLanguage } from '../i18n/ui';
 import { analyzeSubmission } from '../core/submission-analyzer';
 import { CommunicationPulsePresenter } from '../ui/communication-pulse';
 import { FactChipPresenter } from '../ui/fact-chip';
@@ -70,12 +71,11 @@ export class SubmissionObserver {
   readonly #pending = new WeakMap<HTMLFormElement, PendingSubmissionCandidate>();
   #networkPulseEnabled: boolean;
 
-  public constructor(settings: DssiSettings, sessionId: string) {
+  public constructor(settings: DssiSettings, sessionId: string, hostProfileApplied: boolean) {
     this.#settings = settings;
     this.#sessionId = sessionId;
-    this.#presenter = new FactChipPresenter(settings.factChipPosition, {
-      hostname: this.#domainKey,
-    });
+    const language = resolveUiLanguage(settings.uiLanguage, browserUiLanguage());
+    this.#presenter = new FactChipPresenter(settings.factChipPosition, language);
     this.#pulsePresenter = new CommunicationPulsePresenter({
       hostname: this.#domainKey,
       position: settings.factChipPosition,
@@ -85,6 +85,8 @@ export class SubmissionObserver {
       domColor: settings.communicationPulseDomColor,
       webRequestColor: settings.communicationPulseWebRequestColor,
       opacity: settings.communicationPulseOpacity,
+      hostProfileApplied,
+      language,
     });
     this.#networkPulseEnabled = settings.networkObservationEnabled;
   }

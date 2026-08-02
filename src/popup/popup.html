@@ -3,19 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>DSSI Core A</title>
+    <title>ConnectBits</title>
     <link rel="stylesheet" href="base.css" />
   </head>
-  <body class="dssi-page dssi-popup">
+  <body class="dssi-page dssi-popup connectbits-surface">
     <main>
-      <h1>DSSI Core A</h1>
-      <p class="tagline">最後に止めるのではなく、最初に気づけるようにする。</p>
+      <header class="compact-product-header">
+        <div>
+          <p class="product-kicker">
+            <span data-i18n="projectLineage">DSSI Core A 開発系列</span> ·
+            <span data-i18n="previewLabel">Public Preview</span>
+          </p>
+          <h1 data-i18n="productName">ConnectBits</h1>
+          <p class="tagline" data-i18n="productTagline">
+            見えなかった接続を、判断できる断片として返す。
+          </p>
+        </div>
+      </header>
       <label class="row">
-        <span>有効</span>
+        <span data-i18n="enabled">有効</span>
         <input id="enabled" type="checkbox" />
       </label>
       <label class="field">
-        <span>粘性レベル</span>
+        <span data-i18n="viscosityLevel">粘性レベル</span>
         <select id="viscosityLevel">
           <option value="1">1 — Silent</option>
           <option value="2">2 — Awareness</option>
@@ -23,32 +33,45 @@
         </select>
       </label>
       <label class="field">
-        <span>報告モード</span>
+        <span data-i18n="reportingMode">報告モード</span>
         <select id="reportingMode">
-          <option value="standard">標準</option>
-          <option value="max_coverage">MAX — 診断と観測限界を最大限表示</option>
+          <option value="standard" data-i18n="reportingStandard">標準</option>
+          <option value="max_coverage" data-i18n="reportingMax">
+            MAX — 診断と観測限界を最大限表示
+          </option>
         </select>
       </label>
-      <p class="small">
+      <p class="small" data-i18n="maxExplanation">
         MAXはLevel 4ではなく、現在の観測範囲と死角を学習的に可視化する特別モードです。
       </p>
       <label class="row">
-        <span>小型通信パルス</span>
+        <span data-i18n="communicationPulses">小型通信パルス</span>
         <input id="communicationPulseEnabled" type="checkbox" />
       </label>
-      <p class="small">Level 2・3またはMAXで有効です。色は危険度ではなく観測経路の識別補助です。</p>
+      <p class="small" data-i18n="communicationPulsesHelp">
+        Level 2・3またはMAXで有効です。色は危険度ではなく観測経路の識別補助です。
+      </p>
       <p id="status" class="status" role="status"></p>
-      <p class="small">観測件数（現在のブラウザセッション）: <strong id="count">0</strong></p>
+      <p class="small">
+        <span data-i18n="sessionObservationCount">観測件数（現在のブラウザーセッション）</span>:
+        <strong id="count">0</strong>
+      </p>
 
       <section aria-labelledby="recentHeading">
-        <h2 id="recentHeading">最新の観測</h2>
-        <p id="recentEmpty" class="small">入力面に関する観測はまだありません。</p>
+        <h2 id="recentHeading" data-i18n="recentObservations">最新の観測</h2>
+        <p id="recentEmpty" class="small" data-i18n="recentEmpty">
+          入力面に関する観測はまだありません。
+        </p>
         <ul id="recentList" class="observation-list" aria-live="polite"></ul>
       </section>
 
-      <div class="button-row">
-        <button id="openLog" type="button">観測ログを表示</button>
-        <button id="openOptions" type="button">設定とプライバシー</button>
+      <div class="button-row compact-actions">
+        <button id="openLog" type="button" data-i18n="openLog">観測ログを表示</button>
+        <button id="openReader" type="button" data-i18n="openReader">保存済みログを読む</button>
+        <button id="openOptions" type="button" data-i18n="openSetup">設置とプライバシー</button>
+        <button id="openOnboarding" type="button" class="quiet-button" data-i18n="navSetupReview">
+          導入説明を見直す
+        </button>
       </div>
     </main>
     <script type="module" src="popup.js"></script>

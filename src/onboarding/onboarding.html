@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ConnectBits — Setup</title>
+    <link rel="stylesheet" href="base.css" />
+  </head>
+  <body class="dssi-page onboarding-page">
+    <main class="panel panel-onboarding">
+      <header class="product-header">
+        <div>
+          <p class="product-kicker">
+            <span data-i18n="projectLineage">DSSI Core A 開発系列</span> ·
+            <span data-i18n="previewLabel">Public Preview</span>
+          </p>
+          <h1 data-i18n="productName">ConnectBits</h1>
+          <p data-i18n="setupWizardIntro">
+            ConnectBitsが扱う情報と扱わない情報を、権限を付与する前に一項目ずつ確認します。所要時間の目安は2〜3分です。
+          </p>
+        </div>
+        <label class="compact-language-field">
+          <span data-i18n="navLanguage">表示言語</span>
+          <select id="uiLanguage">
+            <option value="auto" data-i18n="languageAuto">ブラウザーに合わせる</option>
+            <option value="ja" data-i18n="languageJapanese">日本語</option>
+            <option value="en" data-i18n="languageEnglish">English</option>
+          </select>
+        </label>
+      </header>
+
+      <div class="onboarding-progress" aria-label="Setup progress">
+        <span id="stepLabel"></span>
+        <progress id="stepProgress" max="4" value="1"></progress>
+      </div>
+
+      <section class="onboarding-step" data-step="1">
+        <h2 data-i18n="onboardingStep1Title">ConnectBitsの目的</h2>
+        <p data-i18n="onboardingStep1Body">
+          ConnectBitsは、通常は見えにくいブラウザー上の入力面、送信操作、通信開始メタデータを可視化し、利用者へ判断材料を返します。通信の安全性、目的、必要性、適法性を自動的に確定しません。
+        </p>
+        <div class="boundary-callout">
+          <strong data-i18n="productTagline">見えなかった接続を、判断できる断片として返す。</strong>
+          <p data-i18n="permissionJudgmentBoundary">
+            権限の許可は、処理の必要性や妥当性が確認されたことを意味しません。
+          </p>
+        </div>
+      </section>
+
+      <section class="onboarding-step" data-step="2" hidden>
+        <h2 data-i18n="onboardingStep2Title">観測するもの・観測しないもの</h2>
+        <div class="boundary-columns">
+          <section>
+            <h3 data-i18n="onboardingObserveHeading">観測するもの</h3>
+            <ul>
+              <li data-i18n="onboardingObserve1">ページ上で発生した一部のDOMイベント</li>
+              <li data-i18n="onboardingObserve2">ブラウザーが提供する通信開始メタデータ</li>
+              <li data-i18n="onboardingObserve3">Cookieヘッダーの存在検出（値は取得しない）</li>
+              <li data-i18n="onboardingObserve4">
+                閲覧中ページと通信先のオリジン関係、操作との時間的近接
+              </li>
+            </ul>
+          </section>
+          <section>
+            <h3 data-i18n="onboardingNotObserveHeading">観測しないもの</h3>
+            <ul>
+              <li data-i18n="onboardingNot1">通信本文、フォームへ入力された本文、Cookie値</li>
+              <li data-i18n="onboardingNot2">
+                PC内に保存されたCookie一覧、Local Storage、IndexedDBの内容
+              </li>
+              <li data-i18n="onboardingNot3">
+                閲覧履歴全体、位置情報、カメラ、マイク、連絡先、ファイル内容
+              </li>
+              <li data-i18n="onboardingNot4">通信目的、運営者の意図、安全性、適法性</li>
+            </ul>
+          </section>
+        </div>
+      </section>
+
+      <section class="onboarding-step" data-step="3" hidden>
+        <h2 data-i18n="onboardingStep3Title">処理条件と説明責任</h2>
+        <dl class="boundary-definition-list">
+          <div>
+            <dt>Purpose</dt>
+            <dd data-i18n="onboardingPurpose">
+              利用目的：通信の発生と限定的な付随情報を可視化し、利用者が自分で確認・比較・判断できるようにします。
+            </dd>
+          </div>
+          <div>
+            <dt>Frequency</dt>
+            <dd data-i18n="onboardingFrequency">
+              取得頻度：対象ページで該当イベントや通信が発生するたびに観測します。PC全体を定期走査しません。
+            </dd>
+          </div>
+          <div>
+            <dt>Storage</dt>
+            <dd data-i18n="onboardingStorage">
+              保存：設定とセッション内の観測メタデータを端末内で扱います。利用者が明示的にエクスポートしない限り、ログファイルとして保存しません。
+            </dd>
+          </div>
+          <div>
+            <dt>Transmission</dt>
+            <dd data-i18n="onboardingExternal">
+              外部通信：観測ログを開発者や外部サーバーへ送信しません。
+            </dd>
+          </div>
+          <div>
+            <dt>Future changes</dt>
+            <dd data-i18n="onboardingFuture">
+              重要な用途、保存方法、権限の変更時には改めて説明し、再確認を求めます。現在の確認を未提示の将来用途への包括同意とは扱いません。
+            </dd>
+          </div>
+          <div>
+            <dt>Reports</dt>
+            <dd data-i18n="onboardingSupport">
+              問い合わせ：事実に基づく報告を受け付け、可能な範囲で受領状態を示します。個別調査、修正、期限付き対応、継続支援は保証しません。受領は責任承認や修正義務の確定を意味しません。
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="onboarding-step" data-step="4" hidden>
+        <h2 data-i18n="onboardingStep4Title">確認と選択</h2>
+        <div class="acknowledgement-list">
+          <label
+            ><input id="ackObservation" type="checkbox" /><span data-i18n="ackObservation"
+              >観測する情報と観測しない情報を確認した</span
+            ></label
+          >
+          <label
+            ><input id="ackFrequency" type="checkbox" /><span data-i18n="ackFrequency"
+              >観測が行われる条件と頻度を確認した</span
+            ></label
+          >
+          <label
+            ><input id="ackStorage" type="checkbox" /><span data-i18n="ackStorage"
+              >保存場所、保存期間、エクスポートの扱いを確認した</span
+            ></label
+          >
+          <label
+            ><input id="ackExternal" type="checkbox" /><span data-i18n="ackExternal"
+              >観測ログが外部サーバーへ送信されないことを確認した</span
+            ></label
+          >
+          <label
+            ><input id="ackJudgment" type="checkbox" /><span data-i18n="ackJudgment"
+              >ConnectBitsが通信の目的や危険性を確定しないことを確認した</span
+            ></label
+          >
+          <label
+            ><input id="ackSupport" type="checkbox" /><span data-i18n="ackSupport"
+              >問い合わせと対応に上記の限界があることを確認した</span
+            ></label
+          >
+          <label
+            ><input id="ackDecision" type="checkbox" /><span data-i18n="ackDecision"
+              >現在提示された条件に基づき、利用を開始すると判断した</span
+            ></label
+          >
+        </div>
+        <p class="small boundary-callout" data-i18n="permissionMeaning">
+          権限の付与は、ConnectBitsによるすべての判断への同意ではなく、観測された通信の安全性や妥当性が確認されたことも意味しません。
+        </p>
+        <div class="button-row onboarding-choice-row">
+          <button id="allowNetwork" type="button" disabled data-i18n="allowNetwork">
+            説明された範囲で通信観測権限を許可する
+          </button>
+          <button id="startLocalOnly" type="button" disabled data-i18n="startLocalOnly">
+            通信観測権限なしで開始する
+          </button>
+        </div>
+      </section>
+
+      <section id="completion" class="onboarding-complete" hidden>
+        <h2 data-i18n="onboardingComplete">
+          導入確認が完了しました。対象ページを再読み込みすると、現在の設定が確実に反映されます。
+        </h2>
+        <div class="button-row">
+          <button id="openObservationLog" type="button" data-i18n="openObservationLog">
+            観測ログを開く
+          </button>
+          <button id="openSetupAfter" type="button" data-i18n="openSetupAfter">
+            設置とプライバシーを開く
+          </button>
+        </div>
+      </section>
+
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+      <div id="wizardControls" class="onboarding-controls">
+        <button id="previousStep" type="button" data-i18n="previousStep">戻る</button>
+        <button id="decideLater" type="button" data-i18n="decideLater">今は決めない</button>
+        <button id="nextStep" type="button" data-i18n="nextStep">次へ</button>
+      </div>
+    </main>
+    <script type="module" src="onboarding.js"></script>
+  </body>
+</html>

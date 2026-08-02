@@ -139,13 +139,13 @@ describe('observation presentation', () => {
     expect(networkMechanismLabel(record)).toBe('fetch/XHR系');
     expect(networkCorrelationLabel(record)).toBe('内容変更操作から2.5秒以内の時間相関');
     expect(pageObservationTimingLabel(record)).toBe('ページ観測開始から5秒以内');
-    expect(cookieHeaderDetectionLabel(record)).toBe('検出');
-    expect(networkPayloadObservationLabel(record)).toBe('本文を要求していない');
+    expect(cookieHeaderDetectionLabel(record)).toBe('存在を検出（値は未取得）');
+    expect(networkPayloadObservationLabel(record)).toBe('要求・取得していない');
   });
 
   it('uses detection language rather than claiming Cookie absence', () => {
     expect(cookieHeaderDetectionLabel(makeRecord({ cookieHeaderDetection: 'not_detected' }))).toBe(
-      '未検出',
+      '未検出（不存在の証明ではない）',
     );
     expect(cookieHeaderDetectionLabel(makeRecord({ cookieHeaderDetection: 'not_observed' }))).toBe(
       '未観測',

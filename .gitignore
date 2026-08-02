@@ -1,7 +1,123 @@
+# ============================================================
+# Default policy
+# ============================================================
+
+# Ignore everything by default
+*
+
+# Allow Git to traverse directories
+!*/
+
+# ============================================================
+# Repository root files
+# ============================================================
+
+!.gitattributes
+!.gitignore
+
+!README.md
+!README.ja.md
+!LICENSE
+!LICENSE.md
+!CITATION.cff
+!SECURITY.md
+!PRIVACY.md
+!CHANGELOG.md
+!RELEASE_NOTES.md
+
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.*.json
+
+!eslint.config.js
+!eslint.config.mjs
+!eslint.config.cjs
+!.eslintrc
+!.eslintrc.*
+!.prettierrc
+!.prettierrc.*
+!prettier.config.js
+!prettier.config.mjs
+
+!vite.config.ts
+!vitest.config.ts
+
+# ============================================================
+# Public source directories
+# ============================================================
+
+!src/**/*.ts
+!src/**/*.html
+!src/**/*.css
+!src/**/*.json
+!src/**/*.svg
+!src/**/*.png
+
+!public/**
+
+!tests/**/*.ts
+!test/**/*.ts
+
+!docs/**/*.md
+!docs/**/*.json
+!docs/**/*.yml
+!docs/**/*.yaml
+
+!scripts/**
+!tools/**
+
+!.github/**
+
+# ============================================================
+# Explicit exclusions
+# ============================================================
+
+# Dependencies
 node_modules/
+
+# Generated output
 dist/
 coverage/
+*.tsbuildinfo
+
+# Release archives and packaged extensions
+*.zip
+*.crx
+*.xpi
+*.tgz
+
+# Logs
 *.log
-.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# IDE files
 .vscode/
 .idea/
+.vs/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary and backup files
+*.tmp
+*.bak
+*.orig
+*.swp
+*~
+~$*.*
+
+# Draft and local-only materials
+000*
+*_LOCAL.*
+*_DRAFT.*

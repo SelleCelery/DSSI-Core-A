@@ -3,103 +3,160 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>DSSI Core A 観測ログ</title>
+    <title>ConnectBits — Observation Log</title>
     <link rel="stylesheet" href="base.css" />
   </head>
-  <body class="dssi-page">
+  <body class="dssi-page connectbits-surface">
     <main class="panel panel-wide">
-      <h1>DSSI Core A 観測ログ</h1>
-      <p>
-        通常ログには利用者の操作と判断に関係する観測メタデータだけを表示します。
-        診断ログには拡張機能の起動に加え、MAX報告モードで観測した操作相関未確認の対象通信を分離して表示します。
-        入力本文、パスワード、決済番号、クリップボード本文は含まれません。
-      </p>
+      <header class="product-header">
+        <div>
+          <p class="product-kicker">
+            <span data-i18n="projectLineage">DSSI Core A 開発系列</span> ·
+            <span data-i18n="previewLabel">Public Preview</span>
+          </p>
+          <h1 data-i18n="logTitle">観測ログ</h1>
+          <p data-i18n="logIntro">
+            通常ログと診断ログを、簡易ストリームから照合できます。入力本文、パスワード、決済番号、クリップボード本文、通信本文は含まれません。
+          </p>
+        </div>
+      </header>
+      <nav class="page-nav" aria-label="ConnectBits">
+        <button id="openOptions" type="button" data-i18n="navSetup">設置とプライバシー</button>
+        <button type="button" aria-current="page" data-i18n="navLog">観測ログ</button>
+        <button id="openReader" type="button" data-i18n="navReader">Log Reader</button>
+        <button id="openOnboarding" type="button" data-i18n="navSetupReview">
+          導入説明を見直す
+        </button>
+      </nav>
+
       <div class="log-control-groups">
-        <div class="log-tabs" role="tablist" aria-label="ログ種別">
-          <button id="showAll" type="button" role="tab" aria-selected="true">全時系列</button>
-          <button id="showActivity" type="button" role="tab" aria-selected="false">通常のみ</button>
-          <button id="showDiagnostic" type="button" role="tab" aria-selected="false">
+        <div class="log-tabs" role="tablist" aria-label="Log layer">
+          <button
+            id="showAll"
+            type="button"
+            role="tab"
+            aria-selected="true"
+            data-i18n="allTimeline"
+          >
+            全時系列
+          </button>
+          <button
+            id="showActivity"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            data-i18n="activityOnly"
+          >
+            通常のみ
+          </button>
+          <button
+            id="showDiagnostic"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            data-i18n="diagnosticOnly"
+          >
             診断のみ
           </button>
         </div>
-        <div class="log-tabs" role="tablist" aria-label="表示形式">
-          <button id="showSimple" type="button" role="tab" aria-selected="true">
+        <div class="log-tabs" role="tablist" aria-label="View format">
+          <button
+            id="showSimple"
+            type="button"
+            role="tab"
+            aria-selected="true"
+            data-i18n="simpleStream"
+          >
             簡易ストリーム
           </button>
-          <button id="showDetailed" type="button" role="tab" aria-selected="false">詳細表</button>
+          <button
+            id="showDetailed"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            data-i18n="detailedTable"
+          >
+            詳細表（高度な確認）
+          </button>
         </div>
       </div>
-      <p class="small"><span id="viewLabel">全時系列</span>件数: <strong id="count">0</strong></p>
+      <div class="stream-toolbar">
+        <p class="small">
+          <span id="viewLabel" data-i18n="allTimeline">全時系列</span> ·
+          <span data-i18n="countSuffix">件数</span>: <strong id="count">0</strong>
+        </p>
+        <button id="openPulseGuide" type="button" class="quiet-button" data-i18n="pulseGuideOpen">
+          読み方を確認
+        </button>
+      </div>
       <div class="button-row">
-        <button id="refresh" type="button">更新</button>
-        <button id="showCoverage" type="button">観測範囲を確認</button>
-        <button id="clearCurrent" type="button">表示中のログを消去</button>
-        <button id="clearAll" type="button">すべてのログを消去</button>
+        <button id="refresh" type="button" data-i18n="refresh">更新</button>
+        <button id="showCoverage" type="button" data-i18n="showCoverage">観測範囲を確認</button>
+        <button id="clearCurrent" type="button" class="quiet-button" data-i18n="clearCurrent">
+          表示中のログを消去
+        </button>
+        <button id="clearAll" type="button" class="quiet-button" data-i18n="clearAll">
+          すべてのログを消去
+        </button>
       </div>
       <section class="export-panel" aria-labelledby="exportHeading">
-        <h2 id="exportHeading">観測ログを保存</h2>
+        <h2 id="exportHeading" data-i18n="exportHeading">観測ログを保存</h2>
         <div class="export-controls">
           <label>
-            <span>形式</span>
+            <span data-i18n="format">形式</span>
             <select id="exportFormat">
-              <option value="json">JSON — 観測条件を含む</option>
-              <option value="csv">CSV＋context JSON — 表計算向け</option>
-              <option value="both">JSON＋CSV</option>
+              <option value="json" data-i18n="formatJson">JSON — 観測条件を含む</option>
+              <option value="csv" data-i18n="formatCsv">CSV＋context JSON — 表計算向け</option>
+              <option value="both" data-i18n="formatBoth">JSON＋CSV</option>
             </select>
           </label>
           <label>
-            <span>範囲</span>
+            <span data-i18n="scope">範囲</span>
             <select id="exportScope">
-              <option value="all_records">全ログ</option>
-              <option value="current_view">現在表示中</option>
+              <option value="all_records" data-i18n="allRecords">全ログ</option>
+              <option value="current_view" data-i18n="currentView">現在表示中</option>
             </select>
           </label>
-          <button id="exportLogs" type="button">保存</button>
+          <button id="exportLogs" type="button" data-i18n="export">保存</button>
         </div>
-        <p class="small export-boundary">
-          保存するのはDSSIが観測時に生成した一次観測記録です。保存時に通信の集約、危険度判定、目的分類、欠損値補完を加えません。
-          このログは入力内容、通信内容、利用者の意図、責任、有害性、安全性を証明しません。保存後のファイルは利用者の管理領域へ移ります。
-          現在の版では暗号化・署名・改変検知を提供しません。
+        <p class="small export-boundary" data-i18n="exportBoundary">
+          保存するのはConnectBitsが観測時に生成した一次観測記録です。保存時に通信の集約、危険度判定、目的分類、欠損値補完を加えません。このログは入力内容、通信内容、利用者の意図、責任、有害性、安全性を証明しません。保存後のファイルは利用者の管理領域へ移ります。現在の版では暗号化・署名・改変検知を提供しません。
         </p>
       </section>
       <p id="status" class="status" role="status"></p>
-      <p id="empty">観測ログはありません。</p>
+      <p id="empty" data-i18n="noLogs">観測ログはありません。</p>
 
       <div id="simpleStream" class="simple-stream" aria-live="polite"></div>
 
       <div id="detailView" hidden>
-        <div
-          id="tableScrollTop"
-          class="table-scroll-top"
-          aria-label="観測ログ表の上側横スクロールバー"
-        >
+        <div id="tableScrollTop" class="table-scroll-top" aria-label="Top horizontal scrollbar">
           <div id="tableScrollTopSizer" class="table-scroll-top-sizer"></div>
         </div>
         <div id="tableScroll" class="table-scroll">
           <table id="observationTable" class="observation-table">
             <thead>
               <tr>
-                <th scope="col">時刻</th>
-                <th scope="col">区分</th>
-                <th scope="col">観測フレーム</th>
-                <th scope="col">フレーム関係</th>
-                <th scope="col">入力面</th>
-                <th scope="col">安全な構造情報</th>
-                <th scope="col">観測事実</th>
-                <th scope="col">操作証拠</th>
-                <th scope="col">入力面分類根拠</th>
-                <th scope="col">境界観測範囲</th>
-                <th scope="col">境界種別</th>
-                <th scope="col">送信関連づけ</th>
+                <th scope="col" data-column="time">時刻</th>
+                <th scope="col" data-column="layer">区分</th>
+                <th scope="col" data-column="frameHost">観測フレーム</th>
+                <th scope="col" data-column="frameRelation">フレーム関係</th>
+                <th scope="col" data-column="surface">入力面</th>
+                <th scope="col" data-column="structure">安全な構造情報</th>
+                <th scope="col" data-column="fact">観測事実</th>
+                <th scope="col" data-column="evidence">操作証拠</th>
+                <th scope="col" data-column="classification">入力面分類根拠</th>
+                <th scope="col" data-column="scope">境界観測範囲</th>
+                <th scope="col" data-column="boundary">境界種別</th>
+                <th scope="col" data-column="association">送信関連づけ</th>
                 <th scope="col">method</th>
-                <th scope="col">送信先／通信先</th>
+                <th scope="col" data-column="destination">送信先／通信先</th>
                 <th scope="col">encoding</th>
-                <th scope="col">通信方式</th>
-                <th scope="col">操作相関</th>
-                <th scope="col">ページ観測との時間関係</th>
-                <th scope="col">Cookieヘッダー検出</th>
-                <th scope="col">本文観測</th>
-                <th scope="col">表示方針</th>
+                <th scope="col" data-column="mechanism">通信方式</th>
+                <th scope="col" data-column="correlation">操作相関</th>
+                <th scope="col" data-column="timing">ページ観測との時間関係</th>
+                <th scope="col" data-column="cookie">Cookieヘッダー</th>
+                <th scope="col" data-column="payload">通信本文</th>
+                <th scope="col" data-column="presentation">表示方針</th>
               </tr>
             </thead>
             <tbody id="logBody"></tbody>
@@ -107,69 +164,54 @@
         </div>
       </div>
 
-      <section aria-labelledby="pulseLegendHeading">
-        <h2 id="pulseLegendHeading">通信パルスの読み方</h2>
-        <p>
-          簡易ストリームは一件を一行へ縮約し、クリックすると詳細を展開します。小型通信パルスは、標準formのDOM送信境界と、webRequestで観測した通信の時間配置を示します。
-          外周形はmethodです（GET＝円、POST＝四角、PUT＝ひし形、PATCH＝六角形、DELETE＝三角形）。中央のS/F/Bは標準form・fetch/XHR・Beacon/Pingを示します。DOMとwebRequestの色は、設定したマゼンタ／シアン／イエロー／無色で表示されます。
-          右上はCookieヘッダー名の状態で、●＝検出、−＝未検出、·＝未観測、?＝判定不能。左上の短線は別オリジンを示します。
-          色は観測経路の識別補助であり、安全・危険・注意を意味しません。ネットワークパルスはすべて本文未観測です。
-        </p>
-      </section>
-
-      <h2>読み方</h2>
-      <p>
-        「トップフレーム」はブラウザタブの最上位文書です。「埋め込みフレーム」はその中に置かれた別文書です。
-        埋め込みフレームの開始ログは保存せず、実際の入力や送信候補が観測された場合だけ通常ログへ記録します。
-      </p>
-      <p>
-        「安全な構造情報」は、種類不明の入力面を調査するためのタグ名、標準的なtype、role、contenteditable、
-        autocompleteトークンだけです。name、id、ラベル、placeholder、入力値は保存しません。
-      </p>
-      <p>
-        診断ログの「ページ観測を開始」はcontent scriptが起動したという実装上の記録です。
-        利用者が何かを入力・送信したことを意味しません。同一タブ・同一ドメインの短時間重複は抑制します。
-      </p>
-      <p>
-        「フォーム関連submit要素」はHTML上でフォームに属するsubmit要素への操作です。
-        「同一フォームでsubmit成立と相関」は、その操作またはEnter候補の直後に同じフォームのsubmitイベントを観測した記録です。
-        どちらも実際の通信成立やサーバー到達を意味しません。
-      </p>
-      <p>
-        「ブラウザ通信メタデータ」は、任意権限を有効にした場合にChromeのwebRequest
-        APIから受け取った送信前の通信情報です。
-        DSSIはフォーカスを通信相関に使いません。信頼済みの内容変更から2.5秒以内、または標準form送信操作から2秒以内のfetch/XHR系・Beacon/Ping系通信を通常ログへ残します。MAXでは、そのどちらとも相関しない対象通信を診断ログへ記録します。
-        これらは時間相関であり、その通信に入力内容が含まれたこと、利用者が意図したこと、通信が完了したこと、サーバーが受信したことを意味しません。「操作相関未確認」は操作が存在しなかったという意味ではなく、DSSIが相関可能な操作を確認していないことを示します。
-        request bodyは要求せず、URLのpath・query・fragmentは保存しません。
-      </p>
-      <p>
-        MAX報告モードは、DSSIの権限や取得内容を最大化するものではありません。
-        現在の通信フィルターと権限で観測できた診断事象を増やし、観測・縮約・設計上非観測・現在観測不能・未知残差を表示します。
-      </p>
-      <p>
-        「ページ観測開始から5秒以内／5秒超」は、DSSI自身の観測開始との時間関係だけを示します。
-        初期化、認証、状態復元、分析など、通信の用途を分類する表示ではありません。
-      </p>
-      <p>
-        「Cookieヘッダー検出」は、ChromeがDSSIへ提供したrequest
-        headersのヘッダー名にCookieが含まれたかだけを示します。
-        DSSIの処理はCookie値を参照・分類・保存・表示しません。
-        「未検出」はCookieの不存在を保証せず、提供された観測範囲内でヘッダー名を検出しなかったことを意味します。
-        Chromeの権限、API制約、キャッシュ、ブラウザ内部処理などにより、通信やヘッダー自体を観測できない場合があります。
-      </p>
+      <details class="advanced-reading-details">
+        <summary data-i18n="advancedReadingSummary">
+          観測語、相関、フレーム、Cookieヘッダーの境界を確認する
+        </summary>
+        <div id="advancedReadingBody" class="reading-notes"></div>
+      </details>
     </main>
+
+    <dialog
+      id="pulseGuideDialog"
+      class="coverage-dialog compact-dialog"
+      aria-labelledby="pulseGuideTitle"
+    >
+      <div class="coverage-dialog-header">
+        <h2 id="pulseGuideTitle" data-i18n="howToReadPulses">通信パルスの読み方</h2>
+        <form method="dialog"><button type="submit" data-i18n="close">閉じる</button></form>
+      </div>
+      <ul class="pulse-guide-list">
+        <li data-i18n="pulseGuideIntro">パルスは通信または送信操作の観測を示します。</li>
+        <li data-i18n="pulseGuide1">
+          外周形はHTTP
+          methodを示します。GETは円、POSTは四角、PUTはひし形、PATCHは六角形、DELETEは三角形です。
+        </li>
+        <li data-i18n="pulseGuide2">中央のS／F／Bは標準form、fetch/XHR、Beacon/Pingを示します。</li>
+        <li data-i18n="pulseGuide3">色は観測経路を示し、安全性・危険性・注意を示しません。</li>
+        <li data-i18n="pulseGuide4">
+          右上の●／−／·／?はCookieヘッダーの存在検出状態です。Cookie値は取得しません。
+        </li>
+        <li data-i18n="pulseGuide5">左上の短線は別オリジンを示します。</li>
+        <li data-i18n="pulseGuide6">
+          操作との時間的相関は、因果関係、通信目的、利用者の意図を証明しません。
+        </li>
+        <li data-i18n="pulseGuide7">
+          パルスが表示されなかったことは、通信がなかったことを意味しません。
+        </li>
+        <li data-i18n="pulseGuide8">ConnectBitsは通信本文を要求・取得していません。</li>
+      </ul>
+    </dialog>
 
     <dialog id="coverageDialog" class="coverage-dialog" aria-labelledby="coverageDialogTitle">
       <div class="coverage-dialog-header">
         <div>
-          <h2 id="coverageDialogTitle">現在の観測範囲</h2>
-          <p class="small">
-            観測しているもの、縮約しているもの、設計上接続しないもの、現在見えないもの、未知残差を区別します。
+          <h2 id="coverageDialogTitle" data-i18n="currentCoverage">現在の観測範囲</h2>
+          <p class="small" data-i18n="coverageIntro">
+            ConnectBitsが観測するもの、観測後に縮約するもの、主権保全のため接続しないもの、現在の仕組みでは見えないものを分けて表示します。この一覧自体も完全ではなく、未列挙の未知が残ります。
           </p>
         </div>
-        <form method="dialog">
-          <button type="submit">閉じる</button>
-        </form>
+        <form method="dialog"><button type="submit" data-i18n="close">閉じる</button></form>
       </div>
       <div id="coverageDialogBody" class="coverage-list"></div>
     </dialog>
