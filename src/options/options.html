@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ConnectBits — Setup & Privacy</title>
+    <title>ConnectBits — Settings & Privacy</title>
     <link rel="stylesheet" href="base.css" />
   </head>
   <body class="dssi-page connectbits-surface">
@@ -19,7 +19,7 @@
         </div>
       </header>
       <nav class="page-nav" aria-label="ConnectBits">
-        <button type="button" aria-current="page" data-i18n="navSetup">設置とプライバシー</button>
+        <button type="button" aria-current="page" data-i18n="navSetup">設定とプライバシー</button>
         <button id="openLog" type="button" data-i18n="navLog">観測ログ</button>
         <button id="openReader" type="button" data-i18n="navReader">Log Reader</button>
         <button id="openOnboarding" type="button" data-i18n="navSetupReview">
@@ -27,7 +27,7 @@
         </button>
       </nav>
 
-      <h2 data-i18n="setupTitle">設置とプライバシー</h2>
+      <h2 data-i18n="setupTitle">設定とプライバシー</h2>
       <p data-i18n="setupIntro">
         ConnectBitsは入力本文、パスワード、決済番号、クリップボード本文、通信本文を保存しません。保存対象は設定と、本文を含まない観測メタデータです。
       </p>
@@ -43,16 +43,30 @@
 
       <fieldset>
         <legend data-i18n="localFunctions">ローカル機能</legend>
+        <label class="field">
+          <span data-i18n="observationBoundary">観測境界</span>
+          <select id="observationSelection">
+            <option value="standard" data-i18n="observationStandard">
+              標準設定で観測 — ページ上の限定観測＋通信メタデータ
+            </option>
+            <option value="dom_only" data-i18n="observationDomOnly">
+              通信メタデータを観測しない — ページ上の限定観測のみ
+            </option>
+            <option value="paused" data-i18n="observationPaused">今は観測を開始しない</option>
+          </select>
+        </label>
+        <p class="reversible-choice" data-i18n="onboardingChangeable">
+          いつでもこの選択は変更できます。
+        </p>
+        <p class="small" data-i18n="observationSelectionHelp">
+          通信メタデータ観測を外すと、任意のwebRequest権限だけを撤回します。操作者自身が関与し画面上で自覚できる、限定的なDOM上の操作・表示変化は、ページ上の限定観測を選んでいる間は継続します。「今は観測を開始しない」では両方を停止します。
+        </p>
         <label class="row">
           <span data-i18n="localClassification">ローカル内容分類</span>
           <input id="localClassificationEnabled" type="checkbox" />
         </label>
-        <label class="row">
-          <span data-i18n="networkObservation">通信開始メタデータの補助観測（任意権限）</span>
-          <input id="networkObservationEnabled" type="checkbox" />
-        </label>
         <p class="small" data-i18n="networkObservationExplanation">
-          有効化時だけ、ChromeのwebRequest権限とHTTP/HTTPSサイトへの追加アクセスを求めます。標準モードでは内容変更または標準form送信操作に近接した通信を通常ログへ残します。MAXでは相関可能な利用者操作を確認できない対象通信も診断ログへ記録します。通信本文は要求・取得せず、URLのpath・query・fragmentは保存しません。request
+          標準設定を選んだ場合だけ、Chromeの任意権限webRequestを求めます。標準モードでは内容変更または標準form送信操作に近接した通信を通常ログへ残します。MAXでは相関可能な利用者操作を確認できない対象通信も診断ログへ記録します。通信本文は要求・取得せず、URLのpath・query・fragmentは保存しません。request
           headersはCookieヘッダーの存在検出にだけ一時利用し、値は保存・表示しません。
         </p>
         <div class="permission-boundary">

@@ -18,5 +18,8 @@ describe('ConnectBits UI language', () => {
     expect(t('en', 'permissionJudgmentBoundary')).toContain('appropriateness');
     expect(t('ja', 'pulseGuide8')).toContain('要求・取得していません');
     expect(t('en', 'pulseGuide8')).toContain('does not request or collect');
+    expect(t('ja', 'navSetup')).toBe('設定とプライバシー');
+    expect(t('ja', 'startLocalOnly')).toBe('通信メタデータを観測せず開始');
+    expect(t('ja', 'onboardingChangeable')).toBe('いつでもこの選択は変更できます。');
   });
 });

@@ -36,6 +36,5 @@
       "all_frames": true
     }
   ],
-  "optional_permissions": ["webRequest"],
-  "optional_host_permissions": ["http://*/*", "https://*/*"]
+  "optional_permissions": ["webRequest"]
 }

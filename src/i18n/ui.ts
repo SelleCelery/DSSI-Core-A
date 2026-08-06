@@ -6,7 +6,7 @@ const JA_MESSAGES = {
   productTagline: '見えなかった接続を、判断できる断片として返す。',
   projectLineage: 'DSSI Core A 開発系列',
   previewLabel: 'Public Preview',
-  navSetup: '設置とプライバシー',
+  navSetup: '設定とプライバシー',
   navLog: '観測ログ',
   navReader: 'Log Reader',
   navSetupReview: '導入説明を見直す',
@@ -29,15 +29,21 @@ const JA_MESSAGES = {
   recentEmpty: '入力面に関する観測はまだありません。',
   openLog: '観測ログを表示',
   openReader: '保存済みログを読む',
-  openSetup: '設置とプライバシー',
-  setupTitle: '設置とプライバシー',
+  openSetup: '設定とプライバシー',
+  setupTitle: '設定とプライバシー',
   setupIntro:
     'ConnectBitsは入力本文、パスワード、決済番号、クリップボード本文、通信本文を保存しません。保存対象は設定と、本文を含まない観測メタデータです。',
   localFunctions: 'ローカル機能',
+  observationBoundary: '観測境界',
+  observationStandard: '標準設定で観測 — ページ上の限定観測＋通信メタデータ',
+  observationDomOnly: '通信メタデータを観測しない — ページ上の限定観測のみ',
+  observationPaused: '今は観測を開始しない',
+  observationSelectionHelp:
+    '通信メタデータ観測を外すと、任意のwebRequest権限だけを撤回します。操作者自身が関与し画面上で自覚できる、限定的なDOM上の操作・表示変化は、ページ上の限定観測を選んでいる間は継続します。「今は観測を開始しない」では両方を停止します。',
   localClassification: 'ローカル内容分類',
   networkObservation: '通信開始メタデータの補助観測（任意権限）',
   networkObservationExplanation:
-    '有効化時だけ、ChromeのwebRequest権限とHTTP/HTTPSサイトへの追加アクセスを求めます。標準モードでは内容変更または標準form送信操作に近接した通信を通常ログへ残します。MAXでは相関可能な利用者操作を確認できない対象通信も診断ログへ記録します。通信本文は要求・取得せず、URLのpath・query・fragmentは保存しません。request headersはCookieヘッダーの存在検出にだけ一時利用し、値は保存・表示しません。',
+    '標準設定を選んだ場合だけ、Chromeの任意権限webRequestを求めます。標準モードでは内容変更または標準form送信操作に近接した通信を通常ログへ残します。MAXでは相関可能な利用者操作を確認できない対象通信も診断ログへ記録します。通信本文は要求・取得せず、URLのpath・query・fragmentは保存しません。request headersはCookieヘッダーの存在検出にだけ一時利用し、値は保存・表示しません。',
   maxScopeExplanation:
     'MAXは権限や取得内容を増やすモードではありません。現在の観測面で取得できた診断事象と、見ない・見えない領域の説明量を増やします。',
   chipPosition: 'チップ・通信パルス表示位置',
@@ -204,9 +210,10 @@ const JA_MESSAGES = {
   onboardingStep1Body:
     'ConnectBitsは、通常は見えにくいブラウザー上の入力面、送信操作、通信開始メタデータを可視化し、利用者へ判断材料を返します。通信の安全性、目的、必要性、適法性を自動的に確定しません。',
   onboardingStep2Title: '観測するもの・観測しないもの',
-  onboardingObserveHeading: '観測するもの',
-  onboardingObserve1: 'ページ上で発生した一部のDOMイベント',
-  onboardingObserve2: 'ブラウザーが提供する通信開始メタデータ',
+  onboardingObserveHeading: '選択に応じて観測するもの',
+  onboardingObserve1:
+    'ページ上の限定的なDOMイベント（入力開始、貼り付け、標準form送信操作など。入力本文は取得しない）',
+  onboardingObserve2: '任意権限を許可した場合だけ、ブラウザーが提供する通信開始メタデータ',
   onboardingObserve3: 'Cookieヘッダーの存在検出（値は取得しない）',
   onboardingObserve4: '閲覧中ページと通信先のオリジン関係、操作との時間的近接',
   onboardingNotObserveHeading: '観測しないもの',
@@ -234,19 +241,37 @@ const JA_MESSAGES = {
   ackExternal: 'ConnectBits自身が観測ログを外部送信・第三者提供しないことを確認した',
   ackJudgment: 'ConnectBitsが通信の目的や危険性を確定しないことを確認した',
   ackSupport: '問い合わせと対応に上記の限界があることを確認した',
-  ackDecision: '現在提示された条件に基づき、利用を開始すると判断した',
-  allowNetwork: '説明された範囲で通信観測権限を許可する',
-  startLocalOnly: '通信観測権限なしで開始する',
+  ackDecision: '観測境界を三つから選び、あとから変更できることを確認した',
+  onboardingChoiceIntro: '観測方法を選択してください',
+  onboardingChangeable: 'いつでもこの選択は変更できます。',
+  onboardingCoverageAfter:
+    '何を観測しているか、何を現在観測していないか、何を設定によって観測対象から外しているか、何を仕組み上観測できないかは、導入後に「設定とプライバシー」で確認できます。',
+  allowNetwork: '標準設定で観測を開始',
+  onboardingStandardDetail:
+    'ページ上の限定観測と、通信先やHTTP methodなどの通信メタデータ観測を開始します。',
+  startLocalOnly: '通信メタデータを観測せず開始',
+  onboardingDomOnlyDetail:
+    '通信メタデータは観測しません。ページ上の限定的な操作・表示変化の観測は継続します。',
+  pauseObservation: '今は観測を開始しない',
+  onboardingPausedDetail: '観測を開始せず、拡張機能を休止状態にします。あとから設定できます。',
   permissionMeaning:
     '権限の付与は、ConnectBitsによるすべての判断への同意ではなく、観測された通信の安全性や妥当性が確認されたことも意味しません。',
   onboardingComplete:
     '導入確認が完了しました。対象ページを再読み込みすると、現在の設定が確実に反映されます。',
   openObservationLog: '観測ログを開く',
-  openSetupAfter: '設置とプライバシーを開く',
+  openSetupAfter: '設定とプライバシーを開く',
   statusSaved: '設定を保存しました。',
   statusSavedReload: '設定を保存しました。対象ページの再読み込み後に確実に反映されます。',
   statusMaxSaved: 'MAX報告モードを保存しました。対象ページの再読み込み後に反映されます。',
   statusPermissionDenied: '通信開始メタデータ観測の権限が付与されなかったため、無効のままです。',
+  statusPermissionError:
+    '任意のwebRequest権限を変更できませんでした。権限状態を保ったまま、選択の保存を中止しました。',
+  statusObservationStandard:
+    '標準設定を保存しました。ページ上の限定観測と通信メタデータ観測を行います。',
+  statusObservationDomOnly:
+    '選択を変更し、任意のwebRequest権限を撤回しました。ページ上の限定観測は継続します。',
+  statusObservationPaused:
+    '選択を変更し、任意のwebRequest権限を撤回しました。現在、観測は停止しています。',
   statusNetworkEnabled:
     '設定を保存しました。通信本文、URL path/query、ヘッダー値は保存しません。対象ページの再読み込み後に確実に反映されます。',
   statusNetworkDisabled:
@@ -279,7 +304,7 @@ const EN_MESSAGES: Record<UiMessageKey, string> = {
   productTagline: 'Return hidden connections as fragments people can judge.',
   projectLineage: 'Developed under DSSI Core A',
   previewLabel: 'Public Preview',
-  navSetup: 'Setup & privacy',
+  navSetup: 'Settings & privacy',
   navLog: 'Observation log',
   navReader: 'Log Reader',
   navSetupReview: 'Review setup',
@@ -303,15 +328,21 @@ const EN_MESSAGES: Record<UiMessageKey, string> = {
   recentEmpty: 'No input-surface observations yet.',
   openLog: 'Open observation log',
   openReader: 'Read an exported log',
-  openSetup: 'Setup & privacy',
-  setupTitle: 'Setup & privacy',
+  openSetup: 'Settings & privacy',
+  setupTitle: 'Settings & privacy',
   setupIntro:
     'ConnectBits does not store input text, passwords, payment numbers, clipboard content, or network payloads. It stores settings and observation metadata that excludes those contents.',
   localFunctions: 'Local functions',
+  observationBoundary: 'Observation boundary',
+  observationStandard: 'Standard observation — limited page observation + communication metadata',
+  observationDomOnly: 'No communication metadata — limited page observation only',
+  observationPaused: 'Do not start observation now',
+  observationSelectionHelp:
+    'Removing communication-metadata observation withdraws only the optional webRequest permission. Limited DOM actions and display changes in which the operator participates and can notice continue while limited page observation is selected. “Do not start observation now” stops both layers.',
   localClassification: 'Local surface classification',
   networkObservation: 'Supplementary request-start metadata observation (optional permission)',
   networkObservationExplanation:
-    'Only when enabled, ConnectBits requests the webRequest permission and additional access to HTTP/HTTPS sites. Standard mode records selected requests near a trusted content edit or standard-form submission action. MAX also records selected requests for which no correlatable user action was observed. Network payloads are not requested or collected, and URL paths, queries, and fragments are not stored. Request headers are used transiently only to detect the presence of a Cookie header; values are not stored or displayed.',
+    'ConnectBits requests the optional webRequest permission only when standard observation is selected. Standard mode records selected requests near a trusted content edit or standard-form submission action. MAX also records selected requests for which no correlatable user action was observed. Network payloads are not requested or collected, and URL paths, queries, and fragments are not stored. Request headers are used transiently only to detect the presence of a Cookie header; values are not stored or displayed.',
   maxScopeExplanation:
     'MAX does not increase permissions or collected content. It increases the amount of diagnostic information and explanations about observed, reduced, intentionally excluded, currently unobservable, and unknown areas.',
   chipPosition: 'Chip and pulse position',
@@ -483,9 +514,11 @@ const EN_MESSAGES: Record<UiMessageKey, string> = {
   onboardingStep1Body:
     'ConnectBits makes selected browser input surfaces, submission actions, and request-start metadata visible so that users can retain conditions for their own judgment. It does not automatically determine safety, purpose, necessity, or legality.',
   onboardingStep2Title: 'Observed and excluded information',
-  onboardingObserveHeading: 'Observed',
-  onboardingObserve1: 'Selected DOM events on a page',
-  onboardingObserve2: 'Request-start metadata exposed by the browser',
+  onboardingObserveHeading: 'Observed according to your selection',
+  onboardingObserve1:
+    'Limited DOM events on a page, such as input start, paste, and standard-form submission actions; input content is not collected',
+  onboardingObserve2:
+    'Request-start metadata exposed by the browser, only when the optional permission is granted',
   onboardingObserve3: 'Presence of a Cookie header; values are not collected',
   onboardingObserve4:
     'Origin relation between the page and destination, and temporal proximity to selected actions',
@@ -516,20 +549,40 @@ const EN_MESSAGES: Record<UiMessageKey, string> = {
     'I reviewed that ConnectBits itself does not externally transmit or disclose observation logs.',
   ackJudgment: 'I reviewed that ConnectBits does not determine communication purpose or danger.',
   ackSupport: 'I reviewed the limits of support and response.',
-  ackDecision: 'Based on the conditions currently presented, I choose to begin using ConnectBits.',
-  allowNetwork: 'Allow network-observation permission within the described scope',
-  startLocalOnly: 'Start without network-observation permission',
+  ackDecision:
+    'I reviewed that I can choose one of three observation boundaries and change it later.',
+  onboardingChoiceIntro: 'Choose an observation method',
+  onboardingChangeable: 'You can change this choice at any time.',
+  onboardingCoverageAfter:
+    'After setup, Settings & Privacy shows what is observed, what is not currently observed, what is excluded by settings, and what the current mechanism cannot observe.',
+  allowNetwork: 'Start with standard observation',
+  onboardingStandardDetail:
+    'Starts limited page observation and communication-metadata observation such as destination and HTTP method.',
+  startLocalOnly: 'Start without communication-metadata observation',
+  onboardingDomOnlyDetail:
+    'Communication metadata is not observed. Limited observation of page actions and display changes continues.',
+  pauseObservation: 'Do not start observation now',
+  onboardingPausedDetail:
+    'Keeps the extension installed with observation paused. You can choose later in settings.',
   permissionMeaning:
     'Granting permission is not consent to every judgment by ConnectBits and does not establish that observed communication is safe or appropriate.',
   onboardingComplete:
     'Setup review is complete. Reload eligible pages to apply the current settings reliably.',
   openObservationLog: 'Open observation log',
-  openSetupAfter: 'Open setup & privacy',
+  openSetupAfter: 'Open settings & privacy',
   statusSaved: 'Settings saved.',
   statusSavedReload: 'Settings saved. Reload eligible pages to apply them reliably.',
   statusMaxSaved: 'MAX reporting mode saved. Reload eligible pages to apply it.',
   statusPermissionDenied:
     'The request-start metadata permission was not granted, so it remains disabled.',
+  statusPermissionError:
+    'The optional webRequest permission could not be changed. The choice was not saved and the existing permission state was preserved.',
+  statusObservationStandard:
+    'Standard observation saved. Limited page observation and communication-metadata observation are active.',
+  statusObservationDomOnly:
+    'Choice changed and the optional webRequest permission was withdrawn. Limited page observation continues.',
+  statusObservationPaused:
+    'Choice changed and the optional webRequest permission was withdrawn. Observation is currently paused.',
   statusNetworkEnabled:
     'Settings saved. Network payloads, URL paths/queries, and header values are not stored. Reload eligible pages to apply the settings reliably.',
   statusNetworkDisabled:

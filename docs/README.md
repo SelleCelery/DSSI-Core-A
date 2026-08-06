@@ -19,16 +19,18 @@
 
 ## 現行の設計・運用文書
 
-| 役割       | 文書                                                                          |
-| ---------- | ----------------------------------------------------------------------------- |
-| 設計原則   | [DSSI Core A設計原則](./DSSI_Core_A_Architectural_Design_Principles.ja.md)    |
-| 運用語彙   | [DSSI Core A運用用語集](./DSSI_Core_A_Operational_Glossary.ja.md)             |
-| データ境界 | [データライフサイクルとパージ境界](./DATA_LIFECYCLE_AND_PURGE_BOUNDARY.ja.md) |
-| 権限方針   | [Permission Strategy](./PERMISSION_STRATEGY.md)                               |
-| 公開前検査 | [理念・コード境界整合チェックリスト](./BOUNDARY_ALIGNMENT_CHECKLIST.ja.md)    |
-| コード読解 | [開発者コード読解マップ](./DEVELOPER_CODE_READING_MAP.ja.md)                  |
-| UI語彙     | [UI文言・内部値対応表](./UI_MESSAGE_MAP.ja.md)                                |
-| UI観察     | [UI運用観察票](./UI_OBSERVATION_BACKLOG.ja.md)                                |
+| 役割       | 文書                                                                                                  |
+| ---------- | ----------------------------------------------------------------------------------------------------- |
+| 設計原則   | [DSSI Core A設計原則](./DSSI_Core_A_Architectural_Design_Principles.ja.md)                            |
+| 運用語彙   | [DSSI Core A運用用語集](./DSSI_Core_A_Operational_Glossary.ja.md)                                     |
+| データ境界 | [データライフサイクルとパージ境界](./DATA_LIFECYCLE_AND_PURGE_BOUNDARY.ja.md)                         |
+| 権限方針   | [Permission Strategy](./PERMISSION_STRATEGY.md)                                                       |
+| 公開前検査 | [理念・コード境界整合チェックリスト](./BOUNDARY_ALIGNMENT_CHECKLIST.ja.md)                            |
+| コード読解 | [開発者コード読解マップ](./DEVELOPER_CODE_READING_MAP.ja.md)                                          |
+| UI語彙     | [UI文言・内部値対応表](./UI_MESSAGE_MAP.ja.md)                                                        |
+| UI観察     | [UI運用観察票](./UI_OBSERVATION_BACKLOG.ja.md)                                                        |
+| 導入境界   | [観測境界の選択・確認・撤回 実装ガイド](./OBSERVATION_BOUNDARY_ONBOARDING_IMPLEMENTATION_GUIDE.ja.md) |
+| 導入検証   | [観測境界導入フロー検証報告](./OBSERVATION_BOUNDARY_ONBOARDING_VALIDATION_REPORT.ja.md)               |
 
 ## 製品仕様
 

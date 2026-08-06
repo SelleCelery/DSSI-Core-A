@@ -1,6 +1,6 @@
 # ADR-0002: Optional `webRequest` Metadata Observation
 
-- Status: Accepted for Sprint 3 development baseline
+- Status: Accepted for Sprint 3; permission request amended during installer hardening
 - Version: 0.4.1
 
 ## Context
@@ -13,7 +13,9 @@ Chrome Manifest V3 provides non-blocking `webRequest` observation. The capabilit
 
 ## Decision
 
-Use optional `webRequest` and optional HTTP/HTTPS host permissions.
+Use optional `webRequest` with matching HTTP/HTTPS page scope.
+
+Installer-hardening amendment: the HTTP/HTTPS scope is already required by `content_scripts.matches` for the separate limited DOM-observation layer. It must not be duplicated in `optional_host_permissions` or included in the object passed to `chrome.permissions.remove`. The request-and-removal object therefore contains only `webRequest`.
 
 Register a non-blocking `onBeforeSendHeaders` listener only after permission is granted. Observe only the following resource classes in Sprint 3:
 
@@ -40,7 +42,7 @@ Only requests within 2500ms of a trusted content-edit pulse in the same tab and 
 
 - Page JavaScript is not monkeypatched.
 - Network observation is opt-in.
-- Base installation keeps only the storage permission.
+- The Permissions API request-and-removal boundary contains only optional `webRequest`.
 - Request bodies are not requested. Request-header values are not used or persisted by DSSI logic.
 - Observation terminology can distinguish DOM events from browser network API events.
 
@@ -53,7 +55,7 @@ Only requests within 2500ms of a trusted content-edit pulse in the same tab and 
 - Requests outside the correlation window are not logged as content-edit-near activity.
 - Service Worker or extension-originated requests may not correlate to a page frame and are excluded.
 - Absence of a record does not prove absence of communication.
-- A broad optional host permission remains a trust and distribution concern.
+- The broad required content-script host scope remains a trust and distribution concern.
 - `not_detected` means only that the `Cookie` header name was absent from the header collection Chrome exposed; it does not prove Cookie absence.
 - `extraHeaders` increases the sensitivity and potential performance cost of the optional capability and must be reviewed before distribution.
 - Page-observation timing is recorded only as a neutral elapsed-time category and does not classify authentication or initialization purpose.

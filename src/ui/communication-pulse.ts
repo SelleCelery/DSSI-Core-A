@@ -1,4 +1,8 @@
-import { isFactChipPosition } from '../core/fact-chip-position';
+import {
+  factChipPositionLabel,
+  isFactChipPosition,
+  nextFactChipPosition,
+} from '../core/fact-chip-position';
 import {
   communicationPulseAriaLabel,
   communicationPulseFromNetwork,
@@ -226,6 +230,7 @@ function refreshControls(root: ShadowRoot): void {
   const domColor = root.querySelector<HTMLButtonElement>('[data-action="dom-color"]');
   const webRequestColor = root.querySelector<HTMLButtonElement>('[data-action="webrequest-color"]');
   const opacity = root.querySelector<HTMLButtonElement>('[data-action="opacity"]');
+  const move = root.querySelector<HTMLButtonElement>('[data-action="move"]');
   const pin = root.querySelector<HTMLButtonElement>('[data-action="pin"]');
   const host = root.host instanceof HTMLDivElement ? root.host : undefined;
 
@@ -299,6 +304,16 @@ function refreshControls(root: ShadowRoot): void {
       `Communication-pulse opacity: ${Math.round(activePulseVisualState.opacity * 100)}% (change for this page)`,
     );
     opacity.setAttribute('aria-label', opacity.title);
+  }
+  if (activePulseVisualState && move) {
+    move.textContent = '↻';
+    const next = nextFactChipPosition(activePulseVisualState.position);
+    move.title = localized(
+      language,
+      `通信パルスコンソールを${factChipPositionLabel(next, 'ja')}へ移動`,
+      `Move the communication-pulse console to ${factChipPositionLabel(next, 'en')}`,
+    );
+    move.setAttribute('aria-label', move.title);
   }
   if (activePulseVisualState && pin) {
     pin.replaceChildren(pinIcon(activePulseVisualState.savedProfile));
@@ -662,6 +677,28 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
     markTemporaryChange(root);
   });
 
+  const move = button(
+    '↻',
+    localized(
+      options.language,
+      '通信パルスコンソールを時計回りに移動',
+      'Move the communication-pulse console clockwise',
+    ),
+  );
+  move.dataset.action = 'move';
+  move.addEventListener('click', () => {
+    const visual = ensureActivePulseVisualState(options);
+    const next = nextFactChipPosition(visual.position);
+    visual.position = next;
+    applyPulseHostPosition(host, next);
+    window.dispatchEvent(
+      new CustomEvent('dssi-core-a-chip-position-changed', {
+        detail: next,
+      }),
+    );
+    markTemporaryChange(root);
+  });
+
   const pin = button(
     '',
     localized(
@@ -698,7 +735,7 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   });
 
   const reset = button(
-    '↺',
+    '⌫',
     localized(
       options.language,
       'このホストの表示設定を解除し、全体設定へ戻す',
@@ -746,7 +783,18 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
       });
   });
 
-  controls.append(pause, clear, visibility, text, domColor, webRequestColor, opacity, pin, reset);
+  controls.append(
+    pause,
+    clear,
+    visibility,
+    text,
+    domColor,
+    webRequestColor,
+    opacity,
+    move,
+    pin,
+    reset,
+  );
 
   const stream = document.createElement('div');
   stream.className = 'stream';
@@ -799,6 +847,16 @@ export class CommunicationPulsePresenter {
         }
       }
     });
+  }
+
+  public setEnabled(enabled: boolean): void {
+    this.#options.enabled = enabled;
+    const host = document.getElementById(HOST_ID);
+    if (!enabled) {
+      host?.remove();
+      return;
+    }
+    ensureHost({ ...this.#options, position: this.#position });
   }
 
   public showNetwork(descriptor: NetworkDescriptor): void {

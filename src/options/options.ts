@@ -5,9 +5,18 @@ import type {
   CommunicationPulseOpacity,
   CommunicationPulseSize,
   FactChipPosition,
+  ObservationSelection,
   ReportingMode,
 } from '../core/models/settings';
-import { NETWORK_PERMISSION_REQUEST } from '../core/network-permission';
+import {
+  observationSelectionFromSettings,
+  settingsForObservationSelection,
+} from '../core/models/settings';
+import {
+  NETWORK_METADATA_PERMISSION_REQUEST,
+  hasNetworkMetadataPermission,
+  removeNetworkMetadataPermission,
+} from '../core/network-permission';
 import {
   applyDocumentTranslations,
   browserUiLanguage,
@@ -17,11 +26,12 @@ import {
   type UiLanguageSetting,
 } from '../i18n/ui';
 import { loadSettings, saveSettings } from '../storage/settings-store';
+import { updateOnboardingSelection } from '../storage/onboarding-store';
 import { renderCoverageManifest } from '../ui/coverage-renderer';
 import { requiredElement } from '../ui/required-element';
 
 const localClassification = requiredElement<HTMLInputElement>('#localClassificationEnabled');
-const networkObservation = requiredElement<HTMLInputElement>('#networkObservationEnabled');
+const observationSelection = requiredElement<HTMLSelectElement>('#observationSelection');
 const reportingMode = requiredElement<HTMLSelectElement>('#reportingMode');
 const factChipPosition = requiredElement<HTMLSelectElement>('#factChipPosition');
 const communicationPulseEnabled = requiredElement<HTMLInputElement>('#communicationPulseEnabled');
@@ -54,7 +64,11 @@ const pulseGuideDialog = requiredElement<HTMLDialogElement>('#pulseGuideDialog')
 let language: UiLanguage = 'ja';
 
 async function hasNetworkPermission(): Promise<boolean> {
-  return chrome.permissions.contains(NETWORK_PERMISSION_REQUEST);
+  return hasNetworkMetadataPermission();
+}
+
+function asObservationSelection(value: string): ObservationSelection {
+  return value === 'standard' || value === 'paused' ? value : 'dom_only';
 }
 
 function asReportingMode(value: string): ReportingMode {
@@ -132,6 +146,7 @@ async function renderCoverage(): Promise<void> {
     coverageBody,
     buildCoverageManifest(
       {
+        observationEnabled: settings.enabled,
         networkObservationEnabled: settings.networkObservationEnabled,
         networkPermissionGranted: permissionGranted,
       },
@@ -146,7 +161,7 @@ async function refresh(): Promise<void> {
   uiLanguage.value = settings.uiLanguage;
   applyLanguage(resolveUiLanguage(settings.uiLanguage, browserUiLanguage()));
   localClassification.checked = settings.localClassificationEnabled;
-  networkObservation.checked = settings.networkObservationEnabled && permissionGranted;
+  observationSelection.value = observationSelectionFromSettings(settings, permissionGranted);
   reportingMode.value = settings.reportingMode;
   factChipPosition.value = settings.factChipPosition;
   communicationPulseEnabled.checked = settings.communicationPulseEnabled;
@@ -158,55 +173,70 @@ async function refresh(): Promise<void> {
   communicationPulseOpacity.value = String(settings.communicationPulseOpacity);
 
   if (settings.networkObservationEnabled && !permissionGranted) {
-    await saveSettings({ ...settings, networkObservationEnabled: false });
+    await saveSettings(settingsForObservationSelection(settings, 'dom_only'));
+    observationSelection.value = 'dom_only';
   }
 
   await renderCoverage();
 }
 
 save.addEventListener('click', () => {
-  const wantsNetworkObservation = networkObservation.checked;
+  const selectedObservation = asObservationSelection(observationSelection.value);
+  const wantsNetworkObservation = selectedObservation === 'standard';
 
   // Optional permission requests must begin directly from the user gesture.
   const permissionOperation = wantsNetworkObservation
-    ? chrome.permissions.request(NETWORK_PERMISSION_REQUEST)
-    : chrome.permissions.remove(NETWORK_PERMISSION_REQUEST).then(() => false);
+    ? chrome.permissions.request(NETWORK_METADATA_PERMISSION_REQUEST)
+    : removeNetworkMetadataPermission().then((removed) => {
+        if (!removed) throw new Error('network metadata permission was not removed');
+        return false;
+      });
 
-  void permissionOperation.then(async (networkEnabled: boolean) => {
-    const current = await loadSettings();
-    const languageSetting = asUiLanguageSetting(uiLanguage.value);
+  void permissionOperation
+    .then(async (networkEnabled: boolean) => {
+      if (wantsNetworkObservation && !networkEnabled) {
+        status.textContent = t(language, 'statusPermissionDenied');
+        await refresh();
+        return;
+      }
 
-    if (wantsNetworkObservation && !networkEnabled) {
-      networkObservation.checked = false;
-      status.textContent = t(language, 'statusPermissionDenied');
-    }
+      const current = await loadSettings();
+      const languageSetting = asUiLanguageSetting(uiLanguage.value);
+      const selectionSettings = settingsForObservationSelection(current, selectedObservation);
+      await saveSettings({
+        ...selectionSettings,
+        localClassificationEnabled: localClassification.checked,
+        reportingMode: asReportingMode(reportingMode.value),
+        factChipPosition: asFactChipPosition(factChipPosition.value),
+        communicationPulseEnabled: communicationPulseEnabled.checked,
+        communicationTextChipEnabled: communicationTextChipEnabled.checked,
+        communicationPulseDurationMs: asCommunicationPulseDuration(
+          communicationPulseDuration.value,
+        ),
+        communicationPulseSize: asCommunicationPulseSize(communicationPulseSize.value),
+        communicationPulseDomColor: asCommunicationPulseColor(communicationPulseDomColor.value),
+        communicationPulseWebRequestColor: asCommunicationPulseColor(
+          communicationPulseWebRequestColor.value,
+        ),
+        communicationPulseOpacity: asCommunicationPulseOpacity(communicationPulseOpacity.value),
+        uiLanguage: languageSetting,
+      });
+      await updateOnboardingSelection(selectedObservation);
 
-    await saveSettings({
-      ...current,
-      localClassificationEnabled: localClassification.checked,
-      networkObservationEnabled: networkEnabled,
-      reportingMode: asReportingMode(reportingMode.value),
-      factChipPosition: asFactChipPosition(factChipPosition.value),
-      communicationPulseEnabled: communicationPulseEnabled.checked,
-      communicationTextChipEnabled: communicationTextChipEnabled.checked,
-      communicationPulseDurationMs: asCommunicationPulseDuration(communicationPulseDuration.value),
-      communicationPulseSize: asCommunicationPulseSize(communicationPulseSize.value),
-      communicationPulseDomColor: asCommunicationPulseColor(communicationPulseDomColor.value),
-      communicationPulseWebRequestColor: asCommunicationPulseColor(
-        communicationPulseWebRequestColor.value,
-      ),
-      communicationPulseOpacity: asCommunicationPulseOpacity(communicationPulseOpacity.value),
-      uiLanguage: languageSetting,
+      applyLanguage(resolveUiLanguage(languageSetting, browserUiLanguage()));
+      status.textContent = t(
+        language,
+        selectedObservation === 'standard'
+          ? 'statusObservationStandard'
+          : selectedObservation === 'dom_only'
+            ? 'statusObservationDomOnly'
+            : 'statusObservationPaused',
+      );
+      await renderCoverage();
+    })
+    .catch(() => {
+      status.textContent = t(language, 'statusPermissionError');
     });
-
-    applyLanguage(resolveUiLanguage(languageSetting, browserUiLanguage()));
-    if (networkEnabled) {
-      status.textContent = t(language, 'statusNetworkEnabled');
-    } else if (!wantsNetworkObservation) {
-      status.textContent = t(language, 'statusNetworkDisabled');
-    }
-    await renderCoverage();
-  });
 });
 
 uiLanguage.addEventListener('change', () => {

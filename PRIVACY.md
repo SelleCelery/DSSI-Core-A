@@ -51,7 +51,7 @@ For an unclassified input surface, DSSI may retain only limited structural metad
 
 Sprint 3 distinguishes transient raw evidence from retained metadata. Structural strings used for input classification remain local to the classification call and do not enter the observation record.
 
-Optional communication-metadata observation uses Chrome `webRequest` only after the user grants the optional permission and matching HTTP/HTTPS host access. Request-body access is not requested.
+Optional communication-metadata observation uses Chrome `webRequest` only after the user selects standard observation and grants that optional permission. The HTTP/HTTPS page scope is required for the separate limited DOM-observation layer and is never passed to optional-permission removal. Request-body access is not requested.
 
 Sprint 3.1 uses the send-header observation phase because Chrome exposes the `Cookie` header only through request-header observation with the additional header view. The callback object may therefore contain header values before DSSI code receives it. DSSI logic reads only each header name, reduces the result to `detected`, `not_detected`, `not_observed`, or `unavailable`, and does not copy, classify, log, display, or persist header values.
 
@@ -80,6 +80,7 @@ The Coverage Manifest separates:
 
 - observed facts
 - facts observed and immediately reduced
+- areas not currently observed because of the user's present selection or permission state
 - technically reachable areas deliberately not connected because of privacy or permission boundaries
 - areas not observable through the current browser and extension architecture
 - unknown residual not guaranteed to be exhaustively listed
@@ -110,7 +111,7 @@ After download, exported files are outside `chrome.storage.session` and inside t
 
 ConnectBits v0.5 adds Japanese and English interface text, a first-run local setup review, and a local read-only Log Reader. These additions do not add observation permissions or new data sources.
 
-The first-run review stores the displayed-language preference, the current acknowledgement state after completion, completion time, and whether optional network observation was enabled. These values remain in `chrome.storage.local`. They are not sent to the developer or an external service. The review is not treated as blanket consent to undisclosed future purposes. Material changes to purpose, storage, external transmission, or required permissions require a new review boundary.
+The first-run review stores the displayed-language preference, the current acknowledgement state after completion, completion time, last selection-change time, and one of three observation selections: standard observation, limited page observation without communication metadata, or observation paused. These values remain in `chrome.storage.local`. They are not sent to the developer or an external service. The review is not treated as blanket consent to undisclosed future purposes. The selection can be changed later, including withdrawal of the optional `webRequest` permission. Material changes to purpose, storage, external transmission, or required permissions require a new review boundary.
 
 The Log Reader accepts a JSON file selected explicitly by the user. It parses and displays that file locally, does not send it to a server, does not automatically save a copy, and does not write back to the selected file. Sorting, filtering, grouping, and observation tips are derived display operations. Observation tips list general technical possibilities and do not establish the actual purpose of an observed site.
 

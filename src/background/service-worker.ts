@@ -9,7 +9,7 @@ import { effectiveCueLevel, type DssiSettings, type ViscosityLevel } from '../co
 import { detectCookieHeader } from '../core/cookie-header-detection';
 import { isPrivacySafeInputActivityPulse } from '../core/input-activity-pulse';
 import { analyzeNetworkRequest } from '../core/network-analyzer';
-import { NETWORK_PERMISSION_REQUEST } from '../core/network-permission';
+import { NETWORK_METADATA_PERMISSION_REQUEST } from '../core/network-permission';
 import { classifyPageObservationTiming } from '../core/page-observation-timing';
 import {
   NETWORK_REQUEST_HEADER_EXTRA_INFO_SPEC,
@@ -27,6 +27,7 @@ import { isPrivacySafeUserActionPulse } from '../core/user-action-pulse';
 import { ensureDefaultSettings, loadSettings, saveSettings } from '../storage/settings-store';
 import { captureObservationSettingsSnapshot } from '../storage/settings-snapshot-store';
 import { invalidateHostDisplayProfileCache } from '../storage/host-display-profile-store';
+import { onboardingCompleted } from '../storage/onboarding-store';
 import {
   appendSessionRecord,
   clearSessionRecords,
@@ -112,9 +113,10 @@ const recentNetworkRecords = new Map<string, number>();
 let settingsPromise = loadSettings();
 
 chrome.runtime.onInstalled.addListener((details) => {
-  void ensureDefaultSettings().then(() => {
-    if (details.reason !== 'install') return;
-    void chrome.tabs.create({ url: chrome.runtime.getURL('onboarding.html') });
+  void ensureDefaultSettings().then(async () => {
+    const needsReview = details.reason === 'install' || !(await onboardingCompleted());
+    if (!needsReview) return;
+    await chrome.tabs.create({ url: chrome.runtime.getURL('onboarding.html') });
   });
 });
 
@@ -396,7 +398,7 @@ type OnBeforeSendHeadersDetails = Parameters<OnBeforeSendHeadersListener>[0];
 
 async function handleNetworkRequestHeaders(details: OnBeforeSendHeadersDetails): Promise<void> {
   const settings = await settingsPromise;
-  if (!settings.networkObservationEnabled) return;
+  if (!settings.enabled || !settings.networkObservationEnabled) return;
   if (details.tabId < 0 || details.frameId < 0) return;
 
   const now = Date.now();
@@ -506,7 +508,7 @@ function unregisterNetworkListener(): void {
 }
 
 async function syncNetworkListener(): Promise<boolean> {
-  const granted = await chrome.permissions.contains(NETWORK_PERMISSION_REQUEST);
+  const granted = await chrome.permissions.contains(NETWORK_METADATA_PERMISSION_REQUEST);
   if (granted) registerNetworkListener();
   else unregisterNetworkListener();
   return granted;
@@ -525,13 +527,24 @@ chrome.runtime.onMessage.addListener(
         sendResponse({ ok: false });
         return false;
       }
+      const tabId = sender.tab.id;
 
-      recentInputByFrame.set(frameKey(sender.tab.id, sender.frameId ?? 0), {
-        ...message.pulse,
-        ...(sender.documentId === undefined ? {} : { documentId: sender.documentId }),
-      });
-      sendResponse({ ok: true });
-      return false;
+      void settingsPromise
+        .then((settings) => {
+          if (!settings.enabled) {
+            sendResponse({ ok: false, reason: 'observation-paused' });
+            return;
+          }
+          recentInputByFrame.set(frameKey(tabId, sender.frameId ?? 0), {
+            ...message.pulse,
+            ...(sender.documentId === undefined ? {} : { documentId: sender.documentId }),
+          });
+          sendResponse({ ok: true });
+        })
+        .catch(() => {
+          sendResponse({ ok: false, reason: 'settings-unavailable' });
+        });
+      return true;
     }
 
     if (message.type === 'DSSI_USER_ACTION_PULSE') {
@@ -539,44 +552,66 @@ chrome.runtime.onMessage.addListener(
         sendResponse({ ok: false });
         return false;
       }
+      const tabId = sender.tab.id;
 
-      recentActionByFrame.set(frameKey(sender.tab.id, sender.frameId ?? 0), {
-        ...message.pulse,
-        ...(sender.documentId === undefined ? {} : { documentId: sender.documentId }),
-      });
-      sendResponse({ ok: true });
-      return false;
+      void settingsPromise
+        .then((settings) => {
+          if (!settings.enabled) {
+            sendResponse({ ok: false, reason: 'observation-paused' });
+            return;
+          }
+          recentActionByFrame.set(frameKey(tabId, sender.frameId ?? 0), {
+            ...message.pulse,
+            ...(sender.documentId === undefined ? {} : { documentId: sender.documentId }),
+          });
+          sendResponse({ ok: true });
+        })
+        .catch(() => {
+          sendResponse({ ok: false, reason: 'settings-unavailable' });
+        });
+      return true;
     }
 
     if (message.type === 'DSSI_OBSERVATION_RECORD') {
       try {
         const boundaryChecked = createPrivacySafeRecord(message.record);
-        const enriched = createPrivacySafeRecord(enrichFrameContext(boundaryChecked, sender));
-
-        if (enriched.triggerType === 'page_observation_started') {
-          rememberPageObservationStart(enriched, sender);
-        }
-
-        // Subframe initialization is extremely noisy on real pages. Keep actual
-        // subframe interactions, but suppress page-start-only records.
-        if (
-          enriched.frameType === 'iframe' &&
-          enriched.triggerType === 'page_observation_started'
-        ) {
-          sendResponse({ ok: true, suppressed: true });
-          return false;
-        }
-
-        if (shouldSuppressTopPageStart(enriched, sender)) {
-          sendResponse({ ok: true, suppressed: true, reason: 'duplicate-page-start' });
-          return false;
-        }
-
         void settingsPromise
-          .then((settings) => attachSettingsSnapshot(enriched, settings))
-          .then((record) => appendSessionRecord(record))
-          .then(() => sendResponse({ ok: true }))
-          .catch(() => sendResponse({ ok: false }));
+          .then(async (settings) => {
+            if (!settings.enabled) {
+              sendResponse({ ok: false, reason: 'observation-paused' });
+              return;
+            }
+            const enriched = createPrivacySafeRecord(enrichFrameContext(boundaryChecked, sender));
+
+            if (enriched.triggerType === 'page_observation_started') {
+              rememberPageObservationStart(enriched, sender);
+            }
+
+            // Subframe initialization is extremely noisy on real pages. Keep actual
+            // subframe interactions, but suppress page-start-only records.
+            if (
+              enriched.frameType === 'iframe' &&
+              enriched.triggerType === 'page_observation_started'
+            ) {
+              sendResponse({ ok: true, suppressed: true });
+              return;
+            }
+
+            if (shouldSuppressTopPageStart(enriched, sender)) {
+              sendResponse({ ok: true, suppressed: true, reason: 'duplicate-page-start' });
+              return;
+            }
+
+            const record = await attachSettingsSnapshot(enriched, settings);
+            await appendSessionRecord(record);
+            sendResponse({ ok: true });
+          })
+          .catch((error: unknown) =>
+            sendResponse({
+              ok: false,
+              reason: error instanceof Error ? error.message : 'observation-failed',
+            }),
+          );
         return true;
       } catch {
         sendResponse({ ok: false, reason: 'privacy-boundary-rejected' });

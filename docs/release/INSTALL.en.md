@@ -20,12 +20,13 @@ Extract the ZIP to a local working directory. Runtime packages do not include `n
 5. Select the directory that contains `manifest.json` at its root.
 6. ConnectBits opens its local setup and permission review in a new tab.
 7. Review what is observed, what is excluded, storage, external transmission, judgment boundaries, and support limits.
-8. Choose either:
-   - allow network-observation permission within the described scope; or
-   - start without network-observation permission.
+8. After reviewing the explanation, choose one of the following:
+   - start with standard observation;
+   - start without communication-metadata observation; or
+   - do not start observation now.
 9. Reload pages that were already open.
 
-Declining the optional network-observation permission is a normal installation path. It can be changed later under **Setup & privacy**.
+Starting without communication metadata and leaving observation paused are normal setup paths. This choice can be changed at any time under **Settings & privacy**. Removing communication-metadata observation withdraws only the optional `webRequest` permission; limited page observation continues when that path remains selected.
 
 ## 3. Updating
 

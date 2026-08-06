@@ -1,5 +1,6 @@
 import type { ObservationLogRecord } from '../core/models/observation';
-import type { ReportingMode } from '../core/models/settings';
+import { settingsForObservationSelection, type ReportingMode } from '../core/models/settings';
+import { removeNetworkMetadataPermission } from '../core/network-permission';
 import {
   isUserInputObservation,
   observationActionLabel,
@@ -13,6 +14,7 @@ import {
   type UiLanguage,
 } from '../i18n/ui';
 import { loadSettings, saveSettings } from '../storage/settings-store';
+import { updateOnboardingSelection } from '../storage/onboarding-store';
 import { getSessionRecords } from '../storage/session-buffer';
 import { requiredElement } from '../ui/required-element';
 
@@ -88,7 +90,6 @@ async function persist(): Promise<void> {
   const current = await loadSettings();
   await saveSettings({
     ...current,
-    enabled: enabled.checked,
     viscosityLevel: Number(viscosity.value) === 3 ? 3 : Number(viscosity.value) === 2 ? 2 : 1,
     reportingMode: asReportingMode(reportingMode.value),
     communicationPulseEnabled: communicationPulseEnabled.checked,
@@ -99,7 +100,27 @@ async function persist(): Promise<void> {
       : t(language, 'statusSaved');
 }
 
-enabled.addEventListener('change', () => void persist());
+async function persistEnabled(): Promise<void> {
+  try {
+    const current = await loadSettings();
+    if (!enabled.checked) {
+      const removed = await removeNetworkMetadataPermission();
+      if (!removed) throw new Error('network metadata permission was not removed');
+      await saveSettings(settingsForObservationSelection(current, 'paused'));
+      await updateOnboardingSelection('paused');
+      status.textContent = t(language, 'statusObservationPaused');
+      return;
+    }
+    await saveSettings(settingsForObservationSelection(current, 'dom_only'));
+    await updateOnboardingSelection('dom_only');
+    status.textContent = t(language, 'statusObservationDomOnly');
+  } catch {
+    await refresh();
+    status.textContent = t(language, 'statusPermissionError');
+  }
+}
+
+enabled.addEventListener('change', () => void persistEnabled());
 viscosity.addEventListener('change', () => void persist());
 reportingMode.addEventListener('change', () => void persist());
 communicationPulseEnabled.addEventListener('change', () => void persist());

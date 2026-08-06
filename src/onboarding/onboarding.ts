@@ -1,4 +1,9 @@
-import { NETWORK_PERMISSION_REQUEST } from '../core/network-permission';
+import type { ObservationSelection } from '../core/models/settings';
+import { settingsForObservationSelection } from '../core/models/settings';
+import {
+  NETWORK_METADATA_PERMISSION_REQUEST,
+  removeNetworkMetadataPermission,
+} from '../core/network-permission';
 import {
   browserUiLanguage,
   applyDocumentTranslations,
@@ -24,6 +29,8 @@ const nextStepButton = requiredElement<HTMLButtonElement>('#nextStep');
 const decideLaterButton = requiredElement<HTMLButtonElement>('#decideLater');
 const allowNetworkButton = requiredElement<HTMLButtonElement>('#allowNetwork');
 const startLocalOnlyButton = requiredElement<HTMLButtonElement>('#startLocalOnly');
+const pauseObservationButton = requiredElement<HTMLButtonElement>('#pauseObservation');
+const observationChoices = requiredElement<HTMLElement>('#observationChoices');
 const completion = requiredElement<HTMLElement>('#completion');
 const wizardControls = requiredElement<HTMLElement>('#wizardControls');
 const status = requiredElement<HTMLElement>('#status');
@@ -67,9 +74,12 @@ function renderStep(): void {
   stepLabel.textContent = `${t(language, 'step')} ${currentStep} / 4`;
   previousStepButton.disabled = currentStep === 1;
   nextStepButton.hidden = currentStep === 4;
+  decideLaterButton.hidden = currentStep === 4;
   const complete = onboardingAcknowledgementsComplete(currentAcknowledgements());
+  observationChoices.hidden = !complete;
   allowNetworkButton.disabled = !complete;
   startLocalOnlyButton.disabled = !complete;
+  pauseObservationButton.disabled = !complete;
 }
 
 function applyLanguage(next: UiLanguage): void {
@@ -84,14 +94,16 @@ async function persistLanguage(setting: UiLanguageSetting): Promise<void> {
   applyLanguage(resolveUiLanguage(setting, browserUiLanguage()));
 }
 
-async function complete(networkObservationEnabled: boolean): Promise<void> {
+async function complete(observationSelection: ObservationSelection): Promise<void> {
   const current = await loadSettings();
-  await saveSettings({ ...current, networkObservationEnabled });
+  await saveSettings(settingsForObservationSelection(current, observationSelection));
+  const now = Date.now();
   await saveOnboardingState({
     version: ONBOARDING_VERSION,
-    completedAt: Date.now(),
+    completedAt: now,
+    changedAt: now,
     acknowledgements: currentAcknowledgements(),
-    networkObservationEnabled,
+    observationSelection,
   });
   for (const section of document.querySelectorAll<HTMLElement>('.onboarding-step')) {
     section.hidden = true;
@@ -117,16 +129,38 @@ for (const input of Object.values(acknowledgements)) {
   input.addEventListener('change', renderStep);
 }
 allowNetworkButton.addEventListener('click', () => {
-  void chrome.permissions.request(NETWORK_PERMISSION_REQUEST).then((granted) => {
-    if (!granted) {
-      status.textContent = t(language, 'statusPermissionDenied');
-      return;
-    }
-    void complete(true);
-  });
+  void chrome.permissions
+    .request(NETWORK_METADATA_PERMISSION_REQUEST)
+    .then((granted) => {
+      if (!granted) {
+        status.textContent = t(language, 'statusPermissionDenied');
+        return;
+      }
+      return complete('standard');
+    })
+    .catch(() => {
+      status.textContent = t(language, 'statusPermissionError');
+    });
 });
 startLocalOnlyButton.addEventListener('click', () => {
-  void chrome.permissions.remove(NETWORK_PERMISSION_REQUEST).then(() => complete(false));
+  void removeNetworkMetadataPermission()
+    .then((removed) => {
+      if (!removed) throw new Error('network metadata permission was not removed');
+      return complete('dom_only');
+    })
+    .catch(() => {
+      status.textContent = t(language, 'statusPermissionError');
+    });
+});
+pauseObservationButton.addEventListener('click', () => {
+  void removeNetworkMetadataPermission()
+    .then((removed) => {
+      if (!removed) throw new Error('network metadata permission was not removed');
+      return complete('paused');
+    })
+    .catch(() => {
+      status.textContent = t(language, 'statusPermissionError');
+    });
 });
 openObservationLog.addEventListener('click', () => {
   void chrome.tabs.create({ url: chrome.runtime.getURL('logs.html') });

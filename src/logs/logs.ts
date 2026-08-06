@@ -11,7 +11,7 @@ import {
 } from '../core/log-export';
 import type { ObservationLogRecord } from '../core/models/observation';
 import type { DssiSettings } from '../core/models/settings';
-import { NETWORK_PERMISSION_REQUEST } from '../core/network-permission';
+import { NETWORK_METADATA_PERMISSION_REQUEST } from '../core/network-permission';
 import {
   boundarySourceLabel,
   classificationConfidenceLabel,
@@ -240,7 +240,12 @@ function createStreamGlyph(record: ObservationLogRecord): HTMLSpanElement {
   wrapper.className = 'stream-glyph';
   const descriptor = communicationDescriptorFromRecord(record);
   if (descriptor === null) {
-    wrapper.textContent = '◇';
+    wrapper.textContent = '⋯';
+    wrapper.title = local(
+      '通信methodを持たないページ内観測',
+      'Page observation without a communication method',
+    );
+    wrapper.setAttribute('aria-label', wrapper.title);
     return wrapper;
   }
   const settings = currentSettings;
@@ -480,12 +485,13 @@ async function refresh(): Promise<void> {
 async function showCoverage(): Promise<void> {
   const [settings, permissionGranted] = await Promise.all([
     loadSettings(),
-    chrome.permissions.contains(NETWORK_PERMISSION_REQUEST),
+    chrome.permissions.contains(NETWORK_METADATA_PERMISSION_REQUEST),
   ]);
   renderCoverageManifest(
     coverageDialogBody,
     buildCoverageManifest(
       {
+        observationEnabled: settings.enabled,
         networkObservationEnabled: settings.networkObservationEnabled,
         networkPermissionGranted: permissionGranted,
       },
@@ -543,7 +549,7 @@ async function exportLogs(): Promise<void> {
   const records = tagged.map(({ record }) => record);
   const [settings, permissionGranted] = await Promise.all([
     loadSettings(),
-    chrome.permissions.contains(NETWORK_PERMISSION_REQUEST),
+    chrome.permissions.contains(NETWORK_METADATA_PERMISSION_REQUEST),
   ]);
   const snapshotIds = new Set(
     records
@@ -560,6 +566,7 @@ async function exportLogs(): Promise<void> {
     settingsSnapshots,
     coverageManifest: buildCoverageManifest(
       {
+        observationEnabled: settings.enabled,
         networkObservationEnabled: settings.networkObservationEnabled,
         networkPermissionGranted: permissionGranted,
       },

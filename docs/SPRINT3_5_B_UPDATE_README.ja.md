@@ -30,7 +30,7 @@ npm.cmd run check
 
 1. `chrome://extensions`でConnectBitsを再読み込みする。
 2. 既に開いている検証対象ページを再読み込みする。
-3. ポップアップ、設置とプライバシー、観測ログ、Log Reader、導入説明を確認する。
+3. ポップアップ、設定とプライバシー、観測ログ、Log Reader、導入説明を確認する。
 4. 日本語／英語を切り替える。
 5. JSONログをエクスポートし、Log Readerで再読込する。
 

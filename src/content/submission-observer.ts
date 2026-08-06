@@ -70,6 +70,7 @@ export class SubmissionObserver {
   readonly #pulsePresenter: CommunicationPulsePresenter;
   readonly #pending = new WeakMap<HTMLFormElement, PendingSubmissionCandidate>();
   #networkPulseEnabled: boolean;
+  #enabled: boolean;
 
   public constructor(settings: DssiSettings, sessionId: string, hostProfileApplied: boolean) {
     this.#settings = settings;
@@ -81,14 +82,20 @@ export class SubmissionObserver {
       position: settings.factChipPosition,
       durationMs: settings.communicationPulseDurationMs,
       size: settings.communicationPulseSize,
-      enabled: communicationPulseAvailable(settings),
+      enabled: settings.enabled && communicationPulseAvailable(settings),
       domColor: settings.communicationPulseDomColor,
       webRequestColor: settings.communicationPulseWebRequestColor,
       opacity: settings.communicationPulseOpacity,
       hostProfileApplied,
       language,
     });
+    this.#enabled = settings.enabled;
     this.#networkPulseEnabled = settings.networkObservationEnabled;
+  }
+
+  public setEnabled(enabled: boolean): void {
+    this.#enabled = enabled;
+    this.#pulsePresenter.setEnabled(enabled && communicationPulseAvailable(this.#settings));
   }
 
   public setNetworkObservationEnabled(enabled: boolean): void {
@@ -111,7 +118,7 @@ export class SubmissionObserver {
   }
 
   #sendActionPulse(actionType: UserActionType): void {
-    if (!this.#networkPulseEnabled) return;
+    if (!this.#enabled || !this.#networkPulseEnabled) return;
     void chrome.runtime
       .sendMessage({
         type: 'DSSI_USER_ACTION_PULSE',
@@ -138,6 +145,7 @@ export class SubmissionObserver {
       | 'untrusted_or_unknown',
     confirmed: boolean,
   ): void {
+    if (!this.#enabled) return;
     if (confirmed) this.#pulsePresenter.showSubmission(descriptor);
 
     const cuePresented = this.#shouldPresent(descriptor, confirmed);
@@ -172,6 +180,7 @@ export class SubmissionObserver {
   }
 
   readonly #onSubmit = (event: SubmitEvent): void => {
+    if (!this.#enabled) return;
     const form = resolveFormFromEvent(event);
     if (!form) return;
 
@@ -201,6 +210,7 @@ export class SubmissionObserver {
   };
 
   readonly #onClick = (event: MouseEvent): void => {
+    if (!this.#enabled) return;
     const control = resolveSubmitControl(event);
     if (!control) return;
     const form =
@@ -226,6 +236,7 @@ export class SubmissionObserver {
   };
 
   readonly #onKeyDown = (event: KeyboardEvent): void => {
+    if (!this.#enabled) return;
     if (event.key !== 'Enter' || event.isComposing) return;
     const form = resolveFormFromEvent(event);
     if (!form) return;

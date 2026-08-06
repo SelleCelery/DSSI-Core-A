@@ -3,13 +3,15 @@ import {
   DEFAULT_SETTINGS,
   communicationPulseAvailable,
   effectiveCueLevel,
+  observationSelectionFromSettings,
+  settingsForObservationSelection,
   shouldPresentCommunicationPulse,
 } from '../../src/core/models/settings';
 
 describe('default settings', () => {
   it('starts in silent standard mode with optional analysis disabled', () => {
     expect(DEFAULT_SETTINGS).toEqual({
-      enabled: true,
+      enabled: false,
       viscosityLevel: 1,
       reportingMode: 'standard',
       factChipPosition: 'right',
@@ -26,6 +28,20 @@ describe('default settings', () => {
       persistentHistoryEnabled: false,
       uiLanguage: 'auto',
     });
+  });
+
+  it('maps the three observation choices to distinct DOM and network states', () => {
+    const standard = settingsForObservationSelection({ ...DEFAULT_SETTINGS }, 'standard');
+    const domOnly = settingsForObservationSelection(standard, 'dom_only');
+    const paused = settingsForObservationSelection(standard, 'paused');
+
+    expect(standard).toMatchObject({ enabled: true, networkObservationEnabled: true });
+    expect(domOnly).toMatchObject({ enabled: true, networkObservationEnabled: false });
+    expect(paused).toMatchObject({ enabled: false, networkObservationEnabled: false });
+    expect(observationSelectionFromSettings(standard, true)).toBe('standard');
+    expect(observationSelectionFromSettings(standard, false)).toBe('dom_only');
+    expect(observationSelectionFromSettings(domOnly, false)).toBe('dom_only');
+    expect(observationSelectionFromSettings(paused, false)).toBe('paused');
   });
 
   it('treats MAX as a reporting mode that includes Level 3 cues without creating Level 4', () => {

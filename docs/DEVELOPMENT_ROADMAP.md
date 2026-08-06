@@ -176,6 +176,11 @@ The public-preview installer is not an OS-resident executable. It consists of th
 - [x] exclude source maps from the distributable extension package
 - [ ] complete Chrome/Chromium acceptance tests in a fresh browser profile
 - [ ] verify allow, deny, later-grant, and permission-removal paths in the real browser
+- [x] separate optional `webRequest` removal from required content-script host scope
+- [x] implement review-gated standard / DOM-only / paused onboarding choices
+- [x] expose later choice change and optional-permission withdrawal
+- [x] separate non-communication log glyphs from PUT geometry
+- [x] separate pulse-console move and hostname-profile removal controls
 - [ ] verify update behavior and required reload of already-open tabs
 - [ ] verify the final ZIP and its SHA-256 on Windows
 - [ ] re-run the development dependency audit and adopt upstream fixes when available

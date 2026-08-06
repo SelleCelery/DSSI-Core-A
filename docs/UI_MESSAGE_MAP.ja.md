@@ -20,6 +20,9 @@
 | `cross_origin`                              | 別オリジン                           | Cross-origin                            | 第三者提供・追跡・危険         |
 | `cuePresented = false`                      | 表示対象外                           | Not presentation eligible               | 通信がなかった                 |
 | optional permission granted                 | 通信観測権限：許可済み               | Network-observation permission granted  | 処理の必要性・妥当性へ同意済み |
+| `standard` observation selection            | 標準設定で観測を開始                 | Start with standard observation         | 通信内容まで観測する           |
+| `dom_only` observation selection            | 通信メタデータを観測せず開始         | Start without communication metadata    | すべての観測を停止する         |
+| `paused` observation selection              | 今は観測を開始しない                 | Do not start observation now            | 拡張機能をアンインストールする |
 | `integrity.status = not_provided`           | 完全性保護なし                       | Integrity protection not provided       | 改変された／真正でないと確定   |
 
 ## パルス
@@ -29,11 +32,14 @@
 - 色：観測経路の選択色。危険度ではない。
 - 右上記号：Cookieヘッダー存在状態。値ではない。
 - 左上短線：別オリジン関係。
+- 簡易ログの`⋯`：通信methodを持たないページ内観測。PUTのひし形ではない。
+- 通信パルスコンソールの`↻`：八方向の時計回り移動。
+- 通信パルスコンソールの`⌫`：hostname別表示設定を解除して全体設定へ戻す。
 
 ## 画面階層
 
 - ポップアップ：現在状態と主要導線だけ。
-- 設置とプライバシー：権限、観測境界、表示設定。
+- 設定とプライバシー：権限、観測境界、表示設定。
 - 観測ログ：現在セッションの簡易ストリームを中心に照合。
 - 詳細表：高度な確認として折り畳む。
 - Log Reader：エクスポート済み原記録の読取専用照合。

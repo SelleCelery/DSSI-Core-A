@@ -2,6 +2,7 @@ import type { UiLanguageSetting } from '../../i18n/ui';
 
 export type ViscosityLevel = 1 | 2 | 3;
 export type ReportingMode = 'standard' | 'max_coverage';
+export type ObservationSelection = 'standard' | 'dom_only' | 'paused';
 export type FactChipPosition =
   'top' | 'top_right' | 'right' | 'bottom_right' | 'bottom' | 'bottom_left' | 'left' | 'top_left';
 export type CommunicationPulseDurationMs = 0 | 300 | 700 | 1500 | 3000 | 10000 | 30000 | 60000;
@@ -29,7 +30,7 @@ export interface DssiSettings {
 }
 
 export const DEFAULT_SETTINGS: Readonly<DssiSettings> = Object.freeze({
-  enabled: true,
+  enabled: false,
   viscosityLevel: 1,
   reportingMode: 'standard',
   factChipPosition: 'right',
@@ -46,6 +47,28 @@ export const DEFAULT_SETTINGS: Readonly<DssiSettings> = Object.freeze({
   persistentHistoryEnabled: false,
   uiLanguage: 'auto',
 });
+
+export function observationSelectionFromSettings(
+  settings: Pick<DssiSettings, 'enabled' | 'networkObservationEnabled'>,
+  networkPermissionGranted = true,
+): ObservationSelection {
+  if (!settings.enabled) return 'paused';
+  return settings.networkObservationEnabled && networkPermissionGranted ? 'standard' : 'dom_only';
+}
+
+export function settingsForObservationSelection(
+  settings: DssiSettings,
+  selection: ObservationSelection,
+): DssiSettings {
+  switch (selection) {
+    case 'standard':
+      return { ...settings, enabled: true, networkObservationEnabled: true };
+    case 'dom_only':
+      return { ...settings, enabled: true, networkObservationEnabled: false };
+    case 'paused':
+      return { ...settings, enabled: false, networkObservationEnabled: false };
+  }
+}
 
 export function effectiveCueLevel(
   settings: Pick<DssiSettings, 'viscosityLevel' | 'reportingMode'>,

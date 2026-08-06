@@ -51,10 +51,14 @@
         <h2 data-i18n="onboardingStep2Title">観測するもの・観測しないもの</h2>
         <div class="boundary-columns">
           <section>
-            <h3 data-i18n="onboardingObserveHeading">観測するもの</h3>
+            <h3 data-i18n="onboardingObserveHeading">選択に応じて観測するもの</h3>
             <ul>
-              <li data-i18n="onboardingObserve1">ページ上で発生した一部のDOMイベント</li>
-              <li data-i18n="onboardingObserve2">ブラウザーが提供する通信開始メタデータ</li>
+              <li data-i18n="onboardingObserve1">
+                ページ上の限定的なDOMイベント（入力開始、貼り付け、標準form送信操作など。入力本文は取得しない）
+              </li>
+              <li data-i18n="onboardingObserve2">
+                任意権限を許可した場合だけ、ブラウザーが提供する通信開始メタデータ
+              </li>
               <li data-i18n="onboardingObserve3">Cookieヘッダーの存在検出（値は取得しない）</li>
               <li data-i18n="onboardingObserve4">
                 閲覧中ページと通信先のオリジン関係、操作との時間的近接
@@ -154,21 +158,48 @@
           >
           <label
             ><input id="ackDecision" type="checkbox" /><span data-i18n="ackDecision"
-              >現在提示された条件に基づき、利用を開始すると判断した</span
+              >観測境界を三つから選び、あとから変更できることを確認した</span
             ></label
           >
         </div>
         <p class="small boundary-callout" data-i18n="permissionMeaning">
           権限の付与は、ConnectBitsによるすべての判断への同意ではなく、観測された通信の安全性や妥当性が確認されたことも意味しません。
         </p>
-        <div class="button-row onboarding-choice-row">
-          <button id="allowNetwork" type="button" disabled data-i18n="allowNetwork">
-            説明された範囲で通信観測権限を許可する
-          </button>
-          <button id="startLocalOnly" type="button" disabled data-i18n="startLocalOnly">
-            通信観測権限なしで開始する
-          </button>
-        </div>
+        <section id="observationChoices" class="onboarding-choice-panel" hidden>
+          <h3 data-i18n="onboardingChoiceIntro">観測方法を選択してください</h3>
+          <p class="reversible-choice" data-i18n="onboardingChangeable">
+            いつでもこの選択は変更できます。
+          </p>
+          <div class="onboarding-choice-list">
+            <div class="onboarding-choice-card">
+              <button id="allowNetwork" type="button" disabled data-i18n="allowNetwork">
+                標準設定で観測を開始
+              </button>
+              <p class="small" data-i18n="onboardingStandardDetail">
+                ページ上の限定観測と、通信先やHTTP methodなどの通信メタデータ観測を開始します。
+              </p>
+            </div>
+            <div class="onboarding-choice-card">
+              <button id="startLocalOnly" type="button" disabled data-i18n="startLocalOnly">
+                通信メタデータを観測せず開始
+              </button>
+              <p class="small" data-i18n="onboardingDomOnlyDetail">
+                通信メタデータは観測しません。ページ上の限定的な操作・表示変化の観測は継続します。
+              </p>
+            </div>
+            <div class="onboarding-choice-card">
+              <button id="pauseObservation" type="button" disabled data-i18n="pauseObservation">
+                今は観測を開始しない
+              </button>
+              <p class="small" data-i18n="onboardingPausedDetail">
+                観測を開始せず、拡張機能を休止状態にします。あとから設定できます。
+              </p>
+            </div>
+          </div>
+          <p class="small" data-i18n="onboardingCoverageAfter">
+            何を観測しているか、何を現在観測していないか、何を設定によって観測対象から外しているか、何を仕組み上観測できないかは、導入後に「設定とプライバシー」で確認できます。
+          </p>
+        </section>
       </section>
 
       <section id="completion" class="onboarding-complete" hidden>
@@ -180,7 +211,7 @@
             観測ログを開く
           </button>
           <button id="openSetupAfter" type="button" data-i18n="openSetupAfter">
-            設置とプライバシーを開く
+            設定とプライバシーを開く
           </button>
         </div>
       </section>

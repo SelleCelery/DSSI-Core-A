@@ -55,6 +55,8 @@ export class InputSurfaceObserver {
   readonly #runtime = new WeakMap<Element, SurfaceRuntimeState>();
   #mutationObserver: MutationObserver | undefined;
   #networkPulseEnabled: boolean;
+  #enabled: boolean;
+  #started = false;
 
   public constructor(settings: DssiSettings, sessionId: string) {
     this.#settings = settings;
@@ -63,7 +65,21 @@ export class InputSurfaceObserver {
       settings.factChipPosition,
       resolveUiLanguage(settings.uiLanguage, browserUiLanguage()),
     );
+    this.#enabled = settings.enabled;
     this.#networkPulseEnabled = settings.networkObservationEnabled;
+  }
+
+  public setEnabled(enabled: boolean): void {
+    if (this.#enabled === enabled) return;
+    this.#enabled = enabled;
+    if (!this.#started) return;
+    if (!enabled) {
+      this.#mutationObserver?.disconnect();
+      return;
+    }
+    this.#reportPageStart();
+    this.#registerSurfaces(document);
+    this.#startMutationObservation();
   }
 
   public setNetworkObservationEnabled(enabled: boolean): void {
@@ -71,8 +87,8 @@ export class InputSurfaceObserver {
   }
 
   public start(): void {
-    this.#reportPageStart();
-    this.#registerSurfaces(document);
+    if (this.#started) return;
+    this.#started = true;
 
     document.addEventListener('focusin', this.#onFocusIn, true);
     document.addEventListener('focusout', this.#onFocusOut, true);
@@ -82,6 +98,7 @@ export class InputSurfaceObserver {
     document.addEventListener('input', this.#onInput, true);
 
     this.#mutationObserver = new MutationObserver((mutations) => {
+      if (!this.#enabled) return;
       for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
           if (node instanceof Element) {
@@ -91,7 +108,11 @@ export class InputSurfaceObserver {
       }
     });
 
-    this.#startMutationObservation();
+    if (this.#enabled) {
+      this.#reportPageStart();
+      this.#registerSurfaces(document);
+      this.#startMutationObservation();
+    }
   }
 
   #startMutationObservation(): void {
@@ -104,6 +125,7 @@ export class InputSurfaceObserver {
     document.addEventListener(
       'DOMContentLoaded',
       () => {
+        if (!this.#enabled) return;
         const root = document.documentElement;
         if (root && this.#mutationObserver) {
           this.#registerSurfaces(document);
@@ -164,6 +186,7 @@ export class InputSurfaceObserver {
     inputOrigin?: InputOrigin,
     observationScope: ObservationScope = 'input_surface_and_dom_events',
   ): void {
+    if (!this.#enabled) return;
     const descriptor = describeInputSurface(surface);
     const classification = classifyInputSurface(descriptor);
     this.#knownSurfaces.add(surface);
@@ -198,7 +221,7 @@ export class InputSurfaceObserver {
   }
 
   #sendInputActivityPulse(classification: InputSurfaceClassification): void {
-    if (!this.#networkPulseEnabled) return;
+    if (!this.#enabled || !this.#networkPulseEnabled) return;
 
     void chrome.runtime
       .sendMessage({
@@ -218,6 +241,7 @@ export class InputSurfaceObserver {
   }
 
   async #sendRecord(record: ReturnType<typeof createObservationRecord>): Promise<void> {
+    if (!this.#enabled) return;
     try {
       const safeRecord = createPrivacySafeRecord(record);
       await chrome.runtime.sendMessage({
@@ -231,6 +255,7 @@ export class InputSurfaceObserver {
   }
 
   readonly #onFocusIn = (event: FocusEvent): void => {
+    if (!this.#enabled) return;
     const surface = resolveInputSurface(event);
     if (!surface || !event.isTrusted) return;
 
@@ -242,6 +267,7 @@ export class InputSurfaceObserver {
   };
 
   readonly #onFocusOut = (event: FocusEvent): void => {
+    if (!this.#enabled) return;
     const surface = resolveInputSurface(event);
     if (!surface) return;
 
@@ -257,6 +283,7 @@ export class InputSurfaceObserver {
   };
 
   readonly #onKeyDown = (event: KeyboardEvent): void => {
+    if (!this.#enabled) return;
     const surface = resolveInputSurface(event);
     if (!surface) return;
 
@@ -266,6 +293,7 @@ export class InputSurfaceObserver {
   };
 
   readonly #onPaste = (event: ClipboardEvent): void => {
+    if (!this.#enabled) return;
     const surface = resolveInputSurface(event);
     if (!surface) return;
 
@@ -285,6 +313,7 @@ export class InputSurfaceObserver {
   };
 
   readonly #onBeforeInput = (event: InputEvent): void => {
+    if (!this.#enabled) return;
     const surface = resolveInputSurface(event);
     if (!surface) return;
 
@@ -292,6 +321,7 @@ export class InputSurfaceObserver {
   };
 
   readonly #onInput = (event: Event): void => {
+    if (!this.#enabled) return;
     const surface = resolveInputSurface(event);
     if (!surface) return;
 

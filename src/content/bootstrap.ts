@@ -31,7 +31,6 @@ async function bootstrap(): Promise<void> {
     loadHostDisplayProfile(hostname),
   ]);
   const settings = applyHostDisplayProfile(globalSettings, hostProfile);
-  if (!settings.enabled) return;
   const language = resolveUiLanguage(settings.uiLanguage, browserUiLanguage());
 
   initializeTransientDisplayState({
@@ -51,7 +50,7 @@ async function bootstrap(): Promise<void> {
     position: settings.factChipPosition,
     durationMs: settings.communicationPulseDurationMs,
     size: settings.communicationPulseSize,
-    enabled: communicationPulseAvailable(settings),
+    enabled: settings.enabled && communicationPulseAvailable(settings),
     domColor: settings.communicationPulseDomColor,
     webRequestColor: settings.communicationPulseWebRequestColor,
     opacity: settings.communicationPulseOpacity,
@@ -59,7 +58,7 @@ async function bootstrap(): Promise<void> {
     language,
   });
 
-  if (window.top === window) {
+  if (settings.enabled && window.top === window) {
     const observed = await markHostObserved(hostname);
     if (observed.firstObservation) {
       presenter.showFirstHostObservation(effectiveCueLevel(settings));
@@ -68,7 +67,7 @@ async function bootstrap(): Promise<void> {
     }
   }
 
-  if (settings.reportingMode === 'max_coverage' && window.top === window) {
+  if (settings.enabled && settings.reportingMode === 'max_coverage' && window.top === window) {
     window.setTimeout(() => presenter.showCoverageBoundary(effectiveCueLevel(settings)), 2500);
   }
 
@@ -89,8 +88,11 @@ async function bootstrap(): Promise<void> {
       if (areaName !== 'local') return;
       void loadSettings().then((updated) => {
         const networkEnabled = updated.enabled && updated.networkObservationEnabled;
+        inputObserver.setEnabled(updated.enabled);
         inputObserver.setNetworkObservationEnabled(networkEnabled);
+        submissionObserver.setEnabled(updated.enabled);
         submissionObserver.setNetworkObservationEnabled(networkEnabled);
+        pulsePresenter.setEnabled(updated.enabled && communicationPulseAvailable(updated));
       });
     },
   );

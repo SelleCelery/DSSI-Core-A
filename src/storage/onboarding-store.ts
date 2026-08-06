@@ -1,4 +1,6 @@
-export const ONBOARDING_VERSION = 1;
+import type { ObservationSelection } from '../core/models/settings';
+
+export const ONBOARDING_VERSION = 2;
 const ONBOARDING_KEY = 'connectBitsOnboardingState';
 
 export interface OnboardingAcknowledgements {
@@ -14,8 +16,9 @@ export interface OnboardingAcknowledgements {
 export interface OnboardingState {
   version: number;
   completedAt: number;
+  changedAt: number;
   acknowledgements: OnboardingAcknowledgements;
-  networkObservationEnabled: boolean;
+  observationSelection: ObservationSelection;
 }
 
 export const EMPTY_ONBOARDING_ACKNOWLEDGEMENTS: Readonly<OnboardingAcknowledgements> =
@@ -52,7 +55,11 @@ function isOnboardingState(value: unknown): value is OnboardingState {
     value.version === ONBOARDING_VERSION &&
     typeof value.completedAt === 'number' &&
     Number.isFinite(value.completedAt) &&
-    typeof value.networkObservationEnabled === 'boolean' &&
+    typeof value.changedAt === 'number' &&
+    Number.isFinite(value.changedAt) &&
+    (value.observationSelection === 'standard' ||
+      value.observationSelection === 'dom_only' ||
+      value.observationSelection === 'paused') &&
     isOnboardingAcknowledgements(value.acknowledgements)
   );
 }
@@ -71,6 +78,18 @@ export async function loadOnboardingState(): Promise<OnboardingState | undefined
 
 export async function saveOnboardingState(state: OnboardingState): Promise<void> {
   await chrome.storage.local.set({ [ONBOARDING_KEY]: state });
+}
+
+export async function updateOnboardingSelection(
+  observationSelection: ObservationSelection,
+): Promise<void> {
+  const current = await loadOnboardingState();
+  if (current === undefined) return;
+  await saveOnboardingState({
+    ...current,
+    changedAt: Date.now(),
+    observationSelection,
+  });
 }
 
 export async function onboardingCompleted(): Promise<boolean> {

@@ -4,6 +4,7 @@ import { buildCoverageManifest } from '../../src/core/coverage-manifest';
 describe('coverage manifest', () => {
   it('separates observation, reduction, design refusal, current limits and unknown residual', () => {
     const entries = buildCoverageManifest({
+      observationEnabled: true,
       networkObservationEnabled: true,
       networkPermissionGranted: true,
     });
@@ -22,6 +23,7 @@ describe('coverage manifest', () => {
 
   it('shows network observation as disconnected when permission is absent', () => {
     const entry = buildCoverageManifest({
+      observationEnabled: true,
       networkObservationEnabled: true,
       networkPermissionGranted: false,
     }).find((candidate) => candidate.capabilityId === 'network-metadata');
@@ -29,5 +31,26 @@ describe('coverage manifest', () => {
     expect(entry?.enabled).toBe(false);
     expect(entry?.permissionGranted).toBe(false);
     expect(entry?.reason).toBe('permission_boundary');
+  });
+
+  it('shows DOM and network observation as paused by user selection', () => {
+    const entries = buildCoverageManifest({
+      observationEnabled: false,
+      networkObservationEnabled: false,
+      networkPermissionGranted: false,
+    });
+    const dom = entries.find((candidate) => candidate.capabilityId === 'trusted-dom-events');
+    const network = entries.find((candidate) => candidate.capabilityId === 'network-metadata');
+
+    expect(dom).toMatchObject({
+      status: 'not_observed_currently',
+      reason: 'user_selection',
+      enabled: false,
+    });
+    expect(network).toMatchObject({
+      status: 'not_observed_currently',
+      reason: 'user_selection',
+      enabled: false,
+    });
   });
 });

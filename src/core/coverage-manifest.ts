@@ -3,6 +3,7 @@ import type { UiLanguage } from '../i18n/ui';
 export type CoverageStatus =
   | 'observed'
   | 'observed_then_reduced'
+  | 'not_observed_currently'
   | 'not_observed_by_design'
   | 'not_observable_currently'
   | 'unknown_residual';
@@ -12,6 +13,7 @@ export type CoverageReason =
   | 'permission_boundary'
   | 'platform_limitation'
   | 'scope_limitation'
+  | 'user_selection'
   | 'unknown';
 
 export interface CoverageManifestEntry {
@@ -25,6 +27,7 @@ export interface CoverageManifestEntry {
 }
 
 export interface CoverageManifestContext {
+  observationEnabled: boolean;
   networkObservationEnabled: boolean;
   networkPermissionGranted: boolean;
 }
@@ -161,7 +164,11 @@ export function buildCoverageManifest(
   context: CoverageManifestContext,
   language: UiLanguage = 'ja',
 ): CoverageManifestEntry[] {
-  const networkEnabled = context.networkObservationEnabled && context.networkPermissionGranted;
+  const domEnabled = context.observationEnabled;
+  const networkEnabled =
+    context.observationEnabled &&
+    context.networkObservationEnabled &&
+    context.networkPermissionGranted;
   const copy = COVERAGE_COPY[language];
 
   const make = (
@@ -181,24 +188,33 @@ export function buildCoverageManifest(
   });
 
   return [
-    make('trusted-dom-events', 'observed', 'scope_limitation', true),
+    make(
+      'trusted-dom-events',
+      domEnabled ? 'observed' : 'not_observed_currently',
+      domEnabled ? 'scope_limitation' : 'user_selection',
+      domEnabled,
+    ),
     make(
       'network-metadata',
-      'observed',
-      context.networkPermissionGranted ? 'scope_limitation' : 'permission_boundary',
+      networkEnabled ? 'observed' : 'not_observed_currently',
+      !context.observationEnabled || !context.networkObservationEnabled
+        ? 'user_selection'
+        : context.networkPermissionGranted
+          ? 'scope_limitation'
+          : 'permission_boundary',
       networkEnabled,
       context.networkPermissionGranted,
     ),
     make(
       'url-reduction',
-      'observed_then_reduced',
+      networkEnabled ? 'observed_then_reduced' : 'not_observed_currently',
       'privacy_boundary',
       networkEnabled,
       context.networkPermissionGranted,
     ),
     make(
       'request-header-reduction',
-      'observed_then_reduced',
+      networkEnabled ? 'observed_then_reduced' : 'not_observed_currently',
       'privacy_boundary',
       networkEnabled,
       context.networkPermissionGranted,
@@ -219,6 +235,7 @@ export function coverageStatusLabel(status: CoverageStatus, language: UiLanguage
     ja: {
       observed: '観測している',
       observed_then_reduced: '観測後に縮約',
+      not_observed_currently: '現在は観測していない',
       not_observed_by_design: '設計上、観測しない',
       not_observable_currently: '現在の仕組みでは観測できない',
       unknown_residual: '未知残差',
@@ -226,6 +243,7 @@ export function coverageStatusLabel(status: CoverageStatus, language: UiLanguage
     en: {
       observed: 'Observed',
       observed_then_reduced: 'Observed then reduced',
+      not_observed_currently: 'Not currently observed',
       not_observed_by_design: 'Not observed by design',
       not_observable_currently: 'Not currently observable',
       unknown_residual: 'Unknown residual',
@@ -241,6 +259,7 @@ export function coverageReasonLabel(reason: CoverageReason, language: UiLanguage
       permission_boundary: '権限境界',
       platform_limitation: 'プラットフォーム上の限界',
       scope_limitation: '現在の対象範囲',
+      user_selection: '利用者の選択',
       unknown: '未確定',
     },
     en: {
@@ -248,6 +267,7 @@ export function coverageReasonLabel(reason: CoverageReason, language: UiLanguage
       permission_boundary: 'Permission boundary',
       platform_limitation: 'Platform limitation',
       scope_limitation: 'Current scope',
+      user_selection: 'User selection',
       unknown: 'Undetermined',
     },
   };

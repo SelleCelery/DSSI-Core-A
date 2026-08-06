@@ -2,6 +2,14 @@
 
 ## Unreleased - Installer and Release Hardening
 
+- Separated the optional `webRequest` permission from required HTTP/HTTPS content-script scope, preventing required-permission removal errors.
+- Changed fresh installation to begin with observation paused until the setup explanation is reviewed.
+- Added three reversible observation choices: standard, limited page observation without communication metadata, and paused.
+- Added later selection change and optional-permission withdrawal under Settings & Privacy.
+- Added explicit current-non-observation and user-selection states to the Coverage Manifest.
+- Replaced the compact-log fallback diamond with a neutral ellipsis so it cannot be confused with PUT.
+- Added a clockwise move control to the communication-pulse console and changed hostname-profile removal to a distinct icon.
+- Corrected the Japanese UI name from 「設置とプライバシー」 to 「設定とプライバシー」.
 - Added a Japanese repository README and a documentation map separating current specifications, implementation history, and research material.
 - Corrected repository allowlist rules so icons, test fixtures, editor settings, and contribution guidance are included in Git.
 - Replaced broken README documentation links with stable current entry points.

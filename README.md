@@ -19,6 +19,7 @@ Public-preview additions in v0.5 include:
 - ConnectBits public branding while retaining DSSI Core A as the development lineage
 - Japanese and English interface messages with browser-language or explicit selection
 - a first-run local setup and optional-permission review
+- three reversible observation choices: standard, limited page observation without communication metadata, or paused
 - linked Setup & Privacy, Observation Log, Log Reader, and setup-review pages
 - click-open communication-pulse reading guidance near the compact stream
 - boundary-aligned Cookie-header and network-payload wording
@@ -59,7 +60,7 @@ Sprint 3.4 retains the Sprint 3.3 communication-pulse and privacy boundaries whi
 
 See [Japanese installation instructions](./docs/release/INSTALL.ja.md) or [English installation instructions](./docs/release/INSTALL.en.md). After reloading the extension from `chrome://extensions`, reload pages that were already open so the current content script is injected.
 
-The first installation opens a local setup review. Optional network-observation permission may be declined; local DOM observation can still be used within the remaining boundary.
+The first installation opens a local setup review. After confirming the explanation, the user chooses standard observation, limited page observation without communication metadata, or observation paused. The choice can be changed later. Withdrawing communication-metadata observation removes only the optional `webRequest` permission; the separate limited DOM layer continues only when selected.
 
 ## Requirements
 
@@ -117,7 +118,7 @@ The normal activity log now contains only observations relevant to user actions 
 
 ## Sprint 3: transient evidence and optional communication metadata
 
-Network metadata observation is disabled by default. When the user enables it, the options page requests optional `webRequest` and HTTP/HTTPS host permissions. DSSI records supported request metadata only when a trusted content edit was observed within 2.5 seconds in the same tab and frame, with document correlation when the browser provides a document identifier.
+Network metadata observation is disabled by default. When the user selects standard observation, the options page requests only the optional `webRequest` permission. HTTP/HTTPS page scope belongs to the separate required content-script boundary and is not removed with `webRequest`. DSSI records supported request metadata only when a trusted content edit was observed within 2.5 seconds in the same tab and frame, with document correlation when the browser provides a document identifier.
 
 The browser API temporarily supplies a complete request URL and, in Sprint 3.1, a request-header collection. DSSI immediately reduces the URL to scheme, host, method, resource-class-derived mechanism, and same/cross-origin relation. It scans header names only for `Cookie` and reduces the result to a closed detection state. Path, query, fragment, credentials, request body, header values, response body, and server receipt are not persisted or claimed.
 
