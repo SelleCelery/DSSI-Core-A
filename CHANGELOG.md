@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased - Installer and Release Hardening
+
+- Added a Japanese repository README and a documentation map separating current specifications, implementation history, and research material.
+- Corrected repository allowlist rules so icons, test fixtures, editor settings, and contribution guidance are included in Git.
+- Replaced broken README documentation links with stable current entry points.
+- Removed version numbers from active document filenames and moved historical development records to semantically named files under `docs/history/`.
+- Updated the roadmap through Sprint 3.5-A and Sprint 3.5-B and declared installer/release hardening as the current work boundary.
+- Excluded source maps from the distributable unpacked extension while retaining them in local development builds.
+- Re-ran the complete repository check: typecheck, lint, formatting, 28 test files／112 tests, and build all pass.
+
 ## 0.5.0 - Sprint 3.5-B ConnectBits UI and Boundary Alignment
 
 - Adopted ConnectBits as the public product name while retaining DSSI Core A as the development lineage.

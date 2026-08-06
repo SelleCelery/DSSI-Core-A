@@ -1,4 +1,6 @@
-# ConnectBits v0.5 UI文言・内部値対応表
+# ConnectBits UI文言・内部値対応表
+
+> Version scope: v0.5 Public Preview
 
 ## 原則
 

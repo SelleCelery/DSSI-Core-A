@@ -1,4 +1,6 @@
-# DSSI Core A データライフサイクルとパージ境界 v0.4.1
+# DSSI Core A データライフサイクルとパージ境界
+
+> Version scope: v0.4.1 onward; verify later changes against current source and Privacy Baseline
 
 ## 位置づけ
 

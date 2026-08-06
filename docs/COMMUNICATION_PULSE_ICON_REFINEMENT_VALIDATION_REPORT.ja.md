@@ -1,4 +1,6 @@
-# DSSI Core A v0.4.5 通信パルスアイコン検証報告
+# DSSI Core A 通信パルスアイコン検証報告
+
+> Version scope: v0.4.5
 
 ## 静的検証
 

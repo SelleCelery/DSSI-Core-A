@@ -101,4 +101,4 @@ Sprint 3.5-Bは新しい観測能力を追加しない。DSSI Core Aとして成
 
 ## 6. 実装後の開発者作業
 
-本Sprintの完了は、理念とコードの最終一致を自動的に保証しない。公開前に`BOUNDARY_ALIGNMENT_CHECKLIST_v0.5.ja.md`を用い、開発者自身が観測入口から表示までコードを追跡する。
+本Sprintの完了は、理念とコードの最終一致を自動的に保証しない。公開前に`BOUNDARY_ALIGNMENT_CHECKLIST.ja.md`を用い、開発者自身が観測入口から表示までコードを追跡する。

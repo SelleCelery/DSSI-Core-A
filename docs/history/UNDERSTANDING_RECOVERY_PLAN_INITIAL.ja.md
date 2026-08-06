@@ -1,6 +1,9 @@
-# DSSI Core A 理解回収計画 v0.3
+# DSSI Core A 理解回収計画｜初期案
 
-Status: Planned  
+> Origin scope: v0.3
+> Historical status: superseded by `../UNDERSTANDING_RECOVERY_PLAN.ja.md`
+
+Status: Planned
 Timing: Sprint 2.2 completion後
 
 ## 1. 目的

@@ -14,6 +14,8 @@
 
 !.gitattributes
 !.gitignore
+!.editorconfig
+!.prettierignore
 
 !README.md
 !README.ja.md
@@ -24,6 +26,7 @@
 !PRIVACY.md
 !CHANGELOG.md
 !RELEASE_NOTES.md
+!CONTRIBUTING.md
 
 !package.json
 !package-lock.json
@@ -54,9 +57,12 @@
 !src/**/*.svg
 !src/**/*.png
 
+!assets/**
 !public/**
 
 !tests/**/*.ts
+!tests/**/*.html
+!tests/**/*.json
 !test/**/*.ts
 
 !docs/**/*.md

@@ -1,4 +1,4 @@
-# DSSI Core A 開発記録 v0.4.2
+# DSSI Core A 開発記録｜MAX Coverage
 
 ## Sprint 3.2の判断
 

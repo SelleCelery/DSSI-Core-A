@@ -1,10 +1,10 @@
-# DSSI Core A 開発記録 v0.4.0
+# DSSI Core A 開発記録｜任意通信メタデータ
 
-> 履歴文書: v0.4.1でフォーカス相関、パルス更新、Cookieヘッダー名検出を再設計した。`DEVELOPMENT_RECORD_v0.4.1.ja.md`を参照する。
+> 履歴文書: v0.4.1でフォーカス相関、パルス更新、Cookieヘッダー名検出を再設計した。`DEVELOPMENT_RECORD_CONTENT_EDIT_CORRELATION.ja.md`を参照する。
 
 ## 前提
 
-v0.3系までの履歴は `DEVELOPMENT_RECORD_v0.3.1.ja.md` を参照する。
+v0.3系までの履歴は `DEVELOPMENT_RECORD_THROUGH_SPRINT_2_1.ja.md` を参照する。
 
 ## Sprint 3へ進む前の判断
 

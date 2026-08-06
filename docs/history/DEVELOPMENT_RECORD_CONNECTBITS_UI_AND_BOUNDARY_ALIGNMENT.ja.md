@@ -1,4 +1,4 @@
-# ConnectBits v0.5.0 開発記録
+# ConnectBits 開発記録｜UI and Boundary Alignment
 
 ## Sprint
 

@@ -38,10 +38,13 @@ const requiredFiles = [
   '_locales/ja/messages.json',
 ];
 const releaseFiles = new Set(
-  (await filesRecursively(releaseDirectory)).map((file) =>
-    relative(releaseDirectory, file).replaceAll('\\', '/'),
-  ),
+  (await filesRecursively(releaseDirectory))
+    .map((file) => relative(releaseDirectory, file).replaceAll('\\', '/'))
+    .filter((file) => !file.endsWith('.map')),
 );
+for (const file of await filesRecursively(releaseDirectory)) {
+  if (file.endsWith('.map')) await rm(file);
+}
 const missing = requiredFiles.filter((file) => !releaseFiles.has(file));
 if (missing.length > 0) {
   throw new Error(`Release directory is incomplete: ${missing.join(', ')}`);

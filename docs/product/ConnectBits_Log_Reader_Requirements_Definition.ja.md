@@ -23,7 +23,7 @@
 - `docs/product/DSSI_Core_A_Requirements_Definition.md`
 - `docs/product/DSSI_Core_A_Functional_Specification.md`
 - `docs/DSSI_Core_A_Architectural_Design_Principles.ja.md`
-- `docs/DATA_LIFECYCLE_AND_PURGE_BOUNDARY_v0.4.ja.md`
+- `docs/DATA_LIFECYCLE_AND_PURGE_BOUNDARY.ja.md`
 - `PRIVACY.md`
 - `src/core/log-export.ts`
 - `src/core/models/observation.ts`

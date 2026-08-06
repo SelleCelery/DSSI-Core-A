@@ -1,4 +1,6 @@
-# ConnectBits v0.5 開発者コード読解マップ
+# ConnectBits 開発者コード読解マップ
+
+> Version scope: v0.5 Public Preview
 
 ## 目的
 

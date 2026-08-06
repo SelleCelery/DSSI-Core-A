@@ -1,5 +1,7 @@
 # ConnectBits
 
+[日本語](./README.ja.md) | English
+
 **ConnectBits** is the public product name of a local browser observation interface developed under the DSSI Core A project line.
 
 > Return hidden connections as fragments people can judge.
@@ -10,7 +12,7 @@ Development designation: **DSSI Core A**. Current release target: **v0.5.0 Publi
 
 ## Status
 
-Sprint 3.5-B — ConnectBits UI and Boundary Alignment
+Sprint 3.5-B — ConnectBits UI and Boundary Alignment is complete. The current work boundary is installer and release hardening: packaging, installation guidance, permission-review acceptance checks, and public-preview release preparation.
 
 Public-preview additions in v0.5 include:
 
@@ -68,7 +70,7 @@ The first installation opens a local setup review. Optional network-observation 
 ## Development
 
 ```bash
-npm install
+npm ci
 npm run check
 ```
 
@@ -95,7 +97,7 @@ The initial build does not persist:
 
 The session log stores structural metadata only and can be cleared from the options page.
 
-See [PRIVACY.md](./PRIVACY.md), [the Sprint 1 implementation guide](./docs/SPRINT1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.1 implementation guide](./docs/SPRINT1_1_IMPLEMENTATION_GUIDE.md), [the Sprint 1.2 implementation guide](./docs/SPRINT1_2_IMPLEMENTATION_GUIDE.md), [the Sprint 2 implementation guide](./docs/SPRINT2_IMPLEMENTATION_GUIDE.md), [the Sprint 2.1 implementation guide](./docs/SPRINT2_1_IMPLEMENTATION_GUIDE.md), [the Sprint 2.2 implementation guide](./docs/SPRINT2_2_IMPLEMENTATION_GUIDE.md), [the Sprint 3 implementation guide](./docs/SPRINT3_IMPLEMENTATION_GUIDE.md), [the Sprint 3.1 implementation guide](./docs/SPRINT3_1_IMPLEMENTATION_GUIDE.md), [the Sprint 3.2 implementation guide](./docs/SPRINT3_2_IMPLEMENTATION_GUIDE.md), [the Sprint 3.3 implementation guide](./docs/SPRINT3_3_IMPLEMENTATION_GUIDE.md), [the Sprint 3.4 implementation guide](./docs/SPRINT3_4_IMPLEMENTATION_GUIDE.md), [the data lifecycle and purge boundary](./docs/DATA_LIFECYCLE_AND_PURGE_BOUNDARY_v0.4.ja.md), [the operational glossary](./docs/DSSI_Core_A_Operational_Glossary.ja.md), and the product documents under [docs/product](./docs/product).
+Start with the [documentation map](./docs/README.md). The main public boundaries are also described in [PRIVACY.md](./PRIVACY.md), [the data lifecycle and purge boundary](./docs/DATA_LIFECYCLE_AND_PURGE_BOUNDARY.ja.md), [the operational glossary](./docs/DSSI_Core_A_Operational_Glossary.ja.md), and the product documents under [docs/product](./docs/product).
 
 ## License
 

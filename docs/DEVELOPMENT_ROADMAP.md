@@ -142,3 +142,41 @@ Continue from `docs/product/DSSI_Core_A_Functional_Specification.md`, reconcilin
 - [ ] complete JSON / CSV download acceptance tests
 - [ ] design coercion-resistant encryption, signing, deletion, and verification boundaries before implementation
 - [ ] defer fully custom viscosity policies until after MVP review
+
+## Sprint 3.5-A — ConnectBits Log Reader
+
+- [x] parse user-selected ConnectBits JSON exports locally
+- [x] validate format and supported observation schemas before rendering
+- [x] provide read-only filtering, sorting, summaries, and grouping
+- [x] distinguish observed facts, unknowns, general possibilities, and operator responsibility
+- [x] keep the selected file local and avoid writing back to it
+- [x] add parser, validator, query, summary, and observation-tip tests
+
+## Sprint 3.5-B — ConnectBits UI and Boundary Alignment
+
+- [x] adopt ConnectBits as the public product name while retaining DSSI Core A as the development lineage
+- [x] provide Japanese, English, and browser-language UI selection
+- [x] add first-run setup and optional-permission review
+- [x] provide an equal local-only path without optional network permission
+- [x] connect Setup & Privacy, Observation Log, Log Reader, and setup review
+- [x] align Cookie-header, payload, permission, and judgment-boundary wording
+- [x] generate an unpacked release directory with SHA-256 file checksums
+- [x] provide a Windows ZIP packaging prototype
+- [x] pass typecheck, lint, formatting, 112 unit tests, and build in the complete repository
+
+## Installer and Release Hardening — Current Boundary
+
+The public-preview installer is not an OS-resident executable. It consists of the release packaging flow and the first-run local review that precedes optional permission.
+
+- [x] open the local onboarding page on first installation
+- [x] request optional network permission only after a direct user action
+- [x] keep permission-free local observation as a normal start path
+- [x] make setup review reachable again from the product UI
+- [x] separate generated runtime files from source, tests, and development dependencies
+- [x] exclude source maps from the distributable extension package
+- [ ] complete Chrome/Chromium acceptance tests in a fresh browser profile
+- [ ] verify allow, deny, later-grant, and permission-removal paths in the real browser
+- [ ] verify update behavior and required reload of already-open tabs
+- [ ] verify the final ZIP and its SHA-256 on Windows
+- [ ] re-run the development dependency audit and adopt upstream fixes when available
+- [ ] finalize public-release metadata and GitHub/Zenodo packaging after acceptance

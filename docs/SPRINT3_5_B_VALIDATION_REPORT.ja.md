@@ -1,5 +1,8 @@
 # Sprint 3.5-B｜ConnectBits UI and Boundary Alignment 検証報告
 
+> Validation addendum: 2026-08-05
+> Complete repository check: passed with Node.js 24.14.0 and npm 11.9.0
+
 ## 1. 対象
 
 - ConnectBits v0.5.0 Public Preview UI
@@ -104,9 +107,9 @@ TypeScript Compiler APIの`transpileModule`で、`src`と`tests`に含まれる8
 
 PowerShell実行環境がないため、`scripts/package-release.ps1`の実行確認は利用者のWindows環境で行う。
 
-## 3. この環境で完走できなかった検証
+## 3. 初回検証環境で完走できなかった検証
 
-プロジェクトの完全な`npm run check`は、コンテナ内npmレジストリに必要なパッケージtarballがなく、`npm ci`が完了しなかったため実行できていない。
+初回報告時、プロジェクトの完全な`npm run check`は、コンテナ内npmレジストリに必要なパッケージtarballがなく、`npm ci`が完了しなかったため実行できていなかった。
 
 未完走項目:
 
@@ -124,6 +127,18 @@ npm.cmd run format
 npm.cmd run check
 npm.cmd run package:release:windows
 ```
+
+### 3.1 2026-08-05追補
+
+完全版リポジトリで`npm ci`と`npm run check`を実行し、次を確認した。
+
+- TypeScript: 合格
+- ESLint: 合格
+- Prettier: 合格
+- Vitest: 28 test files／112 tests 合格
+- esbuild: 合格
+
+これにより、上記の未完走項目のうち、正式なESLint、Prettier、Vitest、esbuildは解消した。残る実機関門は、Chrome／Chromiumの新規プロファイルで行う導入・権限・更新確認と、Windows PowerShellによる最終ZIP生成である。
 
 ## 4. 手動受入確認
 
@@ -148,4 +163,4 @@ npm.cmd run package:release:windows
 
 ソース統合、厳格型確認、静的整合、実ログ読込確認は完了した。
 
-Sprint 3.5-Bは、利用者環境での`npm.cmd run check`、Chrome実画面確認、Windows ZIP生成を通過した時点で、v0.5.0 Public Preview候補と判定できる。
+Sprint 3.5-Bの完全リポジトリ検査は通過した。Chrome実画面確認とWindows ZIP生成を通過した時点で、v0.5.0 Public Preview候補と判定できる。

@@ -1,4 +1,4 @@
-# DSSI Core A 開発記録
+# DSSI Core A 開発記録｜Sprint 2.1まで
 
 Version scope: v0.1.0–v0.3.1  
 Status: Prototype / Experimental  

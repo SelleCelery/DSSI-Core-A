@@ -1,4 +1,6 @@
-# DSSI Core A 理解回収計画 v0.3
+# DSSI Core A 理解回収計画
+
+> Origin scope: v0.3; retained as a cumulative understanding-recovery record
 
 Status: Planned  
 Timing: Sprint 2.2 completion後

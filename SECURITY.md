@@ -36,3 +36,12 @@ Do not include passwords, payment data, private prompts, or other sensitive user
 - UI localization must not alter internal record values or weaken the meaning of privacy-boundary states.
 - Release packaging must include only the built extension, localization messages, icons, and installation note. Source, tests, `node_modules`, local logs, and working archives are excluded.
 - ConnectBits v0.5 remains a public preview and does not provide automatic update signing, forensic integrity, or evidentiary preservation.
+
+## Development dependency audit
+
+As of 2026-08-05, this package has development dependencies only and no npm runtime dependencies. `npm audit --omit=dev` reports no vulnerabilities. The full development-tree audit still reports unresolved advisories in transitive tooling:
+
+- `brace-expansion`, reached through ESLint and `minimatch`
+- `postcss`, reached through Vitest, Vite, and `@vitest/coverage-v8`
+
+These packages are not copied into the distributable browser-extension directory. This separation does not erase development-environment risk. Until upstream fixes are available and adopted, maintainers should avoid running the toolchain against untrusted repository contents or untrusted source-map references, re-run the audit before release, and keep generated source maps outside the distributable package.

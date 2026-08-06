@@ -1,4 +1,4 @@
-# DSSI Core A 開発記録 v0.4.3
+# DSSI Core A 開発記録｜Real-Time Boundary Pulses
 
 ## Sprint
 

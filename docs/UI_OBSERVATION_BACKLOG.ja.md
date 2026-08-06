@@ -1,4 +1,6 @@
-# ConnectBits v0.5 UI運用観察票
+# ConnectBits UI運用観察票
+
+> Version scope: v0.5 Public Preview
 
 UIの違和感を逐次修正せず、開発者自身の利用中に蓄積し、一定量ごとに一括修正する。
 

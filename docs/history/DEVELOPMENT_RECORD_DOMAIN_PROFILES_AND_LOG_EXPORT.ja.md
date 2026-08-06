@@ -1,4 +1,4 @@
-# DSSI Core A 開発記録 v0.4.6
+# DSSI Core A 開発記録｜ドメインプロファイルとログ出力
 
 ## 対応Sprint
 

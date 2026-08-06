@@ -1,4 +1,6 @@
-# ConnectBits v0.5 理念・コード境界整合チェックリスト
+# ConnectBits 理念・コード境界整合チェックリスト
+
+> Version scope: v0.5 Public Preview
 
 ## 目的
 

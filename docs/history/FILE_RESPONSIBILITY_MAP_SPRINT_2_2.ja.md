@@ -1,4 +1,7 @@
-# DSSI Core A v0.3.2 ファイル一覧・責務表
+# DSSI Core A ファイル一覧・責務表｜Sprint 2.2時点
+
+> Origin scope: v0.3.2
+> Historical status: retained for provenance; not a map of the current repository
 
 ## 位置づけ
 
@@ -431,8 +434,8 @@ Step 5で詳細な仕様対応表を作るため、ここでは責務だけを�
 | `ADR-0001-core-a-browser-extension.md`            | Core Aをブラウザ拡張として実装する設計判断。        |
 | `PERMISSION_STRATEGY.md`                          | 権限最小化方針。                                    |
 | `DEVELOPMENT_ROADMAP.md`                          | Sprintと将来機能の計画。                            |
-| `DEVELOPMENT_RECORD_v0.3.1.ja.md`                 | Sprint 0〜2.1を中心とする開発判断・実地発見の履歴。 |
-| `UNDERSTANDING_RECOVERY_PLAN_v0.3.ja.md`          | v0.3系理解回収のStep 1〜6と完了条件。               |
+| `DEVELOPMENT_RECORD_THROUGH_SPRINT_2_1.ja.md`     | Sprint 0〜2.1を中心とする開発判断・実地発見の履歴。 |
+| `../UNDERSTANDING_RECOVERY_PLAN.ja.md`            | v0.3系から始まった理解回収のStep 1〜6と完了条件。   |
 | `SPRINT1_IMPLEMENTATION_GUIDE.md`                 | 入力面検出導入時の実装説明。                        |
 | `SPRINT1_1_IMPLEMENTATION_GUIDE.md`               | ログ閲覧・入力経路表示の実装説明。                  |
 | `SPRINT1_2_IMPLEMENTATION_GUIDE.md`               | 貼り付け等の証拠相関と三軸分離の説明。              |
