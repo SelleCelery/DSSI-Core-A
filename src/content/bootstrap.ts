@@ -14,9 +14,14 @@ import { browserUiLanguage, resolveUiLanguage } from '../i18n/ui';
 import { loadSettings } from '../storage/settings-store';
 import { CommunicationPulsePresenter } from '../ui/communication-pulse';
 import { FactChipPresenter } from '../ui/fact-chip';
-import { initializeTransientDisplayState } from '../ui/transient-display-state';
+import {
+  initializeTransientDisplayState,
+  setCommunicationTextVisible,
+  setPulseVisible,
+} from '../ui/transient-display-state';
 import { InputSurfaceObserver } from './input-surface-observer';
 import { SubmissionObserver } from './submission-observer';
+import { applyRuntimeSettings } from './runtime-settings';
 
 interface NetworkActivityNotice {
   type: 'DSSI_NETWORK_ACTIVITY_NOTICE';
@@ -86,13 +91,32 @@ async function bootstrap(): Promise<void> {
   chrome.storage.onChanged.addListener(
     (_changes: Record<string, chrome.storage.StorageChange>, areaName: string) => {
       if (areaName !== 'local') return;
-      void loadSettings().then((updated) => {
-        const networkEnabled = updated.enabled && updated.networkObservationEnabled;
-        inputObserver.setEnabled(updated.enabled);
-        inputObserver.setNetworkObservationEnabled(networkEnabled);
-        submissionObserver.setEnabled(updated.enabled);
-        submissionObserver.setNetworkObservationEnabled(networkEnabled);
-        pulsePresenter.setEnabled(updated.enabled && communicationPulseAvailable(updated));
+      void loadSettings().then((globalUpdated) => {
+        const updated = applyHostDisplayProfile(globalUpdated, hostProfile);
+        const transition = applyRuntimeSettings(settings, updated);
+
+        inputObserver.updateSettings(updated);
+        submissionObserver.updateSettings(updated);
+        setCommunicationTextVisible(updated.communicationTextChipEnabled);
+        setPulseVisible(updated.communicationPulseEnabled);
+        pulsePresenter.update({
+          position: updated.factChipPosition,
+          durationMs: updated.communicationPulseDurationMs,
+          size: updated.communicationPulseSize,
+          enabled: updated.enabled && communicationPulseAvailable(updated),
+          domColor: updated.communicationPulseDomColor,
+          webRequestColor: updated.communicationPulseWebRequestColor,
+          opacity: updated.communicationPulseOpacity,
+          language: resolveUiLanguage(updated.uiLanguage, browserUiLanguage()),
+        });
+
+        if (
+          transition.becameEnabled &&
+          updated.reportingMode === 'max_coverage' &&
+          window.top === window
+        ) {
+          window.setTimeout(() => presenter.showCoverageBoundary(effectiveCueLevel(updated)), 250);
+        }
       });
     },
   );

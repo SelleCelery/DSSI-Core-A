@@ -15,6 +15,7 @@ import { browserUiLanguage, resolveUiLanguage } from '../i18n/ui';
 import { analyzeSubmission } from '../core/submission-analyzer';
 import { CommunicationPulsePresenter } from '../ui/communication-pulse';
 import { FactChipPresenter } from '../ui/fact-chip';
+import { applyRuntimeSettings } from './runtime-settings';
 
 const SUBMIT_CORRELATION_WINDOW_MS = 1500;
 
@@ -100,6 +101,22 @@ export class SubmissionObserver {
 
   public setNetworkObservationEnabled(enabled: boolean): void {
     this.#networkPulseEnabled = enabled;
+  }
+
+  public updateSettings(settings: DssiSettings): void {
+    applyRuntimeSettings(this.#settings, settings);
+    this.#networkPulseEnabled = settings.enabled && settings.networkObservationEnabled;
+    this.#enabled = settings.enabled;
+    this.#pulsePresenter.update({
+      position: settings.factChipPosition,
+      durationMs: settings.communicationPulseDurationMs,
+      size: settings.communicationPulseSize,
+      enabled: settings.enabled && communicationPulseAvailable(settings),
+      domColor: settings.communicationPulseDomColor,
+      webRequestColor: settings.communicationPulseWebRequestColor,
+      opacity: settings.communicationPulseOpacity,
+      language: resolveUiLanguage(settings.uiLanguage, browserUiLanguage()),
+    });
   }
 
   public start(): void {

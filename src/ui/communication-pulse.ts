@@ -859,6 +859,12 @@ export class CommunicationPulsePresenter {
     ensureHost({ ...this.#options, position: this.#position });
   }
 
+  public update(options: Partial<CommunicationPulsePresenterOptions>): void {
+    Object.assign(this.#options, options);
+    if (options.position !== undefined) this.#position = options.position;
+    this.setEnabled(this.#options.enabled);
+  }
+
   public showNetwork(descriptor: NetworkDescriptor): void {
     if (!this.#options.enabled) return;
     this.#show(communicationPulseFromNetwork(descriptor));

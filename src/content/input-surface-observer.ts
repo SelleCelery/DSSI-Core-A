@@ -20,6 +20,7 @@ import {
   findInputSurfaces,
   resolveInputSurface,
 } from './surface-descriptor';
+import { applyRuntimeSettings } from './runtime-settings';
 
 interface SurfaceRuntimeState {
   lastKeyboardAt?: number;
@@ -84,6 +85,12 @@ export class InputSurfaceObserver {
 
   public setNetworkObservationEnabled(enabled: boolean): void {
     this.#networkPulseEnabled = enabled;
+  }
+
+  public updateSettings(settings: DssiSettings): void {
+    applyRuntimeSettings(this.#settings, settings);
+    this.setNetworkObservationEnabled(settings.enabled && settings.networkObservationEnabled);
+    this.setEnabled(settings.enabled);
   }
 
   public start(): void {
