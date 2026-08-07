@@ -51,7 +51,7 @@ For an unclassified input surface, DSSI may retain only limited structural metad
 
 Sprint 3 distinguishes transient raw evidence from retained metadata. Structural strings used for input classification remain local to the classification call and do not enter the observation record.
 
-Optional communication-metadata observation uses Chrome `webRequest` only after the user selects standard observation and grants that optional permission. The HTTP/HTTPS page scope is required for the separate limited DOM-observation layer and is never passed to optional-permission removal. Request-body access is not requested.
+Optional communication-metadata observation uses Chrome `webRequest` only after the user selects standard observation and grants both that optional API permission and the optional HTTP/HTTPS host access required by Chrome for this API. The same HTTP/HTTPS patterns overlap with the separate limited DOM-observation layer. Withdrawing communication-metadata observation removes only `webRequest`; the overlapping page scope is never passed to permission removal. Request-body access is not requested.
 
 Sprint 3.1 uses the send-header observation phase because Chrome exposes the `Cookie` header only through request-header observation with the additional header view. The callback object may therefore contain header values before DSSI code receives it. DSSI logic reads only each header name, reduces the result to `detected`, `not_detected`, `not_observed`, or `unavailable`, and does not copy, classify, log, display, or persist header values.
 

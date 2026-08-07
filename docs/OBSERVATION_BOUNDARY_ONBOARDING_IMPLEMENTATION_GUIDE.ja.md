@@ -21,26 +21,32 @@ feat(onboarding): make observation boundaries selectable and reversible
 
 従来の`NETWORK_PERMISSION_REQUEST`は、任意の`webRequest`とHTTP/HTTPS originを一つのオブジェクトへ入れていた。一方、同じHTTP/HTTPS範囲は`content_scripts.matches`によりページ上の限定観測へ必要な範囲でもある。
 
-このオブジェクトを`chrome.permissions.remove`へ渡すと、Chromeは必須側の範囲を解除しようとしたものとして`You cannot remove required permissions`を返す。この失敗により「通信観測権限なしで開始する」が完了しなかった。
+このオブジェクトをそのまま`chrome.permissions.remove`へ渡すと、Chromeはcontent script側とも重なる範囲を解除しようとしたものとして`You cannot remove required permissions`を返した。この失敗により「通信観測権限なしで開始する」が完了しなかった。
+
+初回改修では、この解除エラーを避けるため、要求側からもHTTP/HTTPS originと`optional_host_permissions`を削除した。しかしChromeの`webRequest`はAPI権限に加えて対象ホストへの権限を必要とする。このため通信観測が成立しなくなった。実機受入で発見したこの回帰を受け、付与と解除を別の権限オブジェクトへ分離した。
 
 ## 3. 権限境界
 
-`NETWORK_METADATA_PERMISSION_REQUEST`は次だけを含む。
+`NETWORK_METADATA_PERMISSION_REQUEST`は、通信観測を成立させる完全な付与要求である。
 
 ```ts
 {
   permissions: ['webRequest'];
+  origins: ['http://*/*', 'https://*/*'];
 }
 ```
 
-`origins`は含めない。`optional_host_permissions`もmanifestから除く。HTTP/HTTPSページ範囲は、限定的なDOM観測を可能にするcontent script側の必須範囲として扱う。
+manifestには`optional_host_permissions`として同じHTTP/HTTPS範囲を宣言する。この範囲は`content_scripts.matches`とも重なるが、`webRequest`の通信観測には別途ホストアクセスが必要である。
+
+一方、`NETWORK_METADATA_API_PERMISSION`は`webRequest`だけを含む。停止時はこのAPI権限だけを解除し、originを解除対象へ含めない。
 
 通信メタデータ観測を外す操作は、次の順で閉じる。
 
-1. 任意の`webRequest`が現在許可されているか確認する。
-2. 未許可なら解除APIを呼ばず、解除済みとして扱う。
-3. 許可済みなら`webRequest`だけを解除する。
-4. 解除失敗時は選択状態を保存せず、UIへ失敗を返す。
+1. 付与時は`webRequest`とHTTP/HTTPSホストアクセスの両方を要求し、完全な束が許可されたか確認する。
+2. 解除時は任意の`webRequest`が現在許可されているか確認する。
+3. 未許可なら解除APIを呼ばず、解除済みとして扱う。
+4. 許可済みなら`webRequest`だけを解除する。
+5. 解除失敗時は選択状態を保存せず、UIへ失敗を返す。
 
 ## 4. 三つの観測選択
 

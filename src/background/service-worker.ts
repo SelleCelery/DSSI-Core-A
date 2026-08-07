@@ -24,7 +24,7 @@ import {
 import { createObservationRecord } from '../core/observation-factory';
 import { createPrivacySafeRecord } from '../core/privacy-safe-logger';
 import { isPrivacySafeUserActionPulse } from '../core/user-action-pulse';
-import { ensureDefaultSettings, loadSettings, saveSettings } from '../storage/settings-store';
+import { ensureDefaultSettings, loadSettings } from '../storage/settings-store';
 import { captureObservationSettingsSnapshot } from '../storage/settings-snapshot-store';
 import { invalidateHostDisplayProfileCache } from '../storage/host-display-profile-store';
 import { onboardingCompleted } from '../storage/onboarding-store';
@@ -137,12 +137,7 @@ chrome.storage.onChanged.addListener(
 );
 
 chrome.permissions.onRemoved.addListener(() => {
-  void syncNetworkListener().then(async (granted) => {
-    if (granted) return;
-    const settings = await loadSettings();
-    if (!settings.networkObservationEnabled) return;
-    await saveSettings({ ...settings, networkObservationEnabled: false });
-  });
+  void syncNetworkListener();
 });
 
 chrome.permissions.onAdded.addListener(() => {

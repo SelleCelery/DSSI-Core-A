@@ -66,7 +66,7 @@
           <input id="localClassificationEnabled" type="checkbox" />
         </label>
         <p class="small" data-i18n="networkObservationExplanation">
-          標準設定を選んだ場合だけ、Chromeの任意権限webRequestを求めます。標準モードでは内容変更または標準form送信操作に近接した通信を通常ログへ残します。MAXでは相関可能な利用者操作を確認できない対象通信も診断ログへ記録します。通信本文は要求・取得せず、URLのpath・query・fragmentは保存しません。request
+          標準設定を選んだ場合だけ、Chromeの任意権限webRequestと、その観測に必要なHTTP/HTTPSホストアクセスを求めます。標準モードでは内容変更または標準form送信操作に近接した通信を通常ログへ残します。MAXでは相関可能な利用者操作を確認できない対象通信も診断ログへ記録します。通信本文は要求・取得せず、URLのpath・query・fragmentは保存しません。request
           headersはCookieヘッダーの存在検出にだけ一時利用し、値は保存・表示しません。
         </p>
         <div class="permission-boundary">

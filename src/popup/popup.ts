@@ -14,7 +14,6 @@ import {
   type UiLanguage,
 } from '../i18n/ui';
 import { loadSettings, saveSettings } from '../storage/settings-store';
-import { updateOnboardingSelection } from '../storage/onboarding-store';
 import { getSessionRecords } from '../storage/session-buffer';
 import { requiredElement } from '../ui/required-element';
 
@@ -88,12 +87,15 @@ async function refresh(): Promise<void> {
 
 async function persist(): Promise<void> {
   const current = await loadSettings();
-  await saveSettings({
-    ...current,
-    viscosityLevel: Number(viscosity.value) === 3 ? 3 : Number(viscosity.value) === 2 ? 2 : 1,
-    reportingMode: asReportingMode(reportingMode.value),
-    communicationPulseEnabled: communicationPulseEnabled.checked,
-  });
+  await saveSettings(
+    {
+      ...current,
+      viscosityLevel: Number(viscosity.value) === 3 ? 3 : Number(viscosity.value) === 2 ? 2 : 1,
+      reportingMode: asReportingMode(reportingMode.value),
+      communicationPulseEnabled: communicationPulseEnabled.checked,
+    },
+    'popup',
+  );
   status.textContent =
     reportingMode.value === 'max_coverage'
       ? t(language, 'statusMaxSaved')
@@ -106,13 +108,11 @@ async function persistEnabled(): Promise<void> {
     if (!enabled.checked) {
       const removed = await removeNetworkMetadataPermission();
       if (!removed) throw new Error('network metadata permission was not removed');
-      await saveSettings(settingsForObservationSelection(current, 'paused'));
-      await updateOnboardingSelection('paused');
+      await saveSettings(settingsForObservationSelection(current, 'paused'), 'popup');
       status.textContent = t(language, 'statusObservationPaused');
       return;
     }
-    await saveSettings(settingsForObservationSelection(current, 'dom_only'));
-    await updateOnboardingSelection('dom_only');
+    await saveSettings(settingsForObservationSelection(current, 'dom_only'), 'popup');
     status.textContent = t(language, 'statusObservationDomOnly');
   } catch {
     await refresh();

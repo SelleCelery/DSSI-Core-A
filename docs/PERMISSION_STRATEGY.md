@@ -17,10 +17,11 @@ Network metadata observation is disabled by default.
 When the user enables it from the options page, DSSI requests:
 
 - optional permission: `webRequest`
+- optional host permissions: `http://*/*`, `https://*/*`
 
-The HTTP/HTTPS match patterns declared for the content script are required page scope for the separate limited DOM-observation layer. They are not part of the optional permission request and are not passed to `chrome.permissions.remove`.
+Chrome requires both the API permission and matching host access for `webRequest` observation. The HTTP/HTTPS patterns overlap with `content_scripts.matches`, which also supports the separate limited DOM-observation layer.
 
-The request starts directly from the user's settings-page click. Choosing DOM-only or paused removes only the optional `webRequest` capability. The removal path first checks whether that optional permission is present, and reports a failure instead of saving a false state.
+The complete enablement request starts directly from the user's settings-page click. Choosing DOM-only or paused removes only the optional `webRequest` capability and does not pass the overlapping origins to `chrome.permissions.remove`. The removal path first checks whether `webRequest` is present, and reports a failure instead of saving a false state.
 
 The permission is used only for non-blocking send-header metadata observation. DSSI does not request `webRequestBlocking` or request-body access. It requests `requestHeaders` and `extraHeaders` only to detect the `Cookie` header name; DSSI logic does not access or persist header values.
 

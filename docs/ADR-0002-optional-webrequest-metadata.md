@@ -15,7 +15,7 @@ Chrome Manifest V3 provides non-blocking `webRequest` observation. The capabilit
 
 Use optional `webRequest` with matching HTTP/HTTPS page scope.
 
-Installer-hardening amendment: the HTTP/HTTPS scope is already required by `content_scripts.matches` for the separate limited DOM-observation layer. It must not be duplicated in `optional_host_permissions` or included in the object passed to `chrome.permissions.remove`. The request-and-removal object therefore contains only `webRequest`.
+Installer-hardening correction: Chrome requires matching host access in addition to `webRequest`. The HTTP/HTTPS patterns therefore remain in `optional_host_permissions` and in the enablement request, even though they overlap with `content_scripts.matches` for the separate limited DOM-observation layer. The overlap means they must not be included in the removal object. Withdrawal removes only `webRequest`.
 
 Register a non-blocking `onBeforeSendHeaders` listener only after permission is granted. Observe only the following resource classes in Sprint 3:
 
@@ -42,7 +42,7 @@ Only requests within 2500ms of a trusted content-edit pulse in the same tab and 
 
 - Page JavaScript is not monkeypatched.
 - Network observation is opt-in.
-- The Permissions API request-and-removal boundary contains only optional `webRequest`.
+- The Permissions API enablement request contains `webRequest` plus optional HTTP/HTTPS host access, while withdrawal contains only `webRequest`.
 - Request bodies are not requested. Request-header values are not used or persisted by DSSI logic.
 - Observation terminology can distinguish DOM events from browser network API events.
 

@@ -90,20 +90,20 @@ function applyLanguage(next: UiLanguage): void {
 
 async function persistLanguage(setting: UiLanguageSetting): Promise<void> {
   const settings = await loadSettings();
-  await saveSettings({ ...settings, uiLanguage: setting });
+  await saveSettings({ ...settings, uiLanguage: setting }, 'onboarding');
   applyLanguage(resolveUiLanguage(setting, browserUiLanguage()));
 }
 
 async function complete(observationSelection: ObservationSelection): Promise<void> {
   const current = await loadSettings();
-  await saveSettings(settingsForObservationSelection(current, observationSelection));
+  await saveSettings(settingsForObservationSelection(current, observationSelection), 'onboarding');
   const now = Date.now();
   await saveOnboardingState({
     version: ONBOARDING_VERSION,
     completedAt: now,
-    changedAt: now,
+    reviewedAt: now,
     acknowledgements: currentAcknowledgements(),
-    observationSelection,
+    selectionAtLastReview: observationSelection,
   });
   for (const section of document.querySelectorAll<HTMLElement>('.onboarding-step')) {
     section.hidden = true;

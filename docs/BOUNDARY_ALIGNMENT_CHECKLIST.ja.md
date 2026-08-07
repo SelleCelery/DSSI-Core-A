@@ -10,13 +10,14 @@
 
 ## A. 権限
 
-| 確認項目                               | 宣言                                      | 実装箇所                                                                                             | 確認方法               | 状態                 |
-| -------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------- | -------------------- |
-| 通常権限は`storage`のみ                | 必須権限を最小化する                      | `src/manifest/manifest.json`                                                                         | manifest確認           | 要最終確認           |
-| `webRequest`だけを任意の撤回対象にする | 必須のDOM観測範囲と任意通信観測を分離する | manifest、`src/core/network-permission.ts`、`src/onboarding/onboarding.ts`、`src/options/options.ts` | 許可・撤回・再許可確認 | 実装済・実機確認待ち |
-| 初回は観測未開始                       | 説明確認前に暗黙開始しない                | settings、content observer、service worker                                                           | 新規profileで確認      | 実装済・実機確認待ち |
-| 三択を後から変更・撤回できる           | 初回選択を将来の拘束にしない              | onboarding、options、popup                                                                           | 三択の往復確認         | 実装済・実機確認待ち |
-| 権限許可を妥当性確認と表示しない       | APIアクセス可能性と行為の妥当性を分離する | `src/i18n/ui.ts`、options/onboarding                                                                 | 日本語・英語表示確認   | 要最終確認           |
+| 確認項目                                            | 宣言                                                     | 実装箇所                                                                                             | 確認方法             | 状態                 |
+| --------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------- | -------------------- |
+| 通常権限は`storage`のみ                             | 必須権限を最小化する                                     | `src/manifest/manifest.json`                                                                         | manifest確認         | 要最終確認           |
+| 標準選択で`webRequest`と必要なhost accessを要求する | Chromeの通信観測成立条件を満たす                         | manifest、`src/core/network-permission.ts`、`src/onboarding/onboarding.ts`、`src/options/options.ts` | 許可・通信記録確認   | 実装済・実機確認待ち |
+| 撤回時は`webRequest`だけを対象にする                | content scriptと重なるHTTP/HTTPS範囲の解除エラーを避ける | `src/core/network-permission.ts`                                                                     | 撤回・再許可確認     | 実装済・実機確認待ち |
+| 初回は観測未開始                                    | 説明確認前に暗黙開始しない                               | settings、content observer、service worker                                                           | 新規profileで確認    | 実装済・実機確認待ち |
+| 三択を後から変更・撤回できる                        | 初回選択を将来の拘束にしない                             | onboarding、options、popup                                                                           | 三択の往復確認       | 実装済・実機確認待ち |
+| 権限許可を妥当性確認と表示しない                    | APIアクセス可能性と行為の妥当性を分離する                | `src/i18n/ui.ts`、options/onboarding                                                                 | 日本語・英語表示確認 | 要最終確認           |
 
 ## B. 入力情報
 

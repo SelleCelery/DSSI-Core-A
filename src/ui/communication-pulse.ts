@@ -20,8 +20,9 @@ import type {
 } from '../core/models/settings';
 import type { SubmissionDescriptor } from '../core/models/submission';
 import {
+  hostDisplayOverridesFromEffectiveSettings,
   removeHostDisplayProfile,
-  saveHostDisplayProfile,
+  replaceHostDisplayProfile,
 } from '../storage/host-display-profile-store';
 import { loadSettings } from '../storage/settings-store';
 import {
@@ -711,27 +712,39 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   pin.append(pinIcon(options.hostProfileApplied));
   pin.addEventListener('click', () => {
     const visual = ensureActivePulseVisualState(options);
-    void saveHostDisplayProfile(options.hostname, {
-      pulseVisible: transientDisplayState().pulseVisible,
-      communicationTextVisible: transientDisplayState().communicationTextVisible,
-      position: visual.position,
-      pulseDurationMs: visual.durationMs,
-      pulseOpacity: visual.opacity,
-      domColor: visual.domColor,
-      webRequestColor: visual.webRequestColor,
-    }).then(() => {
-      visual.savedProfile = true;
-      visual.dirty = false;
-      refreshControls(root);
-      showToast(
-        root,
-        localized(
-          options.language,
-          `${options.hostname} の表示設定を保存しました`,
-          `Saved the display profile for ${options.hostname}`,
-        ),
-      );
-    });
+    void loadSettings()
+      .then((globalSettings) => {
+        const transient = transientDisplayState();
+        const overrides = hostDisplayOverridesFromEffectiveSettings(globalSettings, {
+          communicationPulseEnabled: transient.pulseVisible,
+          communicationTextChipEnabled: transient.communicationTextVisible,
+          factChipPosition: visual.position,
+          communicationPulseDurationMs: visual.durationMs,
+          communicationPulseOpacity: visual.opacity,
+          communicationPulseDomColor: visual.domColor,
+          communicationPulseWebRequestColor: visual.webRequestColor,
+        });
+        return replaceHostDisplayProfile(options.hostname, overrides);
+      })
+      .then((profile) => {
+        visual.savedProfile = profile !== undefined;
+        visual.dirty = false;
+        refreshControls(root);
+        showToast(
+          root,
+          profile === undefined
+            ? localized(
+                options.language,
+                '共通設定との差がないため、ホスト別設定は保存していません',
+                'No host profile was saved because the values match the global settings',
+              )
+            : localized(
+                options.language,
+                `${options.hostname} の表示差分を保存しました`,
+                `Saved display overrides for ${options.hostname}`,
+              ),
+        );
+      });
   });
 
   const reset = button(

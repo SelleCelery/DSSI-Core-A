@@ -26,7 +26,6 @@ import {
   type UiLanguageSetting,
 } from '../i18n/ui';
 import { loadSettings, saveSettings } from '../storage/settings-store';
-import { updateOnboardingSelection } from '../storage/onboarding-store';
 import { renderCoverageManifest } from '../ui/coverage-renderer';
 import { requiredElement } from '../ui/required-element';
 
@@ -172,11 +171,6 @@ async function refresh(): Promise<void> {
   communicationPulseWebRequestColor.value = settings.communicationPulseWebRequestColor;
   communicationPulseOpacity.value = String(settings.communicationPulseOpacity);
 
-  if (settings.networkObservationEnabled && !permissionGranted) {
-    await saveSettings(settingsForObservationSelection(settings, 'dom_only'));
-    observationSelection.value = 'dom_only';
-  }
-
   await renderCoverage();
 }
 
@@ -203,25 +197,27 @@ save.addEventListener('click', () => {
       const current = await loadSettings();
       const languageSetting = asUiLanguageSetting(uiLanguage.value);
       const selectionSettings = settingsForObservationSelection(current, selectedObservation);
-      await saveSettings({
-        ...selectionSettings,
-        localClassificationEnabled: localClassification.checked,
-        reportingMode: asReportingMode(reportingMode.value),
-        factChipPosition: asFactChipPosition(factChipPosition.value),
-        communicationPulseEnabled: communicationPulseEnabled.checked,
-        communicationTextChipEnabled: communicationTextChipEnabled.checked,
-        communicationPulseDurationMs: asCommunicationPulseDuration(
-          communicationPulseDuration.value,
-        ),
-        communicationPulseSize: asCommunicationPulseSize(communicationPulseSize.value),
-        communicationPulseDomColor: asCommunicationPulseColor(communicationPulseDomColor.value),
-        communicationPulseWebRequestColor: asCommunicationPulseColor(
-          communicationPulseWebRequestColor.value,
-        ),
-        communicationPulseOpacity: asCommunicationPulseOpacity(communicationPulseOpacity.value),
-        uiLanguage: languageSetting,
-      });
-      await updateOnboardingSelection(selectedObservation);
+      await saveSettings(
+        {
+          ...selectionSettings,
+          localClassificationEnabled: localClassification.checked,
+          reportingMode: asReportingMode(reportingMode.value),
+          factChipPosition: asFactChipPosition(factChipPosition.value),
+          communicationPulseEnabled: communicationPulseEnabled.checked,
+          communicationTextChipEnabled: communicationTextChipEnabled.checked,
+          communicationPulseDurationMs: asCommunicationPulseDuration(
+            communicationPulseDuration.value,
+          ),
+          communicationPulseSize: asCommunicationPulseSize(communicationPulseSize.value),
+          communicationPulseDomColor: asCommunicationPulseColor(communicationPulseDomColor.value),
+          communicationPulseWebRequestColor: asCommunicationPulseColor(
+            communicationPulseWebRequestColor.value,
+          ),
+          communicationPulseOpacity: asCommunicationPulseOpacity(communicationPulseOpacity.value),
+          uiLanguage: languageSetting,
+        },
+        'options',
+      );
 
       applyLanguage(resolveUiLanguage(languageSetting, browserUiLanguage()));
       status.textContent = t(

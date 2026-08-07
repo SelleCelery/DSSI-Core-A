@@ -43,7 +43,7 @@ const JA_MESSAGES = {
   localClassification: 'ローカル内容分類',
   networkObservation: '通信開始メタデータの補助観測（任意権限）',
   networkObservationExplanation:
-    '標準設定を選んだ場合だけ、Chromeの任意権限webRequestを求めます。標準モードでは内容変更または標準form送信操作に近接した通信を通常ログへ残します。MAXでは相関可能な利用者操作を確認できない対象通信も診断ログへ記録します。通信本文は要求・取得せず、URLのpath・query・fragmentは保存しません。request headersはCookieヘッダーの存在検出にだけ一時利用し、値は保存・表示しません。',
+    '標準設定を選んだ場合だけ、Chromeの任意権限webRequestと、その観測に必要なHTTP/HTTPSホストアクセスを求めます。標準モードでは内容変更または標準form送信操作に近接した通信を通常ログへ残します。MAXでは相関可能な利用者操作を確認できない対象通信も診断ログへ記録します。通信本文は要求・取得せず、URLのpath・query・fragmentは保存しません。request headersはCookieヘッダーの存在検出にだけ一時利用し、値は保存・表示しません。',
   maxScopeExplanation:
     'MAXは権限や取得内容を増やすモードではありません。現在の観測面で取得できた診断事象と、見ない・見えない領域の説明量を増やします。',
   chipPosition: 'チップ・通信パルス表示位置',
@@ -255,7 +255,7 @@ const JA_MESSAGES = {
   pauseObservation: '今は観測を開始しない',
   onboardingPausedDetail: '観測を開始せず、拡張機能を休止状態にします。あとから設定できます。',
   permissionMeaning:
-    '権限の付与は、ConnectBitsによるすべての判断への同意ではなく、観測された通信の安全性や妥当性が確認されたことも意味しません。',
+    '権限の付与を、ConnectBitsが行う個々の判断への同意とみなすことはありません。また、ConnectBitsの観測や判定は、通信の安全性・妥当性を保証するものではありません。',
   onboardingComplete:
     '導入確認が完了しました。対象ページを再読み込みすると、現在の設定が確実に反映されます。',
   openObservationLog: '観測ログを開く',
@@ -265,7 +265,7 @@ const JA_MESSAGES = {
   statusMaxSaved: 'MAX報告モードを保存しました。対象ページの再読み込み後に反映されます。',
   statusPermissionDenied: '通信開始メタデータ観測の権限が付与されなかったため、無効のままです。',
   statusPermissionError:
-    '任意のwebRequest権限を変更できませんでした。権限状態を保ったまま、選択の保存を中止しました。',
+    '通信観測に必要な任意権限を変更できませんでした。権限状態を保ったまま、選択の保存を中止しました。',
   statusObservationStandard:
     '標準設定を保存しました。ページ上の限定観測と通信メタデータ観測を行います。',
   statusObservationDomOnly:
@@ -342,7 +342,7 @@ const EN_MESSAGES: Record<UiMessageKey, string> = {
   localClassification: 'Local surface classification',
   networkObservation: 'Supplementary request-start metadata observation (optional permission)',
   networkObservationExplanation:
-    'ConnectBits requests the optional webRequest permission only when standard observation is selected. Standard mode records selected requests near a trusted content edit or standard-form submission action. MAX also records selected requests for which no correlatable user action was observed. Network payloads are not requested or collected, and URL paths, queries, and fragments are not stored. Request headers are used transiently only to detect the presence of a Cookie header; values are not stored or displayed.',
+    'ConnectBits requests optional webRequest and the HTTP/HTTPS host access required by that API only when standard observation is selected. Standard mode records selected requests near a trusted content edit or standard-form submission action. MAX also records selected requests for which no correlatable user action was observed. Network payloads are not requested or collected, and URL paths, queries, and fragments are not stored. Request headers are used transiently only to detect the presence of a Cookie header; values are not stored or displayed.',
   maxScopeExplanation:
     'MAX does not increase permissions or collected content. It increases the amount of diagnostic information and explanations about observed, reduced, intentionally excluded, currently unobservable, and unknown areas.',
   chipPosition: 'Chip and pulse position',
@@ -565,7 +565,7 @@ const EN_MESSAGES: Record<UiMessageKey, string> = {
   onboardingPausedDetail:
     'Keeps the extension installed with observation paused. You can choose later in settings.',
   permissionMeaning:
-    'Granting permission is not consent to every judgment by ConnectBits and does not establish that observed communication is safe or appropriate.',
+    'ConnectBits does not treat granting permission as consent to its individual judgments. ConnectBits observations and classifications do not guarantee that a communication is safe or appropriate.',
   onboardingComplete:
     'Setup review is complete. Reload eligible pages to apply the current settings reliably.',
   openObservationLog: 'Open observation log',
@@ -576,7 +576,7 @@ const EN_MESSAGES: Record<UiMessageKey, string> = {
   statusPermissionDenied:
     'The request-start metadata permission was not granted, so it remains disabled.',
   statusPermissionError:
-    'The optional webRequest permission could not be changed. The choice was not saved and the existing permission state was preserved.',
+    'The optional communication-observation permissions could not be changed. The choice was not saved and the existing permission state was preserved.',
   statusObservationStandard:
     'Standard observation saved. Limited page observation and communication-metadata observation are active.',
   statusObservationDomOnly:

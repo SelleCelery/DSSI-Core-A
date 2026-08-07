@@ -1,6 +1,6 @@
 import type { ObservationSelection } from '../core/models/settings';
 
-export const ONBOARDING_VERSION = 2;
+export const ONBOARDING_VERSION = 3;
 const ONBOARDING_KEY = 'connectBitsOnboardingState';
 
 export interface OnboardingAcknowledgements {
@@ -14,11 +14,11 @@ export interface OnboardingAcknowledgements {
 }
 
 export interface OnboardingState {
-  version: number;
+  version: typeof ONBOARDING_VERSION;
   completedAt: number;
-  changedAt: number;
+  reviewedAt: number;
   acknowledgements: OnboardingAcknowledgements;
-  observationSelection: ObservationSelection;
+  selectionAtLastReview: ObservationSelection;
 }
 
 export const EMPTY_ONBOARDING_ACKNOWLEDGEMENTS: Readonly<OnboardingAcknowledgements> =
@@ -49,19 +49,43 @@ function isOnboardingAcknowledgements(value: unknown): value is OnboardingAcknow
   );
 }
 
+function isObservationSelection(value: unknown): value is ObservationSelection {
+  return value === 'standard' || value === 'dom_only' || value === 'paused';
+}
+
+function isTimestamp(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
 function isOnboardingState(value: unknown): value is OnboardingState {
   if (!isObject(value)) return false;
   return (
     value.version === ONBOARDING_VERSION &&
-    typeof value.completedAt === 'number' &&
-    Number.isFinite(value.completedAt) &&
-    typeof value.changedAt === 'number' &&
-    Number.isFinite(value.changedAt) &&
-    (value.observationSelection === 'standard' ||
-      value.observationSelection === 'dom_only' ||
-      value.observationSelection === 'paused') &&
+    isTimestamp(value.completedAt) &&
+    isTimestamp(value.reviewedAt) &&
+    isObservationSelection(value.selectionAtLastReview) &&
     isOnboardingAcknowledgements(value.acknowledgements)
   );
+}
+
+export function migrateOnboardingState(value: unknown): OnboardingState | undefined {
+  if (isOnboardingState(value)) return value;
+  if (!isObject(value) || value.version !== 2) return undefined;
+  if (
+    !isTimestamp(value.completedAt) ||
+    !isTimestamp(value.changedAt) ||
+    !isObservationSelection(value.observationSelection) ||
+    !isOnboardingAcknowledgements(value.acknowledgements)
+  ) {
+    return undefined;
+  }
+  return {
+    version: ONBOARDING_VERSION,
+    completedAt: value.completedAt,
+    reviewedAt: value.changedAt,
+    acknowledgements: value.acknowledgements,
+    selectionAtLastReview: value.observationSelection,
+  };
 }
 
 export function onboardingAcknowledgementsComplete(
@@ -73,23 +97,15 @@ export function onboardingAcknowledgementsComplete(
 export async function loadOnboardingState(): Promise<OnboardingState | undefined> {
   const result = await chrome.storage.local.get(ONBOARDING_KEY);
   const candidate: unknown = result[ONBOARDING_KEY];
-  return isOnboardingState(candidate) ? candidate : undefined;
+  const migrated = migrateOnboardingState(candidate);
+  if (migrated !== undefined && migrated !== candidate) {
+    await saveOnboardingState(migrated);
+  }
+  return migrated;
 }
 
 export async function saveOnboardingState(state: OnboardingState): Promise<void> {
   await chrome.storage.local.set({ [ONBOARDING_KEY]: state });
-}
-
-export async function updateOnboardingSelection(
-  observationSelection: ObservationSelection,
-): Promise<void> {
-  const current = await loadOnboardingState();
-  if (current === undefined) return;
-  await saveOnboardingState({
-    ...current,
-    changedAt: Date.now(),
-    observationSelection,
-  });
 }
 
 export async function onboardingCompleted(): Promise<boolean> {
