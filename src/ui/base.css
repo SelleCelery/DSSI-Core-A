@@ -684,6 +684,11 @@ button {
   white-space: nowrap;
 }
 
+.reader-record-button[aria-pressed='true'] {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
 .reader-table-scroll {
   max-height: 68vh;
 }
@@ -709,10 +714,12 @@ button {
   margin: 0;
 }
 
-.reader-detail-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
-  gap: 22px;
+.reader-selected-record {
+  scroll-margin-top: 12px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, CanvasText 3%, Canvas);
 }
 
 .reader-detail-list {
@@ -777,10 +784,6 @@ button {
 }
 
 @media (max-width: 900px) {
-  .reader-detail-layout {
-    grid-template-columns: 1fr;
-  }
-
   .reader-filter-wide {
     grid-column: auto;
   }
@@ -1129,12 +1132,6 @@ button {
   margin: 0;
 }
 
-.reader-detail-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr);
-  gap: 18px;
-}
-
 .reader-raw-json {
   max-height: 30rem;
   overflow: auto;
@@ -1270,8 +1267,7 @@ button {
   }
 
   .boundary-columns,
-  .onboarding-choice-card,
-  .reader-detail-layout {
+  .onboarding-choice-card {
     grid-template-columns: 1fr;
   }
 

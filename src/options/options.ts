@@ -29,7 +29,6 @@ import { loadSettings, saveSettings } from '../storage/settings-store';
 import { renderCoverageManifest } from '../ui/coverage-renderer';
 import { requiredElement } from '../ui/required-element';
 
-const localClassification = requiredElement<HTMLInputElement>('#localClassificationEnabled');
 const observationSelection = requiredElement<HTMLSelectElement>('#observationSelection');
 const reportingMode = requiredElement<HTMLSelectElement>('#reportingMode');
 const factChipPosition = requiredElement<HTMLSelectElement>('#factChipPosition');
@@ -159,7 +158,6 @@ async function refresh(): Promise<void> {
   const [settings, permissionGranted] = await Promise.all([loadSettings(), hasNetworkPermission()]);
   uiLanguage.value = settings.uiLanguage;
   applyLanguage(resolveUiLanguage(settings.uiLanguage, browserUiLanguage()));
-  localClassification.checked = settings.localClassificationEnabled;
   observationSelection.value = observationSelectionFromSettings(settings, permissionGranted);
   reportingMode.value = settings.reportingMode;
   factChipPosition.value = settings.factChipPosition;
@@ -200,7 +198,6 @@ save.addEventListener('click', () => {
       await saveSettings(
         {
           ...selectionSettings,
-          localClassificationEnabled: localClassification.checked,
           reportingMode: asReportingMode(reportingMode.value),
           factChipPosition: asFactChipPosition(factChipPosition.value),
           communicationPulseEnabled: communicationPulseEnabled.checked,

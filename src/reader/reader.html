@@ -130,7 +130,9 @@
               <h2 id="queryHeading" data-i18n="queryHeading">絞り込みと並べ替え</h2>
               <p id="activeFilterSummary" class="small" data-i18n="noFilters">フィルターなし</p>
             </div>
-            <button id="clearFilters" type="button" data-i18n="clearFilters">すべて解除</button>
+            <button id="clearFilters" type="button" data-i18n="clearFilters">
+              絞り込みと並べ替えをリセット
+            </button>
           </div>
 
           <div class="reader-filter-grid">
@@ -255,6 +257,30 @@
           </div>
         </section>
 
+        <section
+          id="detailSection"
+          class="reader-section reader-selected-record"
+          aria-labelledby="detailHeading"
+          aria-live="polite"
+        >
+          <div class="reader-section-heading">
+            <div>
+              <h2 id="detailHeading" data-i18n="selectedRecord">選択レコード</h2>
+              <p id="detailEmpty" class="small" data-i18n="selectRecord">
+                下の時系列一覧から一件を選ぶと、ここに詳細と原値が表示されます。
+              </p>
+            </div>
+            <button id="clearSelection" type="button" disabled data-i18n="clearSelection">
+              選択を解除
+            </button>
+          </div>
+          <div id="recordDetail" hidden>
+            <dl id="recordDetailList" class="reader-detail-list"></dl>
+            <h3 data-i18n="rawValue">原値（読取専用）</h3>
+            <pre id="rawRecordJson" class="reader-raw-json" tabindex="0"></pre>
+          </div>
+        </section>
+
         <section id="recordsSection" class="reader-section" aria-labelledby="recordsHeading">
           <div class="reader-section-heading">
             <div>
@@ -289,26 +315,13 @@
           </div>
         </section>
 
-        <section class="reader-section reader-detail-layout" aria-labelledby="detailHeading">
-          <div>
-            <h2 id="detailHeading" data-i18n="selectedRecord">選択レコード</h2>
-            <p id="detailEmpty" class="small" data-i18n="selectRecord">
-              時系列一覧から一件を選択してください。
-            </p>
-            <div id="recordDetail" hidden>
-              <dl id="recordDetailList" class="reader-detail-list"></dl>
-              <h3 data-i18n="rawValue">原値（読取専用）</h3>
-              <pre id="rawRecordJson" class="reader-raw-json" tabindex="0"></pre>
-            </div>
-          </div>
-          <aside aria-labelledby="tipsHeading">
-            <h2 id="tipsHeading" data-i18n="observationTips">観測パターン別チップス</h2>
-            <p class="small" data-i18n="tipsNotDiagnosis">
-              自動診断ではありません。この表示範囲に関連し得る読解補助です。
-            </p>
-            <div id="tipsList" class="reader-tips-list"></div>
-            <div id="tipDetail" class="reader-tip-detail" hidden></div>
-          </aside>
+        <section class="reader-section" aria-labelledby="tipsHeading">
+          <h2 id="tipsHeading" data-i18n="observationTips">観測パターン別チップス</h2>
+          <p class="small" data-i18n="tipsNotDiagnosis">
+            自動診断ではありません。この表示範囲に関連し得る読解補助です。
+          </p>
+          <div id="tipsList" class="reader-tips-list"></div>
+          <div id="tipDetail" class="reader-tip-detail" hidden></div>
         </section>
       </div>
     </main>

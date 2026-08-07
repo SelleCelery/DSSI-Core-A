@@ -130,7 +130,9 @@ const nextPage = requiredElement<HTMLButtonElement>('#nextPage');
 const pageLabel = requiredElement<HTMLElement>('#pageLabel');
 const recordsEmpty = requiredElement<HTMLElement>('#recordsEmpty');
 
+const detailSection = requiredElement<HTMLElement>('#detailSection');
 const detailEmpty = requiredElement<HTMLElement>('#detailEmpty');
+const clearSelection = requiredElement<HTMLButtonElement>('#clearSelection');
 const recordDetail = requiredElement<HTMLElement>('#recordDetail');
 const recordDetailList = requiredElement<HTMLElement>('#recordDetailList');
 const rawRecordJson = requiredElement<HTMLElement>('#rawRecordJson');
@@ -261,7 +263,6 @@ function updateQueryFromControls(): void {
   state = {
     ...state,
     query: next,
-    selectedRecordId: undefined,
     currentPage: 1,
   };
   render();
@@ -727,6 +728,7 @@ function renderRecords(
     selectButton.type = 'button';
     selectButton.className = 'reader-record-button';
     selectButton.dataset.eventId = record.eventId;
+    selectButton.setAttribute('aria-pressed', String(record.eventId === state.selectedRecordId));
     selectButton.textContent = formatDateTime(record.timestamp);
     selectButton.title = local(
       `原レコードを表示: ${record.eventId}`,
@@ -795,6 +797,7 @@ function renderRecordDetail(
   tipAnalyses: readonly ObservationTipAnalysis[],
 ): void {
   const readonlyRecord = findSelectedRecord(source);
+  clearSelection.disabled = readonlyRecord === undefined;
   detailEmpty.hidden = readonlyRecord !== undefined;
   recordDetail.hidden = readonlyRecord === undefined;
   recordDetailList.replaceChildren();
@@ -1048,7 +1051,6 @@ function setGroupFilter(kind: string, value: string): void {
   state = {
     ...state,
     query: next,
-    selectedRecordId: undefined,
     currentPage: 1,
   };
   syncControlsToQuery();
@@ -1182,7 +1184,7 @@ async function readSelectedFile(file: File): Promise<void> {
     query: createDefaultReaderQuery(),
     file: { name: file.name, size: file.size, lastModified: file.lastModified },
     notices: validation.notices,
-    selectedRecordId: validation.value.records[0]?.eventId,
+    selectedRecordId: undefined,
     selectedTipId: undefined,
     currentPage: 1,
   };
@@ -1226,7 +1228,6 @@ function addEventListeners(): void {
     state = {
       ...state,
       query: createDefaultReaderQuery(),
-      selectedRecordId: undefined,
       currentPage: 1,
     };
     syncControlsToQuery();
@@ -1235,12 +1236,17 @@ function addEventListeners(): void {
 
   previousPage.addEventListener('click', () => {
     if (state.currentPage <= 1) return;
-    state = { ...state, currentPage: state.currentPage - 1, selectedRecordId: undefined };
+    state = { ...state, currentPage: state.currentPage - 1 };
     render();
   });
 
   nextPage.addEventListener('click', () => {
-    state = { ...state, currentPage: state.currentPage + 1, selectedRecordId: undefined };
+    state = { ...state, currentPage: state.currentPage + 1 };
+    render();
+  });
+
+  clearSelection.addEventListener('click', () => {
+    state = { ...state, selectedRecordId: undefined };
     render();
   });
 
@@ -1252,6 +1258,7 @@ function addEventListeners(): void {
     if (eventId === undefined) return;
     state = { ...state, selectedRecordId: eventId };
     render();
+    detailSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   for (const groupContainer of [

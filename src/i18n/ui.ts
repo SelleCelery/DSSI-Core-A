@@ -40,7 +40,9 @@ const JA_MESSAGES = {
   observationPaused: '今は観測を開始しない',
   observationSelectionHelp:
     '通信メタデータ観測を外すと、任意のwebRequest権限だけを撤回します。操作者自身が関与し画面上で自覚できる、限定的なDOM上の操作・表示変化は、ページ上の限定観測を選んでいる間は継続します。「今は観測を開始しない」では両方を停止します。',
-  localClassification: 'ローカル内容分類',
+  localClassification: 'ローカル入力面分類（現在は固定）',
+  localClassificationHelp:
+    'ページ上の限定観測が動作中は、入力欄のtype、autocomplete、周辺構造を使う分類を端末内で行います。この版では切替未実装のため変更できません。入力本文は分類・保存しません。',
   networkObservation: '通信開始メタデータの補助観測（任意権限）',
   networkObservationExplanation:
     '標準設定を選んだ場合だけ、Chromeの任意権限webRequestと、その観測に必要なHTTP/HTTPSホストアクセスを求めます。標準モードでは内容変更または標準form送信操作に近接した通信を通常ログへ残します。MAXでは相関可能な利用者操作を確認できない対象通信も診断ログへ記録します。通信本文は要求・取得せず、URLのpath・query・fragmentは保存しません。request headersはCookieヘッダーの存在検出にだけ一時利用し、値は保存・表示しません。',
@@ -162,7 +164,7 @@ const JA_MESSAGES = {
   settingsSnapshots: '設定スナップショット',
   queryHeading: '絞り込みと並べ替え',
   noFilters: 'フィルターなし',
-  clearFilters: 'すべて解除',
+  clearFilters: '絞り込みと並べ替えをリセット',
   searchLabel: '検索（閲覧サイト・通信先・triggerType）',
   sort: '並べ替え',
   sortTimestampDesc: '時刻 降順',
@@ -195,7 +197,8 @@ const JA_MESSAGES = {
   observation: '観測',
   mechanism: '方式',
   selectedRecord: '選択レコード',
-  selectRecord: '時系列一覧から一件を選択してください。',
+  selectRecord: '下の時系列一覧から一件を選ぶと、ここに詳細と原値が表示されます。',
+  clearSelection: '選択を解除',
   rawValue: '原値（読取専用）',
   observationTips: '観測パターン別チップス',
   tipsNotDiagnosis: '自動診断ではありません。この表示範囲に関連し得る読解補助です。',
@@ -339,7 +342,9 @@ const EN_MESSAGES: Record<UiMessageKey, string> = {
   observationPaused: 'Do not start observation now',
   observationSelectionHelp:
     'Removing communication-metadata observation withdraws only the optional webRequest permission. Limited DOM actions and display changes in which the operator participates and can notice continue while limited page observation is selected. “Do not start observation now” stops both layers.',
-  localClassification: 'Local surface classification',
+  localClassification: 'Local input-surface classification (fixed for now)',
+  localClassificationHelp:
+    'While limited page observation is running, ConnectBits classifies input surfaces locally using type, autocomplete, and surrounding structure. This version does not yet provide a switch. Input text is not classified or stored.',
   networkObservation: 'Supplementary request-start metadata observation (optional permission)',
   networkObservationExplanation:
     'ConnectBits requests optional webRequest and the HTTP/HTTPS host access required by that API only when standard observation is selected. Standard mode records selected requests near a trusted content edit or standard-form submission action. MAX also records selected requests for which no correlatable user action was observed. Network payloads are not requested or collected, and URL paths, queries, and fragments are not stored. Request headers are used transiently only to detect the presence of a Cookie header; values are not stored or displayed.',
@@ -466,7 +471,7 @@ const EN_MESSAGES: Record<UiMessageKey, string> = {
   settingsSnapshots: 'Settings snapshots',
   queryHeading: 'Filter and sort',
   noFilters: 'No filters',
-  clearFilters: 'Clear all',
+  clearFilters: 'Reset filters and sort',
   searchLabel: 'Search browsing site, destination, or triggerType',
   sort: 'Sort',
   sortTimestampDesc: 'Time descending',
@@ -499,7 +504,9 @@ const EN_MESSAGES: Record<UiMessageKey, string> = {
   observation: 'Observation',
   mechanism: 'Mechanism',
   selectedRecord: 'Selected record',
-  selectRecord: 'Select one record from the timeline.',
+  selectRecord:
+    'Select one record from the timeline below to show its details and raw values here.',
+  clearSelection: 'Clear selection',
   rawValue: 'Raw values (read-only)',
   observationTips: 'Observation-pattern tips',
   tipsNotDiagnosis: 'These are reading aids, not automated diagnoses.',
