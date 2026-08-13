@@ -14,6 +14,7 @@ import { createPrivacySafeRecord } from '../core/privacy-safe-logger';
 import { browserUiLanguage, resolveUiLanguage } from '../i18n/ui';
 import { classifyInputSurface } from '../core/surface-classifier';
 import { FactChipPresenter } from '../ui/fact-chip';
+import type { DisplayStateController } from '../ui/display-state-controller';
 import {
   describeInputSurface,
   describeSafeInputSurfaceStructure,
@@ -59,10 +60,15 @@ export class InputSurfaceObserver {
   #enabled: boolean;
   #started = false;
 
-  public constructor(settings: DssiSettings, sessionId: string) {
+  public constructor(
+    settings: DssiSettings,
+    sessionId: string,
+    displayController: DisplayStateController,
+  ) {
     this.#settings = settings;
     this.#sessionId = sessionId;
     this.#presenter = new FactChipPresenter(
+      displayController,
       settings.factChipPosition,
       resolveUiLanguage(settings.uiLanguage, browserUiLanguage()),
     );

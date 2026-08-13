@@ -14,6 +14,7 @@ import { createPrivacySafeRecord } from '../core/privacy-safe-logger';
 import { browserUiLanguage, resolveUiLanguage } from '../i18n/ui';
 import { analyzeSubmission } from '../core/submission-analyzer';
 import { CommunicationPulsePresenter } from '../ui/communication-pulse';
+import type { DisplayStateController } from '../ui/display-state-controller';
 import { FactChipPresenter } from '../ui/fact-chip';
 import { applyRuntimeSettings } from './runtime-settings';
 
@@ -73,12 +74,17 @@ export class SubmissionObserver {
   #networkPulseEnabled: boolean;
   #enabled: boolean;
 
-  public constructor(settings: DssiSettings, sessionId: string, hostProfileApplied: boolean) {
+  public constructor(
+    settings: DssiSettings,
+    sessionId: string,
+    displayController: DisplayStateController,
+  ) {
     this.#settings = settings;
     this.#sessionId = sessionId;
     const language = resolveUiLanguage(settings.uiLanguage, browserUiLanguage());
-    this.#presenter = new FactChipPresenter(settings.factChipPosition, language);
+    this.#presenter = new FactChipPresenter(displayController, settings.factChipPosition, language);
     this.#pulsePresenter = new CommunicationPulsePresenter({
+      displayController,
       hostname: this.#domainKey,
       position: settings.factChipPosition,
       durationMs: settings.communicationPulseDurationMs,
@@ -87,7 +93,6 @@ export class SubmissionObserver {
       domColor: settings.communicationPulseDomColor,
       webRequestColor: settings.communicationPulseWebRequestColor,
       opacity: settings.communicationPulseOpacity,
-      hostProfileApplied,
       language,
     });
     this.#enabled = settings.enabled;

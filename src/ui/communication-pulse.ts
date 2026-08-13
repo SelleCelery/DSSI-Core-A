@@ -1,8 +1,4 @@
-import {
-  factChipPositionLabel,
-  isFactChipPosition,
-  nextFactChipPosition,
-} from '../core/fact-chip-position';
+import { factChipPositionLabel, nextFactChipPosition } from '../core/fact-chip-position';
 import {
   communicationPulseAriaLabel,
   communicationPulseFromNetwork,
@@ -20,20 +16,13 @@ import type {
 } from '../core/models/settings';
 import type { SubmissionDescriptor } from '../core/models/submission';
 import {
-  hostDisplayOverridesFromEffectiveSettings,
-  removeHostDisplayProfile,
-  replaceHostDisplayProfile,
-} from '../storage/host-display-profile-store';
-import { loadSettings } from '../storage/settings-store';
-import {
   applyCommunicationPulseVisualOptions,
   createCommunicationPulseIcon,
   type CommunicationPulseVisualOptions,
 } from './communication-pulse-icon';
+import type { DisplayStateController } from './display-state-controller';
 import {
-  setCommunicationTextVisible,
   setPulsePaused,
-  setPulseVisible,
   subscribeTransientDisplayState,
   transientDisplayState,
 } from './transient-display-state';
@@ -57,23 +46,32 @@ let activePulseVisualState: ActivePulseVisualState | undefined;
 function ensureActivePulseVisualState(
   options: CommunicationPulsePresenterOptions,
 ): ActivePulseVisualState {
+  const view = options.displayController.snapshot();
+  const display = view.display.current;
   if (
     activePulseVisualState === undefined ||
     activePulseVisualState.hostname !== options.hostname
   ) {
     activePulseVisualState = {
       hostname: options.hostname,
-      domColor: options.domColor,
-      webRequestColor: options.webRequestColor,
-      opacity: options.opacity,
-      position: options.position,
-      durationMs: options.durationMs,
+      domColor: display.communicationPulseDomColor,
+      webRequestColor: display.communicationPulseWebRequestColor,
+      opacity: display.communicationPulseOpacity,
+      position: display.factChipPosition,
+      durationMs: display.communicationPulseDurationMs,
       language: options.language,
-      savedProfile: options.hostProfileApplied,
-      dirty: false,
+      savedProfile: view.display.committed.source.kind === 'host',
+      dirty: view.display.dirty,
     };
   }
   activePulseVisualState.language = options.language;
+  activePulseVisualState.domColor = display.communicationPulseDomColor;
+  activePulseVisualState.webRequestColor = display.communicationPulseWebRequestColor;
+  activePulseVisualState.opacity = display.communicationPulseOpacity;
+  activePulseVisualState.position = display.factChipPosition;
+  activePulseVisualState.durationMs = display.communicationPulseDurationMs;
+  activePulseVisualState.savedProfile = view.display.committed.source.kind === 'host';
+  activePulseVisualState.dirty = view.display.dirty;
   return activePulseVisualState;
 }
 
@@ -100,6 +98,7 @@ function colorLabel(color: CommunicationPulseColor, language: UiLanguage): strin
 }
 
 interface CommunicationPulsePresenterOptions {
+  displayController: DisplayStateController;
   hostname: string;
   position: FactChipPosition;
   durationMs: CommunicationPulseDurationMs;
@@ -108,7 +107,6 @@ interface CommunicationPulsePresenterOptions {
   domColor: CommunicationPulseColor;
   webRequestColor: CommunicationPulseColor;
   opacity: CommunicationPulseOpacity;
-  hostProfileApplied: boolean;
   language: UiLanguage;
 }
 
@@ -191,12 +189,6 @@ function pinIcon(filled: boolean): SVGSVGElement {
   path.setAttribute('stroke-linejoin', 'round');
   svg.append(path);
   return svg;
-}
-
-function markTemporaryChange(root: ShadowRoot): void {
-  if (activePulseVisualState === undefined) return;
-  activePulseVisualState.dirty = true;
-  refreshControls(root);
 }
 
 function showToast(root: ShadowRoot, message: string): void {
@@ -475,7 +467,9 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
       background: rgba(30, 30, 29, 0.94);
       color: rgba(244, 241, 234, 0.96);
       font: 11px/1.35 system-ui, sans-serif;
-      white-space: nowrap;
+      width: max-content;
+      white-space: normal;
+      overflow-wrap: anywhere;
       pointer-events: none;
       opacity: 0;
       transform: translate(-50%, -4px);
@@ -484,6 +478,29 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
     .toast[data-visible="true"] {
       opacity: 1;
       transform: translate(-50%, 0);
+    }
+    :host([data-position="left"]) .toast,
+    :host([data-position="top_left"]) .toast,
+    :host([data-position="bottom_left"]) .toast {
+      left: 0;
+      transform: translate(0, -4px);
+    }
+    :host([data-position="left"]) .toast[data-visible="true"],
+    :host([data-position="top_left"]) .toast[data-visible="true"],
+    :host([data-position="bottom_left"]) .toast[data-visible="true"] {
+      transform: translate(0, 0);
+    }
+    :host([data-position="right"]) .toast,
+    :host([data-position="top_right"]) .toast,
+    :host([data-position="bottom_right"]) .toast {
+      right: 0;
+      left: auto;
+      transform: translate(0, -4px);
+    }
+    :host([data-position="right"]) .toast[data-visible="true"],
+    :host([data-position="top_right"]) .toast[data-visible="true"],
+    :host([data-position="bottom_right"]) .toast[data-visible="true"] {
+      transform: translate(0, 0);
     }
     :host([data-position^="bottom"]) .toast,
     :host([data-position="bottom"]) .toast {
@@ -620,8 +637,7 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   visibility.dataset.action = 'visibility';
   visibility.addEventListener('click', () => {
     const visible = !transientDisplayState().pulseVisible;
-    setPulseVisible(visible);
-    markTemporaryChange(root);
+    options.displayController.updateDraft({ communicationPulseEnabled: visible });
   });
 
   const text = button(
@@ -635,8 +651,7 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   text.dataset.action = 'text';
   text.addEventListener('click', () => {
     const visible = !transientDisplayState().communicationTextVisible;
-    setCommunicationTextVisible(visible);
-    markTemporaryChange(root);
+    options.displayController.updateDraft({ communicationTextChipEnabled: visible });
   });
 
   const domColor = button(
@@ -646,10 +661,9 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   domColor.dataset.action = 'dom-color';
   domColor.addEventListener('click', () => {
     const visual = ensureActivePulseVisualState(options);
-    visual.domColor = nextValue(PULSE_COLORS, visual.domColor);
-    refreshPulseVisuals(root);
-    refreshControls(root);
-    markTemporaryChange(root);
+    options.displayController.updateDraft({
+      communicationPulseDomColor: nextValue(PULSE_COLORS, visual.domColor),
+    });
   });
 
   const webRequestColor = button(
@@ -659,10 +673,9 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   webRequestColor.dataset.action = 'webrequest-color';
   webRequestColor.addEventListener('click', () => {
     const visual = ensureActivePulseVisualState(options);
-    visual.webRequestColor = nextValue(PULSE_COLORS, visual.webRequestColor);
-    refreshPulseVisuals(root);
-    refreshControls(root);
-    markTemporaryChange(root);
+    options.displayController.updateDraft({
+      communicationPulseWebRequestColor: nextValue(PULSE_COLORS, visual.webRequestColor),
+    });
   });
 
   const opacity = button(
@@ -672,10 +685,9 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   opacity.dataset.action = 'opacity';
   opacity.addEventListener('click', () => {
     const visual = ensureActivePulseVisualState(options);
-    visual.opacity = nextValue(PULSE_OPACITIES, visual.opacity);
-    refreshPulseVisuals(root);
-    refreshControls(root);
-    markTemporaryChange(root);
+    options.displayController.updateDraft({
+      communicationPulseOpacity: nextValue(PULSE_OPACITIES, visual.opacity),
+    });
   });
 
   const move = button(
@@ -690,14 +702,7 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   move.addEventListener('click', () => {
     const visual = ensureActivePulseVisualState(options);
     const next = nextFactChipPosition(visual.position);
-    visual.position = next;
-    applyPulseHostPosition(host, next);
-    window.dispatchEvent(
-      new CustomEvent('dssi-core-a-chip-position-changed', {
-        detail: next,
-      }),
-    );
-    markTemporaryChange(root);
+    options.displayController.updateDraft({ factChipPosition: next });
   });
 
   const pin = button(
@@ -709,42 +714,34 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
     ),
   );
   pin.dataset.action = 'pin';
-  pin.append(pinIcon(options.hostProfileApplied));
+  pin.append(
+    pinIcon(options.displayController.snapshot().display.committed.source.kind === 'host'),
+  );
   pin.addEventListener('click', () => {
-    const visual = ensureActivePulseVisualState(options);
-    void loadSettings()
-      .then((globalSettings) => {
-        const transient = transientDisplayState();
-        const overrides = hostDisplayOverridesFromEffectiveSettings(globalSettings, {
-          communicationPulseEnabled: transient.pulseVisible,
-          communicationTextChipEnabled: transient.communicationTextVisible,
-          factChipPosition: visual.position,
-          communicationPulseDurationMs: visual.durationMs,
-          communicationPulseOpacity: visual.opacity,
-          communicationPulseDomColor: visual.domColor,
-          communicationPulseWebRequestColor: visual.webRequestColor,
-        });
-        return replaceHostDisplayProfile(options.hostname, overrides);
-      })
-      .then((profile) => {
-        visual.savedProfile = profile !== undefined;
-        visual.dirty = false;
-        refreshControls(root);
+    void options.displayController
+      .saveHostDraft()
+      .then((response) => {
         showToast(
           root,
-          profile === undefined
+          response.ok
             ? localized(
                 options.language,
-                '共通設定との差がないため、ホスト別設定は保存していません',
-                'No host profile was saved because the values match the global settings',
+                `${options.hostname} の表示設定束を保存しました`,
+                `Saved the display settings bundle for ${options.hostname}`,
               )
             : localized(
                 options.language,
-                `${options.hostname} の表示差分を保存しました`,
-                `Saved display overrides for ${options.hostname}`,
+                '別の設定変更を検出したため、保存せず最新状態を読み直しました',
+                'Another settings change was detected; the latest saved state was reloaded',
               ),
         );
-      });
+      })
+      .catch(() =>
+        showToast(
+          root,
+          localized(options.language, '表示設定を保存できませんでした', 'Could not save settings'),
+        ),
+      );
   });
 
   const reset = button(
@@ -757,43 +754,30 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   );
   reset.dataset.action = 'reset';
   reset.addEventListener('click', () => {
-    void removeHostDisplayProfile(options.hostname)
-      .then(loadSettings)
-      .then((settings) => {
-        setPulseVisible(settings.communicationPulseEnabled);
-        setCommunicationTextVisible(settings.communicationTextChipEnabled);
-        activePulseVisualState = {
-          hostname: options.hostname,
-          domColor: settings.communicationPulseDomColor,
-          webRequestColor: settings.communicationPulseWebRequestColor,
-          opacity: settings.communicationPulseOpacity,
-          position: settings.factChipPosition,
-          durationMs: settings.communicationPulseDurationMs,
-          language: options.language,
-          savedProfile: false,
-          dirty: false,
-        };
-        refreshPulseVisuals(root);
-        refreshControls(root);
-        applyPulseHostPosition(host, settings.factChipPosition);
-        window.dispatchEvent(
-          new CustomEvent('dssi-core-a-chip-position-changed', {
-            detail: settings.factChipPosition,
-          }),
-        );
-        if (activePulseVisualState) {
-          activePulseVisualState.dirty = false;
-          refreshControls(root);
-        }
+    void options.displayController
+      .removeHostMemory()
+      .then((response) => {
         showToast(
           root,
-          localized(
-            options.language,
-            'ホスト別設定を削除し、全体設定へ戻しました',
-            'Removed the host profile and returned to global settings',
-          ),
+          response.ok
+            ? localized(
+                options.language,
+                'ホスト別設定を削除し、全体設定へ戻しました',
+                'Removed the host profile and returned to global settings',
+              )
+            : localized(
+                options.language,
+                '別の設定変更を検出したため、解除せず最新状態を読み直しました',
+                'Another settings change was detected; the host profile was not removed',
+              ),
         );
-      });
+      })
+      .catch(() =>
+        showToast(
+          root,
+          localized(options.language, 'ホスト別設定を解除できませんでした', 'Could not reset'),
+        ),
+      );
   });
 
   controls.append(
@@ -836,29 +820,28 @@ export class CommunicationPulsePresenter {
   public constructor(options: CommunicationPulsePresenterOptions) {
     this.#options = options;
     this.#position = options.position;
-    if (options.enabled) ensureHost(options);
-
-    window.addEventListener('dssi-core-a-host-profile-temporary-change', () => {
+    options.displayController.subscribe((view) => {
+      const display = view.display.current;
+      this.#position = display.factChipPosition;
+      Object.assign(this.#options, {
+        position: display.factChipPosition,
+        durationMs: display.communicationPulseDurationMs,
+        domColor: display.communicationPulseDomColor,
+        webRequestColor: display.communicationPulseWebRequestColor,
+        opacity: display.communicationPulseOpacity,
+      });
+      if (this.#options.enabled) ensureHost(this.#options);
       const host = document.getElementById(HOST_ID);
       if (host instanceof HTMLDivElement && host.shadowRoot) {
-        markTemporaryChange(host.shadowRoot);
+        applyPulseHostPosition(host, display.factChipPosition);
+        host.dataset.memoryRevision = view.renderRevision;
+        host.dataset.memorySource = view.display.committed.source.kind;
+        ensureActivePulseVisualState(this.#options);
+        refreshPulseVisuals(host.shadowRoot);
+        refreshControls(host.shadowRoot);
       }
-    });
-
-    window.addEventListener('dssi-core-a-chip-position-changed', (event) => {
-      if (!(event instanceof CustomEvent)) return;
-      const candidate: unknown = event.detail;
-      if (!isFactChipPosition(candidate)) return;
-      this.#position = candidate;
-      const host = document.getElementById(HOST_ID);
-      if (host instanceof HTMLDivElement) {
-        applyPulseHostPosition(host, candidate);
-        if (host.shadowRoot && activePulseVisualState) {
-          activePulseVisualState.position = candidate;
-          activePulseVisualState.dirty = true;
-          refreshControls(host.shadowRoot);
-        }
-      }
+      options.displayController.acknowledge('communication_pulse', view.renderRevision);
+      options.displayController.acknowledge('settings_panel', view.renderRevision);
     });
   }
 

@@ -5,20 +5,14 @@ import {
   type ViscosityLevel,
 } from '../core/models/settings';
 import {
-  applyHostDisplayProfile,
-  isHostDisplayProfileStale,
-  loadHostDisplayProfile,
+  HOST_PROFILE_REVIEW_AFTER_MS,
   markHostObserved,
 } from '../storage/host-display-profile-store';
 import { browserUiLanguage, resolveUiLanguage } from '../i18n/ui';
-import { loadSettings } from '../storage/settings-store';
+import { readSettingsMemory } from '../storage/settings-memory-client';
 import { CommunicationPulsePresenter } from '../ui/communication-pulse';
+import { DisplayStateController } from '../ui/display-state-controller';
 import { FactChipPresenter } from '../ui/fact-chip';
-import {
-  initializeTransientDisplayState,
-  setCommunicationTextVisible,
-  setPulseVisible,
-} from '../ui/transient-display-state';
 import { InputSurfaceObserver } from './input-surface-observer';
 import { SubmissionObserver } from './submission-observer';
 import { applyRuntimeSettings } from './runtime-settings';
@@ -31,26 +25,20 @@ interface NetworkActivityNotice {
 
 async function bootstrap(): Promise<void> {
   const hostname = location.hostname || 'unknown';
-  const [globalSettings, hostProfile] = await Promise.all([
-    loadSettings(),
-    loadHostDisplayProfile(hostname),
-  ]);
-  const settings = applyHostDisplayProfile(globalSettings, hostProfile);
+  const initialMemory = await readSettingsMemory(hostname);
+  const displayController = new DisplayStateController(hostname, initialMemory);
+  const settings = displayController.snapshot().settings;
   const language = resolveUiLanguage(settings.uiLanguage, browserUiLanguage());
 
-  initializeTransientDisplayState({
-    communicationTextVisible: settings.communicationTextChipEnabled,
-    pulseVisible: settings.communicationPulseEnabled,
-  });
-
   const sessionId = crypto.randomUUID();
-  const inputObserver = new InputSurfaceObserver(settings, sessionId);
+  const inputObserver = new InputSurfaceObserver(settings, sessionId, displayController);
   inputObserver.start();
-  const submissionObserver = new SubmissionObserver(settings, sessionId, hostProfile !== undefined);
+  const submissionObserver = new SubmissionObserver(settings, sessionId, displayController);
   submissionObserver.start();
 
-  const presenter = new FactChipPresenter(settings.factChipPosition, language);
+  const presenter = new FactChipPresenter(displayController, settings.factChipPosition, language);
   const pulsePresenter = new CommunicationPulsePresenter({
+    displayController,
     hostname,
     position: settings.factChipPosition,
     durationMs: settings.communicationPulseDurationMs,
@@ -59,7 +47,6 @@ async function bootstrap(): Promise<void> {
     domColor: settings.communicationPulseDomColor,
     webRequestColor: settings.communicationPulseWebRequestColor,
     opacity: settings.communicationPulseOpacity,
-    hostProfileApplied: hostProfile !== undefined,
     language,
   });
 
@@ -67,7 +54,10 @@ async function bootstrap(): Promise<void> {
     const observed = await markHostObserved(hostname);
     if (observed.firstObservation) {
       presenter.showFirstHostObservation(effectiveCueLevel(settings));
-    } else if (hostProfile && isHostDisplayProfileStale(hostProfile)) {
+    } else if (
+      initialMemory.reaction.source.kind === 'host' &&
+      Date.now() - initialMemory.reaction.updatedAt >= HOST_PROFILE_REVIEW_AFTER_MS
+    ) {
       presenter.showHostProfileReview(effectiveCueLevel(settings));
     }
   }
@@ -88,36 +78,44 @@ async function bootstrap(): Promise<void> {
     return false;
   });
 
+  displayController.subscribe((view) => {
+    const updated = view.settings;
+    const transition = applyRuntimeSettings(settings, updated);
+
+    inputObserver.updateSettings(updated);
+    submissionObserver.updateSettings(updated);
+    pulsePresenter.update({
+      position: updated.factChipPosition,
+      durationMs: updated.communicationPulseDurationMs,
+      size: updated.communicationPulseSize,
+      enabled: updated.enabled && communicationPulseAvailable(updated),
+      domColor: updated.communicationPulseDomColor,
+      webRequestColor: updated.communicationPulseWebRequestColor,
+      opacity: updated.communicationPulseOpacity,
+      language: resolveUiLanguage(updated.uiLanguage, browserUiLanguage()),
+    });
+
+    if (
+      transition.becameEnabled &&
+      updated.reportingMode === 'max_coverage' &&
+      window.top === window
+    ) {
+      window.setTimeout(() => presenter.showCoverageBoundary(effectiveCueLevel(updated)), 250);
+    }
+  });
+
   chrome.storage.onChanged.addListener(
-    (_changes: Record<string, chrome.storage.StorageChange>, areaName: string) => {
+    (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => {
       if (areaName !== 'local') return;
-      void loadSettings().then((globalUpdated) => {
-        const updated = applyHostDisplayProfile(globalUpdated, hostProfile);
-        const transition = applyRuntimeSettings(settings, updated);
-
-        inputObserver.updateSettings(updated);
-        submissionObserver.updateSettings(updated);
-        setCommunicationTextVisible(updated.communicationTextChipEnabled);
-        setPulseVisible(updated.communicationPulseEnabled);
-        pulsePresenter.update({
-          position: updated.factChipPosition,
-          durationMs: updated.communicationPulseDurationMs,
-          size: updated.communicationPulseSize,
-          enabled: updated.enabled && communicationPulseAvailable(updated),
-          domColor: updated.communicationPulseDomColor,
-          webRequestColor: updated.communicationPulseWebRequestColor,
-          opacity: updated.communicationPulseOpacity,
-          language: resolveUiLanguage(updated.uiLanguage, browserUiLanguage()),
-        });
-
-        if (
-          transition.becameEnabled &&
-          updated.reportingMode === 'max_coverage' &&
-          window.top === window
-        ) {
-          window.setTimeout(() => presenter.showCoverageBoundary(effectiveCueLevel(updated)), 250);
-        }
-      });
+      if (
+        changes.connectBitsConfiguration === undefined &&
+        changes.dssiSettings === undefined &&
+        changes.connectBitsHostDisplayMemories === undefined &&
+        changes.dssiHostDisplayProfiles === undefined
+      ) {
+        return;
+      }
+      void displayController.refresh();
     },
   );
 }

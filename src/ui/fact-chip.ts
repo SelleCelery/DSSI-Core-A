@@ -5,8 +5,10 @@ import type { InputOrigin, SurfaceType } from '../core/models/observation';
 import type { FactChipPosition, ViscosityLevel } from '../core/models/settings';
 import type { SubmissionDescriptor } from '../core/models/submission';
 import type { UiLanguage } from '../i18n/ui';
+import { browserUiLanguage, resolveUiLanguage } from '../i18n/ui';
 import { inputOriginLabel, surfaceTypeLabel } from '../core/observation-presentation';
-import { setCommunicationTextVisible, transientDisplayState } from './transient-display-state';
+import type { DisplayStateController } from './display-state-controller';
+import { transientDisplayState } from './transient-display-state';
 
 const HOST_ID = 'dssi-core-a-fact-chip-host';
 
@@ -226,12 +228,29 @@ export class FactChipPresenter {
   #hideTimer: number | undefined;
   #diagnosticTimer: number | undefined;
   #diagnosticAggregate: DiagnosticNetworkAggregate | undefined;
-  readonly #initialPosition: FactChipPosition;
-  readonly #language: UiLanguage;
+  #position: FactChipPosition;
+  #language: UiLanguage;
+  readonly #displayController: DisplayStateController;
 
-  public constructor(initialPosition: FactChipPosition = 'right', language: UiLanguage = 'ja') {
-    this.#initialPosition = initialPosition;
+  public constructor(
+    displayController: DisplayStateController,
+    initialPosition: FactChipPosition = 'right',
+    language: UiLanguage = 'ja',
+  ) {
+    this.#displayController = displayController;
+    this.#position = initialPosition;
     this.#language = language;
+    displayController.subscribe((view) => {
+      this.#position = view.display.current.factChipPosition;
+      this.#language = resolveUiLanguage(view.settings.uiLanguage, browserUiLanguage());
+      const host = document.getElementById(HOST_ID);
+      if (host instanceof HTMLDivElement) {
+        applyHostPosition(host, this.#position);
+        host.dataset.memoryRevision = view.renderRevision;
+        host.dataset.memorySource = view.display.committed.source.kind;
+      }
+      displayController.acknowledge('text_chip', view.renderRevision);
+    });
   }
 
   #canShowCommunicationText(): boolean {
@@ -468,7 +487,7 @@ export class FactChipPresenter {
     viscosityLevel: ViscosityLevel,
     category: ChipCategory,
   ): void {
-    const { root, host } = ensureHost(this.#initialPosition);
+    const { root, host } = ensureHost(this.#position);
     root.querySelector('.chip')?.remove();
 
     const chip = document.createElement('div');
@@ -488,8 +507,7 @@ export class FactChipPresenter {
     const move = document.createElement('button');
     move.className = 'control move';
     move.type = 'button';
-    const current =
-      (host.dataset.position as FactChipPosition | undefined) ?? this.#initialPosition;
+    const current = (host.dataset.position as FactChipPosition | undefined) ?? this.#position;
     const next = nextFactChipPosition(current);
     move.textContent = '↻';
     move.setAttribute(
@@ -505,10 +523,9 @@ export class FactChipPresenter {
     move.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
-      const from = (host.dataset.position as FactChipPosition | undefined) ?? this.#initialPosition;
+      const from = (host.dataset.position as FactChipPosition | undefined) ?? this.#position;
       const to = nextFactChipPosition(from);
-      applyHostPosition(host, to);
-      window.dispatchEvent(new CustomEvent('dssi-core-a-chip-position-changed', { detail: to }));
+      this.#displayController.updateDraft({ factChipPosition: to });
       const following = nextFactChipPosition(to);
       move.setAttribute(
         'aria-label',
@@ -539,8 +556,7 @@ export class FactChipPresenter {
       mute.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
-        setCommunicationTextVisible(false);
-        window.dispatchEvent(new CustomEvent('dssi-core-a-host-profile-temporary-change'));
+        this.#displayController.updateDraft({ communicationTextChipEnabled: false });
         chip.setAttribute('data-visible', 'false');
         window.setTimeout(() => chip.remove(), 180);
       });
