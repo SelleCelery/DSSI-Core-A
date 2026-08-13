@@ -5,6 +5,11 @@ import type {
   UserActionPulse,
 } from '../core/models/network';
 import type { ObservationLogRecord } from '../core/models/observation';
+import {
+  isSettingsMemoryReadMessage,
+  isSettingsMemoryWriteMessage,
+  type SettingsMemoryMessage,
+} from '../core/models/settings-memory';
 import { effectiveCueLevel, type DssiSettings, type ViscosityLevel } from '../core/models/settings';
 import { detectCookieHeader } from '../core/cookie-header-detection';
 import { isPrivacySafeInputActivityPulse } from '../core/input-activity-pulse';
@@ -23,11 +28,13 @@ import {
 } from '../core/network-correlation';
 import { createObservationRecord } from '../core/observation-factory';
 import { createPrivacySafeRecord } from '../core/privacy-safe-logger';
+import { SettingsMemoryQueue } from '../core/settings-memory-queue';
 import { isPrivacySafeUserActionPulse } from '../core/user-action-pulse';
 import { ensureDefaultSettings, loadSettings } from '../storage/settings-store';
 import { captureObservationSettingsSnapshot } from '../storage/settings-snapshot-store';
 import { invalidateHostDisplayProfileCache } from '../storage/host-display-profile-store';
 import { onboardingCompleted } from '../storage/onboarding-store';
+import { readSettingsMemory, writeSettingsMemory } from '../storage/settings-memory-store';
 import {
   appendSessionRecord,
   clearSessionRecords,
@@ -62,7 +69,8 @@ type RuntimeMessage =
   | InputActivityPulseMessage
   | UserActionPulseMessage
   | ClearLogMessage
-  | CountLogMessage;
+  | CountLogMessage
+  | SettingsMemoryMessage;
 
 interface RecentInputActivity extends InputActivityPulse {
   documentId?: string;
@@ -111,6 +119,21 @@ const pageObservationStartByFrame = new Map<string, PageObservationContext>();
 const fallbackContextByFrame = new Map<string, FallbackPageContext>();
 const recentNetworkRecords = new Map<string, number>();
 let settingsPromise = loadSettings();
+const settingsMemoryQueue = new SettingsMemoryQueue();
+
+function readSettingsMemoryAfterWrites(hostname?: string) {
+  return settingsMemoryQueue.afterWrites(() => readSettingsMemory(hostname));
+}
+
+function enqueueSettingsMemoryWrite(message: Parameters<typeof writeSettingsMemory>[0]) {
+  return settingsMemoryQueue.enqueue(async () => {
+    const response = await writeSettingsMemory(message);
+    if (message.destination.kind === 'global' && response.ok) {
+      settingsPromise = Promise.resolve(response.settings);
+    }
+    return response;
+  });
+}
 
 chrome.runtime.onInstalled.addListener((details) => {
   void ensureDefaultSettings().then(async () => {
@@ -517,6 +540,20 @@ chrome.runtime.onMessage.addListener(
     sender: chrome.runtime.MessageSender,
     sendResponse: (response?: unknown) => void,
   ) => {
+    if (isSettingsMemoryReadMessage(message)) {
+      void readSettingsMemoryAfterWrites(message.hostname)
+        .then((response) => sendResponse(response))
+        .catch(() => sendResponse({ ok: false, reason: 'storage_error' }));
+      return true;
+    }
+
+    if (isSettingsMemoryWriteMessage(message)) {
+      void enqueueSettingsMemoryWrite(message)
+        .then((response) => sendResponse(response))
+        .catch(() => sendResponse({ ok: false, reason: 'storage_error' }));
+      return true;
+    }
+
     if (message.type === 'DSSI_INPUT_ACTIVITY_PULSE') {
       if (!isPrivacySafeInputActivityPulse(message.pulse) || sender.tab?.id === undefined) {
         sendResponse({ ok: false });

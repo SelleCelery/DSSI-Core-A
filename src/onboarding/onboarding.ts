@@ -12,7 +12,7 @@ import {
   type UiLanguage,
   type UiLanguageSetting,
 } from '../i18n/ui';
-import { loadSettings, saveSettings } from '../storage/settings-store';
+import { readSettingsMemory, writeGlobalSettingsPatch } from '../storage/settings-memory-client';
 import {
   ONBOARDING_VERSION,
   onboardingAcknowledgementsComplete,
@@ -89,14 +89,22 @@ function applyLanguage(next: UiLanguage): void {
 }
 
 async function persistLanguage(setting: UiLanguageSetting): Promise<void> {
-  const settings = await loadSettings();
-  await saveSettings({ ...settings, uiLanguage: setting }, 'onboarding');
+  const response = await writeGlobalSettingsPatch({ uiLanguage: setting }, 'onboarding');
+  if (!response.ok) throw new Error(response.reason ?? 'settings memory write failed');
   applyLanguage(resolveUiLanguage(setting, browserUiLanguage()));
 }
 
 async function complete(observationSelection: ObservationSelection): Promise<void> {
-  const current = await loadSettings();
-  await saveSettings(settingsForObservationSelection(current, observationSelection), 'onboarding');
+  const current = (await readSettingsMemory()).settings;
+  const selection = settingsForObservationSelection(current, observationSelection);
+  const response = await writeGlobalSettingsPatch(
+    {
+      enabled: selection.enabled,
+      networkObservationEnabled: selection.networkObservationEnabled,
+    },
+    'onboarding',
+  );
+  if (!response.ok) throw new Error(response.reason ?? 'settings memory write failed');
   const now = Date.now();
   await saveOnboardingState({
     version: ONBOARDING_VERSION,
@@ -167,7 +175,7 @@ openObservationLog.addEventListener('click', () => {
 });
 openSetupAfter.addEventListener('click', () => void chrome.runtime.openOptionsPage());
 
-void loadSettings().then((settings) => {
+void readSettingsMemory().then(({ settings }) => {
   uiLanguage.value = settings.uiLanguage;
   applyLanguage(resolveUiLanguage(settings.uiLanguage, browserUiLanguage()));
   for (const input of Object.values(acknowledgements)) {

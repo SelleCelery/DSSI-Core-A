@@ -1,6 +1,7 @@
 import type { ObservationSettingsSnapshot } from '../core/models/settings-snapshot';
 import type { DssiSettings } from '../core/models/settings';
-import { applyHostDisplayProfile, loadHostDisplayProfile } from './host-display-profile-store';
+import { settingsWithDisplayBundle } from '../core/models/display-memory';
+import { readSettingsMemory } from './settings-memory-store';
 
 const SETTINGS_SNAPSHOTS_KEY = 'dssiObservationSettingsSnapshots';
 const MAX_SETTINGS_SNAPSHOTS = 64;
@@ -49,9 +50,10 @@ export async function captureObservationSettingsSnapshot(
   hostname: string,
   globalSettings: DssiSettings,
 ): Promise<ObservationSettingsSnapshot> {
-  const profile = await loadHostDisplayProfile(hostname);
-  const effectiveSettings = applyHostDisplayProfile(globalSettings, profile);
-  const fingerprint = snapshotFingerprint(hostname, effectiveSettings, profile !== undefined);
+  const memory = await readSettingsMemory(hostname);
+  const effectiveSettings = settingsWithDisplayBundle(globalSettings, memory.reaction.bundle);
+  const hostMemoryApplied = memory.reaction.source.kind === 'host';
+  const fingerprint = snapshotFingerprint(hostname, effectiveSettings, hostMemoryApplied);
 
   if (lastFingerprint === fingerprint && lastSnapshot !== undefined) {
     return lastSnapshot;
@@ -102,7 +104,7 @@ export async function captureObservationSettingsSnapshot(
     communicationPulseOpacity: effectiveSettings.communicationPulseOpacity,
     localClassificationEnabled: effectiveSettings.localClassificationEnabled,
     networkObservationEnabled: effectiveSettings.networkObservationEnabled,
-    hostProfileApplied: profile !== undefined,
+    hostProfileApplied: hostMemoryApplied,
   };
   const next = [...store.snapshots, snapshot].slice(-MAX_SETTINGS_SNAPSHOTS);
   await chrome.storage.session.set({

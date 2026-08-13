@@ -13,7 +13,7 @@ import {
   t,
   type UiLanguage,
 } from '../i18n/ui';
-import { loadSettings, saveSettings } from '../storage/settings-store';
+import { readSettingsMemory, writeGlobalSettingsPatch } from '../storage/settings-memory-client';
 import { getSessionRecords } from '../storage/session-buffer';
 import { requiredElement } from '../ui/required-element';
 
@@ -75,7 +75,8 @@ function asReportingMode(value: string): ReportingMode {
 }
 
 async function refresh(): Promise<void> {
-  const [settings, records] = await Promise.all([loadSettings(), getSessionRecords()]);
+  const [memory, records] = await Promise.all([readSettingsMemory(), getSessionRecords()]);
+  const settings = memory.settings;
   applyLanguage(resolveUiLanguage(settings.uiLanguage, browserUiLanguage()));
   enabled.checked = settings.enabled;
   viscosity.value = String(settings.viscosityLevel);
@@ -86,16 +87,15 @@ async function refresh(): Promise<void> {
 }
 
 async function persist(): Promise<void> {
-  const current = await loadSettings();
-  await saveSettings(
+  const response = await writeGlobalSettingsPatch(
     {
-      ...current,
       viscosityLevel: Number(viscosity.value) === 3 ? 3 : Number(viscosity.value) === 2 ? 2 : 1,
       reportingMode: asReportingMode(reportingMode.value),
       communicationPulseEnabled: communicationPulseEnabled.checked,
     },
     'popup',
   );
+  if (!response.ok) throw new Error(response.reason ?? 'settings memory write failed');
   status.textContent =
     reportingMode.value === 'max_coverage'
       ? t(language, 'statusMaxSaved')
@@ -104,15 +104,31 @@ async function persist(): Promise<void> {
 
 async function persistEnabled(): Promise<void> {
   try {
-    const current = await loadSettings();
+    const current = (await readSettingsMemory()).settings;
     if (!enabled.checked) {
       const removed = await removeNetworkMetadataPermission();
       if (!removed) throw new Error('network metadata permission was not removed');
-      await saveSettings(settingsForObservationSelection(current, 'paused'), 'popup');
+      const paused = settingsForObservationSelection(current, 'paused');
+      const response = await writeGlobalSettingsPatch(
+        {
+          enabled: paused.enabled,
+          networkObservationEnabled: paused.networkObservationEnabled,
+        },
+        'popup',
+      );
+      if (!response.ok) throw new Error(response.reason ?? 'settings memory write failed');
       status.textContent = t(language, 'statusObservationPaused');
       return;
     }
-    await saveSettings(settingsForObservationSelection(current, 'dom_only'), 'popup');
+    const domOnly = settingsForObservationSelection(current, 'dom_only');
+    const response = await writeGlobalSettingsPatch(
+      {
+        enabled: domOnly.enabled,
+        networkObservationEnabled: domOnly.networkObservationEnabled,
+      },
+      'popup',
+    );
+    if (!response.ok) throw new Error(response.reason ?? 'settings memory write failed');
     status.textContent = t(language, 'statusObservationDomOnly');
   } catch {
     await refresh();

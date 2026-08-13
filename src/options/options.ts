@@ -25,7 +25,7 @@ import {
   type UiLanguage,
   type UiLanguageSetting,
 } from '../i18n/ui';
-import { loadSettings, saveSettings } from '../storage/settings-store';
+import { readSettingsMemory, writeGlobalSettingsPatch } from '../storage/settings-memory-client';
 import { renderCoverageManifest } from '../ui/coverage-renderer';
 import { requiredElement } from '../ui/required-element';
 
@@ -135,7 +135,11 @@ function applyLanguage(next: UiLanguage): void {
 }
 
 async function renderCoverage(): Promise<void> {
-  const [settings, permissionGranted] = await Promise.all([loadSettings(), hasNetworkPermission()]);
+  const [memory, permissionGranted] = await Promise.all([
+    readSettingsMemory(),
+    hasNetworkPermission(),
+  ]);
+  const settings = memory.settings;
   permissionState.textContent = t(
     language,
     permissionGranted ? 'permissionGranted' : 'permissionNotGranted',
@@ -155,7 +159,11 @@ async function renderCoverage(): Promise<void> {
 }
 
 async function refresh(): Promise<void> {
-  const [settings, permissionGranted] = await Promise.all([loadSettings(), hasNetworkPermission()]);
+  const [memory, permissionGranted] = await Promise.all([
+    readSettingsMemory(),
+    hasNetworkPermission(),
+  ]);
+  const settings = memory.settings;
   uiLanguage.value = settings.uiLanguage;
   applyLanguage(resolveUiLanguage(settings.uiLanguage, browserUiLanguage()));
   observationSelection.value = observationSelectionFromSettings(settings, permissionGranted);
@@ -192,12 +200,13 @@ save.addEventListener('click', () => {
         return;
       }
 
-      const current = await loadSettings();
+      const current = (await readSettingsMemory()).settings;
       const languageSetting = asUiLanguageSetting(uiLanguage.value);
       const selectionSettings = settingsForObservationSelection(current, selectedObservation);
-      await saveSettings(
+      const response = await writeGlobalSettingsPatch(
         {
-          ...selectionSettings,
+          enabled: selectionSettings.enabled,
+          networkObservationEnabled: selectionSettings.networkObservationEnabled,
           reportingMode: asReportingMode(reportingMode.value),
           factChipPosition: asFactChipPosition(factChipPosition.value),
           communicationPulseEnabled: communicationPulseEnabled.checked,
@@ -215,6 +224,7 @@ save.addEventListener('click', () => {
         },
         'options',
       );
+      if (!response.ok) throw new Error(response.reason ?? 'settings memory write failed');
 
       applyLanguage(resolveUiLanguage(languageSetting, browserUiLanguage()));
       status.textContent = t(
