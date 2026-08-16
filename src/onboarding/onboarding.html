@@ -16,7 +16,7 @@
           </p>
           <h1 data-i18n="productName">ConnectBits</h1>
           <p data-i18n="setupWizardIntro">
-            ConnectBitsが扱う情報と扱わない情報を、権限を付与する前に一項目ずつ確認します。所要時間の目安は2〜3分です。
+            ConnectBitsの目的、手段、Chromeの権限、利用時の責任境界を、観測方法を選ぶ前に説明します。
           </p>
         </div>
         <label class="compact-language-field">
@@ -29,166 +29,256 @@
         </label>
       </header>
 
+      <aside class="onboarding-explanation-reason">
+        <strong data-i18n="onboardingWhyHeading">なぜ、この説明が必要か</strong>
+        <p data-i18n="onboardingWhyBody">
+          ConnectBitsが返すのは限定的な観測材料であり、安全判定ではありません。また、Chromeが許可する技術的能力は、現在のConnectBitsが使う範囲より広いためです。
+        </p>
+      </aside>
+
+      <aside class="review-mark-explanation">
+        <strong data-i18n="reviewMarkHeading">チェックは、自分のための確認メモです</strong>
+        <p data-i18n="reviewMarkBody">
+          チェックは任意です。空欄でもConnectBitsの起動、観測方法の選択、Chromeの権限確認へ進めます。状態はこの端末内だけに保存され、開発者や外部サーバーへ送信されません。利用規約への同意、免責への同意、法的権利の放棄を意味しません。
+        </p>
+        <button
+          id="resetReviewMarks"
+          class="compact-review-reset"
+          type="button"
+          data-i18n="resetReviewMarks"
+        >
+          確認メモをリセット
+        </button>
+      </aside>
+
       <div class="onboarding-progress" aria-label="Setup progress">
         <span id="stepLabel"></span>
         <progress id="stepProgress" max="4" value="1"></progress>
       </div>
 
       <section class="onboarding-step" data-step="1">
-        <h2 data-i18n="onboardingStep1Title">ConnectBitsの目的</h2>
-        <p data-i18n="onboardingStep1Body">
-          ConnectBitsは、通常は見えにくいブラウザー上の入力面、送信操作、通信開始メタデータを可視化し、利用者へ判断材料を返します。通信の安全性、目的、必要性、適法性を自動的に確定しません。
+        <p class="step-kicker" data-i18n="onboardingStep1Kicker">1｜目的</p>
+        <h2 data-i18n="onboardingStep1Title">通信を裁かず、見えるようにする</h2>
+        <p class="step-conclusion" data-i18n="onboardingStep1Body">
+          ConnectBitsは、通常は見えにくい入力面、送信操作、通信開始の痕跡を、利用者が自分で判断するための観測材料として返します。
         </p>
         <div class="boundary-callout">
-          <strong data-i18n="productTagline">見えなかった接続を、判断できる断片として返す。</strong>
-          <p data-i18n="permissionJudgmentBoundary">
-            権限の許可は、処理の必要性や妥当性が確認されたことを意味しません。
+          <strong data-i18n="onboardingPurposeBoundaryHeading">ConnectBitsが決めないこと</strong>
+          <p data-i18n="onboardingPurposeBoundaryBody">
+            通信の安全・危険、目的、必要性、適法性、運営者や利用者の意図を確定しません。表示は結論や保証ではありません。
           </p>
         </div>
+        <label class="inline-acknowledgement">
+          <input id="ackJudgment" type="checkbox" />
+          <span data-i18n="ackJudgment"
+            >安全・危険、目的、必要性、適法性をConnectBitsが確定するものではないと確認した</span
+          >
+        </label>
       </section>
 
       <section class="onboarding-step" data-step="2" hidden>
-        <h2 data-i18n="onboardingStep2Title">観測するもの・観測しないもの</h2>
+        <p class="step-kicker" data-i18n="onboardingStep2Kicker">2｜手段</p>
+        <h2 data-i18n="onboardingStep2Title">本文ではなく、発生条件を観測する</h2>
+        <p class="step-conclusion" data-i18n="onboardingStep2Body">
+          ページ上の限定的な操作と、任意権限を許可した場合の通信開始メタデータを端末内で照合します。
+        </p>
         <div class="boundary-columns">
           <section>
-            <h3 data-i18n="onboardingObserveHeading">選択に応じて観測するもの</h3>
+            <h3 data-i18n="onboardingObserveHeading">観測するもの</h3>
             <ul>
               <li data-i18n="onboardingObserve1">
-                ページ上の限定的なDOMイベント（入力開始、貼り付け、標準form送信操作など。入力本文は取得しない）
+                入力開始、貼り付け、標準form送信などのDOMイベント
               </li>
               <li data-i18n="onboardingObserve2">
-                任意権限を許可した場合だけ、ブラウザーが提供する通信開始メタデータ
+                任意権限がある場合の通信先hostname、HTTP method、通信機構
               </li>
-              <li data-i18n="onboardingObserve3">Cookieヘッダーの存在検出（値は取得しない）</li>
-              <li data-i18n="onboardingObserve4">
-                閲覧中ページと通信先のオリジン関係、操作との時間的近接
-              </li>
+              <li data-i18n="onboardingObserve3">Cookieヘッダー名の有無。値は読み取らない</li>
+              <li data-i18n="onboardingObserve4">ページ操作と通信開始の時間的な近接</li>
             </ul>
           </section>
           <section>
-            <h3 data-i18n="onboardingNotObserveHeading">観測しないもの</h3>
+            <h3 data-i18n="onboardingNotObserveHeading">観測・保存しないもの</h3>
             <ul>
-              <li data-i18n="onboardingNot1">通信本文、フォームへ入力された本文、Cookie値</li>
-              <li data-i18n="onboardingNot2">
-                PC内に保存されたCookie一覧、Local Storage、IndexedDBの内容
-              </li>
-              <li data-i18n="onboardingNot3">
-                閲覧履歴全体、位置情報、カメラ、マイク、連絡先、ファイル内容
-              </li>
-              <li data-i18n="onboardingNot4">通信目的、運営者の意図、安全性、適法性</li>
+              <li data-i18n="onboardingNot1">フォームの入力本文、通信本文、Cookie値</li>
+              <li data-i18n="onboardingNot2">URLのpath、query、fragment</li>
+              <li data-i18n="onboardingNot3">Cookie一覧、Local Storage、IndexedDB、ファイル内容</li>
+              <li data-i18n="onboardingNot4">通信目的、意図、安全性、適法性</li>
             </ul>
           </section>
+        </div>
+        <div class="method-boundary-list">
+          <p data-i18n="onboardingMethodFrequency">発生時に観測し、PC全体を定期走査しません。</p>
+          <p data-i18n="onboardingMethodStorage">
+            設定は端末内、観測ログはブラウザーのセッション領域に保持します。
+          </p>
+          <p data-i18n="onboardingMethodTransmission">
+            ConnectBits自身は観測ログを開発者・外部サーバー・第三者へ送信しません。
+          </p>
+        </div>
+        <div class="review-mark-group">
+          <label class="inline-acknowledgement">
+            <input id="ackObservationScope" type="checkbox" />
+            <span data-i18n="ackObservationScope"
+              >ConnectBitsが観測するものと、観測・保存しないものを確認した</span
+            >
+          </label>
+          <label class="inline-acknowledgement">
+            <input id="ackObservationAbsence" type="checkbox" />
+            <span data-i18n="ackObservationAbsence"
+              >表示がないことは、通信がなかったことを意味しないと確認した</span
+            >
+          </label>
         </div>
       </section>
 
       <section class="onboarding-step" data-step="3" hidden>
-        <h2 data-i18n="onboardingStep3Title">処理条件と説明責任</h2>
-        <dl class="boundary-definition-list">
-          <div>
-            <dt>Purpose</dt>
-            <dd data-i18n="onboardingPurpose">
-              利用目的：通信の発生と限定的な付随情報を可視化し、利用者が自分で確認・比較・判断できるようにします。
-            </dd>
+        <p class="step-kicker" data-i18n="onboardingStep3Kicker">3｜Chromeの権限</p>
+        <h2 data-i18n="onboardingStep3Title">許可される能力と、現在使う範囲を分けて示す</h2>
+        <p class="step-conclusion" data-i18n="permissionDialogIntro">
+          Chromeの確認表示は、権限から技術的に可能になる範囲を示します。右列は、この版のConnectBitsが実際に実行・保存する処理です。
+        </p>
+        <div
+          class="permission-comparison"
+          role="table"
+          aria-labelledby="permissionComparisonHeading"
+        >
+          <div class="permission-comparison-row permission-comparison-head" role="row">
+            <strong
+              id="permissionComparisonHeading"
+              role="columnheader"
+              data-i18n="permissionChromeMaximum"
+              >Chromeが許可する最大能力</strong
+            >
+            <strong role="columnheader" data-i18n="permissionConnectBitsActual"
+              >ConnectBitsが現在行う処理</strong
+            >
           </div>
-          <div>
-            <dt>Frequency</dt>
-            <dd data-i18n="onboardingFrequency">
-              取得頻度：対象ページで該当イベントや通信が発生するたびに観測します。PC全体を定期走査しません。
-            </dd>
+          <div class="permission-comparison-row" role="row">
+            <p role="cell" data-i18n="permissionChromeScope">
+              HTTP/HTTPSの許可対象ホストでwebRequestイベントへアクセスできる。
+            </p>
+            <p role="cell" data-i18n="permissionActualScope">
+              XMLHttpRequest/fetch系とBeacon/Pingの通信開始だけを監視する。
+            </p>
           </div>
-          <div>
-            <dt>Storage</dt>
-            <dd data-i18n="onboardingStorage">
-              保存：設定とセッション内の観測メタデータを端末内で扱います。利用者が明示的にエクスポートしない限り、ログファイルとして保存しません。
-            </dd>
+          <div class="permission-comparison-row" role="row">
+            <p role="cell" data-i18n="permissionChromeUrl">
+              完全なURL、HTTP method、initiatorなどをコードへ渡せる。
+            </p>
+            <p role="cell" data-i18n="permissionActualUrl">
+              URLはschemeとhostnameへ縮約し、path・query・fragmentを保存しない。
+            </p>
           </div>
-          <div>
-            <dt>Transmission</dt>
-            <dd data-i18n="onboardingExternal">
-              外部通信：観測ログを開発者や外部サーバーへ送信しません。
-            </dd>
+          <div class="permission-comparison-row" role="row">
+            <p role="cell" data-i18n="permissionChromeHeaders">
+              リスナーが要求すればrequest headersをコードへ渡せる。
+            </p>
+            <p role="cell" data-i18n="permissionActualHeaders">
+              Cookieヘッダー名の有無だけを一時確認し、値を読み取って保存・表示しない。
+            </p>
           </div>
-          <div>
-            <dt>Future changes</dt>
-            <dd data-i18n="onboardingFuture">
-              重要な用途、保存方法、権限の変更時には改めて説明し、再確認を求めます。現在の確認を未提示の将来用途への包括同意とは扱いません。
-            </dd>
+          <div class="permission-comparison-row" role="row">
+            <p role="cell" data-i18n="permissionChromeBody">
+              将来コードがrequestBodyを要求すれば、送信本文へアクセスできる余地がある。
+            </p>
+            <p role="cell" data-i18n="permissionActualBody">
+              requestBodyを要求するリスナーを登録せず、通信本文を取得しない。
+            </p>
           </div>
-          <div>
-            <dt>Reports</dt>
-            <dd data-i18n="onboardingSupport">
-              問い合わせ：事実に基づく報告を受け付け、可能な範囲で受領状態を示します。個別調査、修正、期限付き対応、継続支援は保証しません。受領は責任承認や修正義務の確定を意味しません。
-            </dd>
+          <div class="permission-comparison-row" role="row">
+            <p role="cell" data-i18n="permissionChromeChange">
+              権限範囲内で別の非ブロッキング監視処理を追加できる。
+            </p>
+            <p role="cell" data-i18n="permissionActualChange">
+              webRequestBlockingを要求せず、通信を停止・変更・転送しない。
+            </p>
           </div>
-        </dl>
+        </div>
+        <label class="inline-acknowledgement">
+          <input id="ackPermissionDifference" type="checkbox" />
+          <span data-i18n="ackPermissionDifference"
+            >Chromeの許可範囲と、現在のConnectBitsの処理範囲との差について確認した</span
+          >
+        </label>
       </section>
 
       <section class="onboarding-step" data-step="4" hidden>
-        <h2 data-i18n="onboardingStep4Title">確認と選択</h2>
-        <div class="acknowledgement-list">
-          <label
-            ><input id="ackObservation" type="checkbox" /><span data-i18n="ackObservation"
-              >観測する情報と観測しない情報を確認した</span
-            ></label
-          >
-          <label
-            ><input id="ackFrequency" type="checkbox" /><span data-i18n="ackFrequency"
-              >観測が行われる条件と頻度を確認した</span
-            ></label
-          >
-          <label
-            ><input id="ackStorage" type="checkbox" /><span data-i18n="ackStorage"
-              >保存場所、保存期間、エクスポートの扱いを確認した</span
-            ></label
-          >
-          <label
-            ><input id="ackExternal" type="checkbox" /><span data-i18n="ackExternal"
-              >観測ログが外部サーバーへ送信されないことを確認した</span
-            ></label
-          >
-          <label
-            ><input id="ackJudgment" type="checkbox" /><span data-i18n="ackJudgment"
-              >ConnectBitsが通信の目的や危険性を確定しないことを確認した</span
-            ></label
-          >
-          <label
-            ><input id="ackSupport" type="checkbox" /><span data-i18n="ackSupport"
-              >問い合わせと対応に上記の限界があることを確認した</span
-            ></label
-          >
-          <label
-            ><input id="ackDecision" type="checkbox" /><span data-i18n="ackDecision"
-              >観測境界を三つから選び、あとから変更できることを確認した</span
-            ></label
-          >
-        </div>
-        <p class="small boundary-callout" data-i18n="permissionMeaning">
-          権限の付与を、ConnectBitsが行う個々の判断への同意とみなすことはありません。また、ConnectBitsの観測や判定は、通信の安全性・妥当性を保証するものではありません。
+        <p class="step-kicker" data-i18n="onboardingStep4Kicker">4｜責任境界</p>
+        <h2 data-i18n="onboardingStep4Title">ConnectBitsが守ることと、任せられないこと</h2>
+        <p class="step-conclusion" data-i18n="onboardingStep4Body">
+          ConnectBitsは説明した観測境界を守ります。ただし、観測記録を証拠・診断・安全保証として提供するものではありません。
         </p>
-        <section id="observationChoices" class="onboarding-choice-panel" hidden>
+        <div class="responsibility-columns">
+          <section>
+            <h3 data-i18n="connectBitsResponsibilitiesHeading">ConnectBitsが守る境界</h3>
+            <ul>
+              <li data-i18n="connectBitsResponsibility1">
+                説明した取得・保存・送信範囲をコードでも守る
+              </li>
+              <li data-i18n="connectBitsResponsibility2">
+                観測できない範囲と判断できない事項を隠さない
+              </li>
+              <li data-i18n="connectBitsResponsibility3">
+                目的・権限・保存方法の重要変更時は再説明する
+              </li>
+              <li data-i18n="connectBitsResponsibility4">観測停止と任意権限の撤回手段を用意する</li>
+            </ul>
+          </section>
+          <section>
+            <h3 data-i18n="userBoundariesHeading">ConnectBitsへ任せられないこと</h3>
+            <ul>
+              <li data-i18n="userBoundary1">第三者の意図・違法性・危険性の断定</li>
+              <li data-i18n="userBoundary2">生命・身体・財産・法的判断などの重要判断</li>
+              <li data-i18n="userBoundary3">エクスポート後のファイル管理</li>
+              <li data-i18n="userBoundary4">観測対象サイト自身が行う外部通信の管理</li>
+            </ul>
+          </section>
+        </div>
+        <div class="review-mark-group">
+          <label class="inline-acknowledgement">
+            <input id="ackEvidenceBoundary" type="checkbox" />
+            <span data-i18n="ackEvidenceBoundary"
+              >観測記録だけを根拠に、第三者の意図・違法性・危険性を断定しない</span
+            >
+          </label>
+          <label class="inline-acknowledgement">
+            <input id="ackHighImpactBoundary" type="checkbox" />
+            <span data-i18n="ackHighImpactBoundary"
+              >生命・身体・財産・法的判断などの重要判断を、ConnectBitsだけに委ねない</span
+            >
+          </label>
+          <label class="inline-acknowledgement">
+            <input id="ackExportBoundary" type="checkbox" />
+            <span data-i18n="ackExportBoundary"
+              >エクスポートしたファイルは、自分の管理領域で扱う</span
+            >
+          </label>
+        </div>
+
+        <section id="observationChoices" class="onboarding-choice-panel">
           <h3 data-i18n="onboardingChoiceIntro">観測方法を選択してください</h3>
           <p class="reversible-choice" data-i18n="onboardingChangeable">
-            いつでもこの選択は変更できます。
+            チェック状態にかかわらず選択でき、あとから設定で変更できます。
           </p>
           <div class="onboarding-choice-list">
             <div class="onboarding-choice-card">
-              <button id="allowNetwork" type="button" disabled data-i18n="allowNetwork">
+              <button id="allowNetwork" type="button" data-i18n="allowNetwork">
                 標準設定で観測を開始
               </button>
               <p class="small" data-i18n="onboardingStandardDetail">
-                ページ上の限定観測と、通信先やHTTP methodなどの通信メタデータ観測を開始します。
+                ページ上の限定観測と、通信開始メタデータの観測を開始します。直前にChromeの権限確認があります。
               </p>
             </div>
             <div class="onboarding-choice-card">
-              <button id="startLocalOnly" type="button" disabled data-i18n="startLocalOnly">
+              <button id="startLocalOnly" type="button" data-i18n="startLocalOnly">
                 通信メタデータを観測せず開始
               </button>
               <p class="small" data-i18n="onboardingDomOnlyDetail">
-                通信メタデータは観測しません。ページ上の限定的な操作・表示変化の観測は継続します。
+                Chromeの任意webRequest権限を使わず、ページ上の限定観測だけを開始します。
               </p>
             </div>
             <div class="onboarding-choice-card">
-              <button id="pauseObservation" type="button" disabled data-i18n="pauseObservation">
+              <button id="pauseObservation" type="button" data-i18n="pauseObservation">
                 今は観測を開始しない
               </button>
               <p class="small" data-i18n="onboardingPausedDetail">
@@ -197,14 +287,14 @@
             </div>
           </div>
           <p class="small" data-i18n="onboardingCoverageAfter">
-            何を観測しているか、何を現在観測していないか、何を設定によって観測対象から外しているか、何を仕組み上観測できないかは、導入後に「設定とプライバシー」で確認できます。
+            導入後も「設定とプライバシー」から、説明、観測範囲、権限状態、確認メモを見直せます。
           </p>
         </section>
       </section>
 
       <section id="completion" class="onboarding-complete" hidden>
         <h2 data-i18n="onboardingComplete">
-          導入確認が完了しました。対象ページを再読み込みすると、現在の設定が確実に反映されます。
+          観測方法を保存しました。確認メモの有無は、ConnectBitsの動作条件には使われません。
         </h2>
         <div class="button-row">
           <button id="openObservationLog" type="button" data-i18n="openObservationLog">
@@ -219,10 +309,51 @@
       <p id="status" class="status" role="status" aria-live="polite"></p>
       <div id="wizardControls" class="onboarding-controls">
         <button id="previousStep" type="button" data-i18n="previousStep">戻る</button>
-        <button id="decideLater" type="button" data-i18n="decideLater">今は決めない</button>
+        <button id="decideLater" type="button" data-i18n="decideLater">今は閉じる</button>
         <button id="nextStep" type="button" data-i18n="nextStep">次へ</button>
       </div>
     </main>
+
+    <dialog id="networkPermissionDialog" class="permission-dialog">
+      <div class="permission-dialog-content">
+        <header>
+          <p class="product-kicker" data-i18n="permissionDialogKicker">Chromeの確認を開く直前</p>
+          <h2 id="networkPermissionDialogTitle" data-i18n="permissionDialogTitle">
+            広い許可の中で、ConnectBitsが現在使う範囲
+          </h2>
+          <p data-i18n="permissionDialogBrowserUiNote">
+            次の操作でChrome自身の権限確認が表示されます。この説明はページ上に残りますが、Chromeの表示位置や文言はConnectBitsから変更できません。
+          </p>
+        </header>
+        <div class="permission-summary-grid">
+          <section>
+            <h3 data-i18n="permissionChromeMaximum">Chromeが許可する最大能力</h3>
+            <p data-i18n="permissionDialogChromeSummary">
+              許可対象のHTTP/HTTPS通信について、完全なURLやrequest
+              headersなどをコードへ渡せます。将来コードがrequestBodyを要求する余地もあります。
+            </p>
+          </section>
+          <section>
+            <h3 data-i18n="permissionConnectBitsActual">ConnectBitsが現在行う処理</h3>
+            <p data-i18n="permissionDialogActualSummary">
+              通信開始だけを監視し、schemeとhostnameへ縮約します。本文・path・query・Cookie値を保存せず、通信を停止・変更・転送しません。
+            </p>
+          </section>
+        </div>
+        <p class="small boundary-callout" data-i18n="permissionReviewOptionalReminder">
+          権限差についての確認メモは任意です。チェックがなくてもChromeの確認へ進めます。
+        </p>
+        <p id="networkPermissionStatus" class="status" role="status" aria-live="polite"></p>
+        <div class="button-row permission-dialog-actions">
+          <button id="cancelNetworkPermission" type="button" data-i18n="backToChoices">
+            選択へ戻る
+          </button>
+          <button id="requestNetworkPermission" type="button" data-i18n="showChromePermission">
+            Chromeの権限確認を表示
+          </button>
+        </div>
+      </div>
+    </dialog>
     <script type="module" src="onboarding.js"></script>
   </body>
 </html>

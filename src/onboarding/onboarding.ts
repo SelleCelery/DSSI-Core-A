@@ -14,10 +14,12 @@ import {
 } from '../i18n/ui';
 import { readSettingsMemory, writeGlobalSettingsPatch } from '../storage/settings-memory-client';
 import {
-  ONBOARDING_VERSION,
-  onboardingAcknowledgementsComplete,
+  completeOnboardingState,
+  loadOnboardingState,
+  recordOnboardingPresentation,
   saveOnboardingState,
-  type OnboardingAcknowledgements,
+  type OnboardingReviewMarks,
+  type OnboardingState,
 } from '../storage/onboarding-store';
 import { requiredElement } from '../ui/required-element';
 
@@ -30,40 +32,71 @@ const decideLaterButton = requiredElement<HTMLButtonElement>('#decideLater');
 const allowNetworkButton = requiredElement<HTMLButtonElement>('#allowNetwork');
 const startLocalOnlyButton = requiredElement<HTMLButtonElement>('#startLocalOnly');
 const pauseObservationButton = requiredElement<HTMLButtonElement>('#pauseObservation');
-const observationChoices = requiredElement<HTMLElement>('#observationChoices');
+const resetReviewMarksButton = requiredElement<HTMLButtonElement>('#resetReviewMarks');
+const networkPermissionDialog = requiredElement<HTMLDialogElement>('#networkPermissionDialog');
+const networkPermissionStatus = requiredElement<HTMLElement>('#networkPermissionStatus');
+const cancelNetworkPermissionButton = requiredElement<HTMLButtonElement>(
+  '#cancelNetworkPermission',
+);
+const requestNetworkPermissionButton = requiredElement<HTMLButtonElement>(
+  '#requestNetworkPermission',
+);
 const completion = requiredElement<HTMLElement>('#completion');
 const wizardControls = requiredElement<HTMLElement>('#wizardControls');
 const status = requiredElement<HTMLElement>('#status');
 const openObservationLog = requiredElement<HTMLButtonElement>('#openObservationLog');
 const openSetupAfter = requiredElement<HTMLButtonElement>('#openSetupAfter');
 
-const acknowledgements: Readonly<Record<keyof OnboardingAcknowledgements, HTMLInputElement>> = {
-  observationBoundary: requiredElement<HTMLInputElement>('#ackObservation'),
-  frequency: requiredElement<HTMLInputElement>('#ackFrequency'),
-  storage: requiredElement<HTMLInputElement>('#ackStorage'),
-  externalTransmission: requiredElement<HTMLInputElement>('#ackExternal'),
+const reviewMarks: Readonly<Record<keyof OnboardingReviewMarks, HTMLInputElement>> = {
   judgmentBoundary: requiredElement<HTMLInputElement>('#ackJudgment'),
-  supportBoundary: requiredElement<HTMLInputElement>('#ackSupport'),
-  currentDecision: requiredElement<HTMLInputElement>('#ackDecision'),
+  observationScope: requiredElement<HTMLInputElement>('#ackObservationScope'),
+  observationAbsence: requiredElement<HTMLInputElement>('#ackObservationAbsence'),
+  permissionDifference: requiredElement<HTMLInputElement>('#ackPermissionDifference'),
+  evidenceBoundary: requiredElement<HTMLInputElement>('#ackEvidenceBoundary'),
+  highImpactBoundary: requiredElement<HTMLInputElement>('#ackHighImpactBoundary'),
+  exportBoundary: requiredElement<HTMLInputElement>('#ackExportBoundary'),
 };
 
 let currentStep = 1;
 let language: UiLanguage = 'ja';
+let onboardingState: OnboardingState | undefined;
+let stateSaveChain = Promise.resolve();
 
 function asUiLanguageSetting(value: string): UiLanguageSetting {
   return value === 'ja' || value === 'en' ? value : 'auto';
 }
 
-function currentAcknowledgements(): OnboardingAcknowledgements {
+function currentReviewMarks(): OnboardingReviewMarks {
   return {
-    observationBoundary: acknowledgements.observationBoundary.checked,
-    frequency: acknowledgements.frequency.checked,
-    storage: acknowledgements.storage.checked,
-    externalTransmission: acknowledgements.externalTransmission.checked,
-    judgmentBoundary: acknowledgements.judgmentBoundary.checked,
-    supportBoundary: acknowledgements.supportBoundary.checked,
-    currentDecision: acknowledgements.currentDecision.checked,
+    judgmentBoundary: reviewMarks.judgmentBoundary.checked,
+    observationScope: reviewMarks.observationScope.checked,
+    observationAbsence: reviewMarks.observationAbsence.checked,
+    permissionDifference: reviewMarks.permissionDifference.checked,
+    evidenceBoundary: reviewMarks.evidenceBoundary.checked,
+    highImpactBoundary: reviewMarks.highImpactBoundary.checked,
+    exportBoundary: reviewMarks.exportBoundary.checked,
   };
+}
+
+function ensurePresentationState(): OnboardingState {
+  onboardingState ??= recordOnboardingPresentation(undefined, Date.now());
+  return onboardingState;
+}
+
+function queueOnboardingStateSave(nextState: OnboardingState): void {
+  onboardingState = nextState;
+  stateSaveChain = stateSaveChain
+    .then(() => saveOnboardingState(nextState))
+    .catch(() => {
+      status.textContent = t(language, 'statusReviewMarkSaveError');
+    });
+}
+
+function persistReviewMarks(): void {
+  queueOnboardingStateSave({
+    ...ensurePresentationState(),
+    reviewMarks: currentReviewMarks(),
+  });
 }
 
 function renderStep(): void {
@@ -75,11 +108,6 @@ function renderStep(): void {
   previousStepButton.disabled = currentStep === 1;
   nextStepButton.hidden = currentStep === 4;
   decideLaterButton.hidden = currentStep === 4;
-  const complete = onboardingAcknowledgementsComplete(currentAcknowledgements());
-  observationChoices.hidden = !complete;
-  allowNetworkButton.disabled = !complete;
-  startLocalOnlyButton.disabled = !complete;
-  pauseObservationButton.disabled = !complete;
 }
 
 function applyLanguage(next: UiLanguage): void {
@@ -105,14 +133,17 @@ async function complete(observationSelection: ObservationSelection): Promise<voi
     'onboarding',
   );
   if (!response.ok) throw new Error(response.reason ?? 'settings memory write failed');
-  const now = Date.now();
-  await saveOnboardingState({
-    version: ONBOARDING_VERSION,
-    completedAt: now,
-    reviewedAt: now,
-    acknowledgements: currentAcknowledgements(),
-    selectionAtLastReview: observationSelection,
-  });
+
+  await stateSaveChain;
+  const completedState = completeOnboardingState(
+    ensurePresentationState(),
+    observationSelection,
+    Date.now(),
+    currentReviewMarks(),
+  );
+  onboardingState = completedState;
+  await saveOnboardingState(completedState);
+
   for (const section of document.querySelectorAll<HTMLElement>('.onboarding-step')) {
     section.hidden = true;
   }
@@ -133,21 +164,41 @@ nextStepButton.addEventListener('click', () => {
   renderStep();
 });
 decideLaterButton.addEventListener('click', () => window.close());
-for (const input of Object.values(acknowledgements)) {
-  input.addEventListener('change', renderStep);
+for (const input of Object.values(reviewMarks)) {
+  input.addEventListener('change', persistReviewMarks);
 }
+resetReviewMarksButton.addEventListener('click', () => {
+  for (const input of Object.values(reviewMarks)) input.checked = false;
+  persistReviewMarks();
+  status.textContent = t(language, 'statusReviewMarksReset');
+});
+
 allowNetworkButton.addEventListener('click', () => {
+  networkPermissionStatus.textContent = '';
+  networkPermissionDialog.showModal();
+});
+cancelNetworkPermissionButton.addEventListener('click', () => networkPermissionDialog.close());
+requestNetworkPermissionButton.addEventListener('click', () => {
+  requestNetworkPermissionButton.disabled = true;
   void chrome.permissions
     .request(NETWORK_METADATA_PERMISSION_REQUEST)
-    .then((granted) => {
+    .then(async (granted) => {
       if (!granted) {
-        status.textContent = t(language, 'statusPermissionDenied');
+        const message = t(language, 'statusPermissionDenied');
+        networkPermissionStatus.textContent = message;
+        status.textContent = message;
         return;
       }
-      return complete('standard');
+      await complete('standard');
+      networkPermissionDialog.close();
     })
     .catch(() => {
-      status.textContent = t(language, 'statusPermissionError');
+      const message = t(language, 'statusPermissionError');
+      networkPermissionStatus.textContent = message;
+      status.textContent = message;
+    })
+    .finally(() => {
+      if (networkPermissionDialog.open) requestNetworkPermissionButton.disabled = false;
     });
 });
 startLocalOnlyButton.addEventListener('click', () => {
@@ -175,10 +226,20 @@ openObservationLog.addEventListener('click', () => {
 });
 openSetupAfter.addEventListener('click', () => void chrome.runtime.openOptionsPage());
 
-void readSettingsMemory().then(({ settings }) => {
-  uiLanguage.value = settings.uiLanguage;
-  applyLanguage(resolveUiLanguage(settings.uiLanguage, browserUiLanguage()));
-  for (const input of Object.values(acknowledgements)) {
-    input.checked = false;
-  }
-});
+void Promise.all([readSettingsMemory(), loadOnboardingState()])
+  .then(async ([{ settings }, storedState]) => {
+    uiLanguage.value = settings.uiLanguage;
+    onboardingState = recordOnboardingPresentation(storedState, Date.now());
+    for (const [key, input] of Object.entries(reviewMarks) as [
+      keyof OnboardingReviewMarks,
+      HTMLInputElement,
+    ][]) {
+      input.checked = onboardingState.reviewMarks[key];
+    }
+    await saveOnboardingState(onboardingState);
+    applyLanguage(resolveUiLanguage(settings.uiLanguage, browserUiLanguage()));
+  })
+  .catch(() => {
+    status.textContent = t(language, 'statusOnboardingInitializationError');
+    applyLanguage(resolveUiLanguage(uiLanguage.value as UiLanguageSetting, browserUiLanguage()));
+  });

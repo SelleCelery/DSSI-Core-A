@@ -1,51 +1,51 @@
 import type { ObservationSelection } from '../core/models/settings';
 
-export const ONBOARDING_VERSION = 3;
+export const ONBOARDING_VERSION = 5;
 const ONBOARDING_KEY = 'connectBitsOnboardingState';
 
-export interface OnboardingAcknowledgements {
-  observationBoundary: boolean;
-  frequency: boolean;
-  storage: boolean;
-  externalTransmission: boolean;
+export interface OnboardingReviewMarks {
   judgmentBoundary: boolean;
-  supportBoundary: boolean;
-  currentDecision: boolean;
+  observationScope: boolean;
+  observationAbsence: boolean;
+  permissionDifference: boolean;
+  evidenceBoundary: boolean;
+  highImpactBoundary: boolean;
+  exportBoundary: boolean;
 }
 
 export interface OnboardingState {
   version: typeof ONBOARDING_VERSION;
-  completedAt: number;
-  reviewedAt: number;
-  acknowledgements: OnboardingAcknowledgements;
-  selectionAtLastReview: ObservationSelection;
+  firstPresentedAt: number;
+  lastPresentedAt: number;
+  completedAt?: number;
+  reviewMarks: OnboardingReviewMarks;
+  selectionAtLastReview?: ObservationSelection;
 }
 
-export const EMPTY_ONBOARDING_ACKNOWLEDGEMENTS: Readonly<OnboardingAcknowledgements> =
-  Object.freeze({
-    observationBoundary: false,
-    frequency: false,
-    storage: false,
-    externalTransmission: false,
-    judgmentBoundary: false,
-    supportBoundary: false,
-    currentDecision: false,
-  });
+export const EMPTY_ONBOARDING_REVIEW_MARKS: Readonly<OnboardingReviewMarks> = Object.freeze({
+  judgmentBoundary: false,
+  observationScope: false,
+  observationAbsence: false,
+  permissionDifference: false,
+  evidenceBoundary: false,
+  highImpactBoundary: false,
+  exportBoundary: false,
+});
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-function isOnboardingAcknowledgements(value: unknown): value is OnboardingAcknowledgements {
+function isOnboardingReviewMarks(value: unknown): value is OnboardingReviewMarks {
   if (!isObject(value)) return false;
   return (
-    typeof value.observationBoundary === 'boolean' &&
-    typeof value.frequency === 'boolean' &&
-    typeof value.storage === 'boolean' &&
-    typeof value.externalTransmission === 'boolean' &&
     typeof value.judgmentBoundary === 'boolean' &&
-    typeof value.supportBoundary === 'boolean' &&
-    typeof value.currentDecision === 'boolean'
+    typeof value.observationScope === 'boolean' &&
+    typeof value.observationAbsence === 'boolean' &&
+    typeof value.permissionDifference === 'boolean' &&
+    typeof value.evidenceBoundary === 'boolean' &&
+    typeof value.highImpactBoundary === 'boolean' &&
+    typeof value.exportBoundary === 'boolean'
   );
 }
 
@@ -61,53 +61,52 @@ function isOnboardingState(value: unknown): value is OnboardingState {
   if (!isObject(value)) return false;
   return (
     value.version === ONBOARDING_VERSION &&
-    isTimestamp(value.completedAt) &&
-    isTimestamp(value.reviewedAt) &&
-    isObservationSelection(value.selectionAtLastReview) &&
-    isOnboardingAcknowledgements(value.acknowledgements)
+    isTimestamp(value.firstPresentedAt) &&
+    isTimestamp(value.lastPresentedAt) &&
+    (value.completedAt === undefined || isTimestamp(value.completedAt)) &&
+    (value.selectionAtLastReview === undefined ||
+      isObservationSelection(value.selectionAtLastReview)) &&
+    isOnboardingReviewMarks(value.reviewMarks)
   );
 }
 
-export function migrateOnboardingState(value: unknown): OnboardingState | undefined {
-  if (isOnboardingState(value)) return value;
-  if (!isObject(value) || value.version !== 2) return undefined;
-  if (
-    !isTimestamp(value.completedAt) ||
-    !isTimestamp(value.changedAt) ||
-    !isObservationSelection(value.observationSelection) ||
-    !isOnboardingAcknowledgements(value.acknowledgements)
-  ) {
-    return undefined;
-  }
+export function recordOnboardingPresentation(
+  state: OnboardingState | undefined,
+  presentedAt: number,
+): OnboardingState {
+  if (state !== undefined) return { ...state, lastPresentedAt: presentedAt };
   return {
     version: ONBOARDING_VERSION,
-    completedAt: value.completedAt,
-    reviewedAt: value.changedAt,
-    acknowledgements: value.acknowledgements,
-    selectionAtLastReview: value.observationSelection,
+    firstPresentedAt: presentedAt,
+    lastPresentedAt: presentedAt,
+    reviewMarks: { ...EMPTY_ONBOARDING_REVIEW_MARKS },
   };
 }
 
-export function onboardingAcknowledgementsComplete(
-  acknowledgements: OnboardingAcknowledgements,
-): boolean {
-  return Object.values(acknowledgements).every(Boolean);
+export function completeOnboardingState(
+  state: OnboardingState,
+  selection: ObservationSelection,
+  completedAt: number,
+  reviewMarks: OnboardingReviewMarks,
+): OnboardingState {
+  return {
+    ...state,
+    completedAt,
+    reviewMarks,
+    selectionAtLastReview: selection,
+  };
 }
 
 export async function loadOnboardingState(): Promise<OnboardingState | undefined> {
   const result = await chrome.storage.local.get(ONBOARDING_KEY);
   const candidate: unknown = result[ONBOARDING_KEY];
-  const migrated = migrateOnboardingState(candidate);
-  if (migrated !== undefined && migrated !== candidate) {
-    await saveOnboardingState(migrated);
-  }
-  return migrated;
+  return isOnboardingState(candidate) ? candidate : undefined;
 }
 
 export async function saveOnboardingState(state: OnboardingState): Promise<void> {
   await chrome.storage.local.set({ [ONBOARDING_KEY]: state });
 }
 
-export async function onboardingCompleted(): Promise<boolean> {
+export async function onboardingPresentationRecorded(): Promise<boolean> {
   return (await loadOnboardingState()) !== undefined;
 }

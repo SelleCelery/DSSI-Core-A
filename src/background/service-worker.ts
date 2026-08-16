@@ -27,13 +27,14 @@ import {
   shouldSuppressDuplicateNetworkRecord,
 } from '../core/network-correlation';
 import { createObservationRecord } from '../core/observation-factory';
+import { shouldOpenOnboarding } from '../core/onboarding-launch-policy';
 import { createPrivacySafeRecord } from '../core/privacy-safe-logger';
 import { SettingsMemoryQueue } from '../core/settings-memory-queue';
 import { isPrivacySafeUserActionPulse } from '../core/user-action-pulse';
 import { ensureDefaultSettings, loadSettings } from '../storage/settings-store';
 import { captureObservationSettingsSnapshot } from '../storage/settings-snapshot-store';
 import { invalidateHostDisplayProfileCache } from '../storage/host-display-profile-store';
-import { onboardingCompleted } from '../storage/onboarding-store';
+import { onboardingPresentationRecorded } from '../storage/onboarding-store';
 import { readSettingsMemory, writeSettingsMemory } from '../storage/settings-memory-store';
 import {
   appendSessionRecord,
@@ -135,12 +136,22 @@ function enqueueSettingsMemoryWrite(message: Parameters<typeof writeSettingsMemo
   });
 }
 
+function openOnboarding(): Promise<chrome.tabs.Tab> {
+  return chrome.tabs.create({ url: chrome.runtime.getURL('onboarding.html') });
+}
+
 chrome.runtime.onInstalled.addListener((details) => {
-  void ensureDefaultSettings().then(async () => {
-    const needsReview = details.reason === 'install' || !(await onboardingCompleted());
-    if (!needsReview) return;
-    await chrome.tabs.create({ url: chrome.runtime.getURL('onboarding.html') });
-  });
+  void ensureDefaultSettings();
+  if (details.reason === 'install') {
+    void openOnboarding();
+    return;
+  }
+  void onboardingPresentationRecorded()
+    .then((recorded) => {
+      if (shouldOpenOnboarding(details.reason, recorded)) return openOnboarding();
+      return undefined;
+    })
+    .catch(() => openOnboarding());
 });
 
 chrome.runtime.onStartup.addListener(() => {

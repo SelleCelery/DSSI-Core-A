@@ -204,63 +204,108 @@ const JA_MESSAGES = {
   tipsNotDiagnosis: '自動診断ではありません。この表示範囲に関連し得る読解補助です。',
   setupWizardTitle: '導入と権限の確認',
   setupWizardIntro:
-    'ConnectBitsが扱う情報と扱わない情報を、権限を付与する前に一項目ずつ確認します。所要時間の目安は2〜3分です。',
+    'ConnectBitsの目的、手段、Chromeの権限、利用時の責任境界を、観測方法を選ぶ前に説明します。',
+  onboardingWhyHeading: 'なぜ、この説明が必要か',
+  onboardingWhyBody:
+    'ConnectBitsが返すのは限定的な観測材料であり、安全判定ではありません。また、Chromeが許可する技術的能力は、現在のConnectBitsが使う範囲より広いためです。',
+  reviewMarkHeading: 'チェックは、自分のための確認メモです',
+  reviewMarkBody:
+    'チェックは任意です。空欄でもConnectBitsの起動、観測方法の選択、Chromeの権限確認へ進めます。状態はこの端末内だけに保存され、開発者や外部サーバーへ送信されません。利用規約への同意、免責への同意、法的権利の放棄を意味しません。',
+  resetReviewMarks: '確認メモをリセット',
   step: 'ステップ',
   nextStep: '次へ',
   previousStep: '戻る',
-  decideLater: '今は決めない',
-  onboardingStep1Title: 'ConnectBitsの目的',
+  decideLater: '今は閉じる',
+  onboardingStep1Kicker: '1｜目的',
+  onboardingStep1Title: '通信を裁かず、見えるようにする',
   onboardingStep1Body:
-    'ConnectBitsは、通常は見えにくいブラウザー上の入力面、送信操作、通信開始メタデータを可視化し、利用者へ判断材料を返します。通信の安全性、目的、必要性、適法性を自動的に確定しません。',
-  onboardingStep2Title: '観測するもの・観測しないもの',
-  onboardingObserveHeading: '選択に応じて観測するもの',
-  onboardingObserve1:
-    'ページ上の限定的なDOMイベント（入力開始、貼り付け、標準form送信操作など。入力本文は取得しない）',
-  onboardingObserve2: '任意権限を許可した場合だけ、ブラウザーが提供する通信開始メタデータ',
-  onboardingObserve3: 'Cookieヘッダーの存在検出（値は取得しない）',
-  onboardingObserve4: '閲覧中ページと通信先のオリジン関係、操作との時間的近接',
-  onboardingNotObserveHeading: '観測しないもの',
-  onboardingNot1: '通信本文、フォームへ入力された本文、Cookie値',
-  onboardingNot2: 'PC内に保存されたCookie一覧、Local Storage、IndexedDBの内容',
-  onboardingNot3: '閲覧履歴全体、位置情報、カメラ、マイク、連絡先、ファイル内容',
+    'ConnectBitsは、通常は見えにくい入力面、送信操作、通信開始の痕跡を、利用者が自分で判断するための観測材料として返します。',
+  onboardingPurposeBoundaryHeading: 'ConnectBitsが決めないこと',
+  onboardingPurposeBoundaryBody:
+    '通信の安全・危険、目的、必要性、適法性、運営者や利用者の意図を確定しません。表示は結論や保証ではありません。',
+  onboardingStep2Kicker: '2｜手段',
+  onboardingStep2Title: '本文ではなく、発生条件を観測する',
+  onboardingStep2Body:
+    'ページ上の限定的な操作と、任意権限を許可した場合の通信開始メタデータを端末内で照合します。',
+  onboardingObserveHeading: '観測するもの',
+  onboardingObserve1: '入力開始、貼り付け、標準form送信などのDOMイベント',
+  onboardingObserve2: '任意権限がある場合の通信先hostname、HTTP method、通信機構',
+  onboardingObserve3: 'Cookieヘッダー名の有無。値は読み取らない',
+  onboardingObserve4: 'ページ操作と通信開始の時間的な近接',
+  onboardingNotObserveHeading: '観測・保存しないもの',
+  onboardingNot1: 'フォームの入力本文、通信本文、Cookie値',
+  onboardingNot2: 'URLのpath、query、fragment',
+  onboardingNot3: 'Cookie一覧、Local Storage、IndexedDB、ファイル内容',
   onboardingNot4: '通信目的、運営者の意図、安全性、適法性',
-  onboardingStep3Title: '処理条件と説明責任',
-  onboardingPurpose:
-    '利用目的：通信の発生と限定的な付随情報を可視化し、利用者が自分で確認・比較・判断できるようにします。',
-  onboardingFrequency:
-    '取得頻度：対象ページで該当イベントや通信が発生するたびに観測します。PC全体を定期走査しません。',
-  onboardingStorage:
-    '保存：設定、導入確認、ホスト別表示プロファイルは端末内のローカル領域へ保存し、変更・リセットまたは拡張機能の削除まで保持します。観測ログと設定スナップショットは、ブラウザー再起動や拡張再読み込みで消えるセッション領域に保持します。利用者が明示的にエクスポートしたログファイルは、利用者が削除するまで残ります。',
-  onboardingExternal:
-    '外部通信・第三者提供：ConnectBits自身は観測ログを開発者、外部サーバー、第三者へ送信・提供しません。観測対象サイト自身の通信について同じことを保証する文ではありません。',
-  onboardingFuture:
-    '重要な用途、保存方法、権限の変更時には改めて説明し、再確認を求めます。現在の確認を未提示の将来用途への包括同意とは扱いません。',
-  onboardingSupport:
-    '問い合わせ：事実に基づく報告を受け付け、可能な範囲で受領状態を示します。個別調査、修正、期限付き対応、継続支援は保証しません。受領は責任承認や修正義務の確定を意味しません。',
-  onboardingStep4Title: '確認と選択',
-  ackObservation: '観測する情報と観測しない情報を確認した',
-  ackFrequency: '観測が行われる条件と頻度を確認した',
-  ackStorage: 'ローカル保存、セッション保存、エクスポート後の保持条件を確認した',
-  ackExternal: 'ConnectBits自身が観測ログを外部送信・第三者提供しないことを確認した',
-  ackJudgment: 'ConnectBitsが通信の目的や危険性を確定しないことを確認した',
-  ackSupport: '問い合わせと対応に上記の限界があることを確認した',
-  ackDecision: '観測境界を三つから選び、あとから変更できることを確認した',
+  onboardingMethodFrequency: '発生時に観測し、PC全体を定期走査しません。',
+  onboardingMethodStorage: '設定は端末内、観測ログはブラウザーのセッション領域に保持します。',
+  onboardingMethodTransmission:
+    'ConnectBits自身は観測ログを開発者・外部サーバー・第三者へ送信しません。',
+  onboardingStep3Kicker: '3｜Chromeの権限',
+  onboardingStep3Title: '許可される能力と、現在使う範囲を分けて示す',
+  onboardingStep4Kicker: '4｜責任境界',
+  onboardingStep4Title: 'ConnectBitsが守ることと、任せられないこと',
+  onboardingStep4Body:
+    'ConnectBitsは説明した観測境界を守ります。ただし、観測記録を証拠・診断・安全保証として提供するものではありません。',
+  connectBitsResponsibilitiesHeading: 'ConnectBitsが守る境界',
+  connectBitsResponsibility1: '説明した取得・保存・送信範囲をコードでも守る',
+  connectBitsResponsibility2: '観測できない範囲と判断できない事項を隠さない',
+  connectBitsResponsibility3: '目的・権限・保存方法の重要変更時は再説明する',
+  connectBitsResponsibility4: '観測停止と任意権限の撤回手段を用意する',
+  userBoundariesHeading: 'ConnectBitsへ任せられないこと',
+  userBoundary1: '第三者の意図・違法性・危険性の断定',
+  userBoundary2: '生命・身体・財産・法的判断などの重要判断',
+  userBoundary3: 'エクスポート後のファイル管理',
+  userBoundary4: '観測対象サイト自身が行う外部通信の管理',
+  ackJudgment: '安全・危険、目的、必要性、適法性をConnectBitsが確定するものではないと確認した',
+  ackObservationScope: 'ConnectBitsが観測するものと、観測・保存しないものを確認した',
+  ackObservationAbsence: '表示がないことは、通信がなかったことを意味しないと確認した',
+  ackPermissionDifference: 'Chromeの許可範囲と、現在のConnectBitsの処理範囲との差について確認した',
+  ackEvidenceBoundary: '観測記録だけを根拠に、第三者の意図・違法性・危険性を断定しない',
+  ackHighImpactBoundary: '生命・身体・財産・法的判断などの重要判断を、ConnectBitsだけに委ねない',
+  ackExportBoundary: 'エクスポートしたファイルは、自分の管理領域で扱う',
   onboardingChoiceIntro: '観測方法を選択してください',
   onboardingChangeable: 'いつでもこの選択は変更できます。',
   onboardingCoverageAfter:
-    '何を観測しているか、何を現在観測していないか、何を設定によって観測対象から外しているか、何を仕組み上観測できないかは、導入後に「設定とプライバシー」で確認できます。',
+    '導入後も「設定とプライバシー」から、説明、観測範囲、権限状態、確認メモを見直せます。',
   allowNetwork: '標準設定で観測を開始',
   onboardingStandardDetail:
-    'ページ上の限定観測と、通信先やHTTP methodなどの通信メタデータ観測を開始します。',
+    'ページ上の限定観測と、通信開始メタデータの観測を開始します。直前にChromeの権限確認があります。',
   startLocalOnly: '通信メタデータを観測せず開始',
   onboardingDomOnlyDetail:
-    '通信メタデータは観測しません。ページ上の限定的な操作・表示変化の観測は継続します。',
+    'Chromeの任意webRequest権限を使わず、ページ上の限定観測だけを開始します。',
   pauseObservation: '今は観測を開始しない',
   onboardingPausedDetail: '観測を開始せず、拡張機能を休止状態にします。あとから設定できます。',
-  permissionMeaning:
-    '権限の付与を、ConnectBitsが行う個々の判断への同意とみなすことはありません。また、ConnectBitsの観測や判定は、通信の安全性・妥当性を保証するものではありません。',
+  permissionDialogKicker: 'Chromeの確認を開く直前',
+  permissionDialogTitle: '広い許可の中で、ConnectBitsが現在使う範囲',
+  permissionDialogIntro:
+    'Chromeの確認表示は、権限から技術的に可能になる範囲を示します。右列は、この版のConnectBitsが実際に実行・保存する処理です。',
+  permissionChromeMaximum: 'Chromeが許可する最大能力',
+  permissionConnectBitsActual: 'ConnectBitsが現在行う処理',
+  permissionChromeScope: 'HTTP/HTTPSの許可対象ホストでwebRequestイベントへアクセスできる。',
+  permissionActualScope: 'XMLHttpRequest/fetch系とBeacon/Pingの通信開始だけを監視する。',
+  permissionChromeUrl: '対象イベントから完全なURL、HTTP method、initiatorなどをコードへ渡せる。',
+  permissionActualUrl: 'URLはschemeとhostnameだけへ縮約し、path・query・fragmentを保存しない。',
+  permissionChromeHeaders: 'リスナーが要求すればrequest headersをコードへ渡せる。',
+  permissionActualHeaders:
+    'Cookieヘッダー名の有無だけを一時確認し、ヘッダー値を読み取って保存・表示しない。',
+  permissionChromeBody:
+    '将来コードがonBeforeRequestでrequestBodyを要求すれば、送信本文へアクセスできる余地がある。',
+  permissionActualBody: 'requestBodyを要求するリスナーを登録せず、通信本文を取得しない。',
+  permissionChromeChange: '権限範囲内で、将来コードが別の非ブロッキング監視処理を追加できる。',
+  permissionActualChange: 'webRequestBlockingを要求せず、通信を停止・変更・転送しない。',
+  permissionDialogBrowserUiNote:
+    '次の操作でChrome自身の権限確認が表示されます。この説明はページ上に残りますが、Chromeの表示位置や文言はConnectBitsから変更できません。すでに許可済みの場合、Chromeの確認が再表示されないことがあります。',
+  permissionDialogChromeSummary:
+    '許可対象のHTTP/HTTPS通信について、完全なURLやrequest headersなどをコードへ渡せます。将来コードがrequestBodyを要求する余地もあります。',
+  permissionDialogActualSummary:
+    '通信開始だけを監視し、schemeとhostnameへ縮約します。本文・path・query・Cookie値を保存せず、通信を停止・変更・転送しません。',
+  permissionReviewOptionalReminder:
+    '権限差についての確認メモは任意です。チェックがなくてもChromeの確認へ進めます。',
+  backToChoices: '選択へ戻る',
+  showChromePermission: 'Chromeの権限確認を表示',
   onboardingComplete:
-    '導入確認が完了しました。対象ページを再読み込みすると、現在の設定が確実に反映されます。',
+    '観測方法を保存しました。確認メモの有無は、ConnectBitsの動作条件には使われません。',
   openObservationLog: '観測ログを開く',
   openSetupAfter: '設定とプライバシーを開く',
   statusSaved: '設定を保存しました。',
@@ -269,6 +314,11 @@ const JA_MESSAGES = {
   statusPermissionDenied: '通信開始メタデータ観測の権限が付与されなかったため、無効のままです。',
   statusPermissionError:
     '通信観測に必要な任意権限を変更できませんでした。権限状態を保ったまま、選択の保存を中止しました。',
+  statusReviewMarkSaveError:
+    '確認メモを端末内へ保存できませんでした。ConnectBitsの利用条件や権限状態には影響しません。',
+  statusReviewMarksReset: '確認メモをリセットしました。観測設定とChromeの権限は変更していません。',
+  statusOnboardingInitializationError:
+    '導入説明の端末内状態を読み込めませんでした。説明は閲覧でき、チェックなしでも観測方法を選べます。',
   statusObservationStandard:
     '標準設定を保存しました。ページ上の限定観測と通信メタデータ観測を行います。',
   statusObservationDomOnly:
@@ -512,69 +562,124 @@ const EN_MESSAGES: Record<UiMessageKey, string> = {
   tipsNotDiagnosis: 'These are reading aids, not automated diagnoses.',
   setupWizardTitle: 'Setup and permission review',
   setupWizardIntro:
-    'Review what ConnectBits handles and does not handle before granting permissions. Estimated time: 2–3 minutes.',
+    'Before you choose an observation method, ConnectBits explains its purpose, method, Chrome permissions, and responsibility boundaries.',
+  onboardingWhyHeading: 'Why this explanation is necessary',
+  onboardingWhyBody:
+    'ConnectBits returns limited observation material, not a safety judgment. Chrome also grants broader technical capability than ConnectBits currently uses.',
+  reviewMarkHeading: 'Checks are personal review notes',
+  reviewMarkBody:
+    'Every check is optional. Blank checks do not prevent ConnectBits from starting, selecting an observation method, or opening Chrome permission confirmation. Check states remain on this device and are not sent to the developer or an external server. They do not mean acceptance of terms, agreement to a liability waiver, or surrender of legal rights.',
+  resetReviewMarks: 'Reset personal review notes',
   step: 'Step',
   nextStep: 'Next',
   previousStep: 'Back',
-  decideLater: 'Decide later',
-  onboardingStep1Title: 'Purpose of ConnectBits',
+  decideLater: 'Close for now',
+  onboardingStep1Kicker: '1 | Purpose',
+  onboardingStep1Title: 'Make connections visible without judging them',
   onboardingStep1Body:
-    'ConnectBits makes selected browser input surfaces, submission actions, and request-start metadata visible so that users can retain conditions for their own judgment. It does not automatically determine safety, purpose, necessity, or legality.',
-  onboardingStep2Title: 'Observed and excluded information',
-  onboardingObserveHeading: 'Observed according to your selection',
-  onboardingObserve1:
-    'Limited DOM events on a page, such as input start, paste, and standard-form submission actions; input content is not collected',
+    'ConnectBits returns normally hidden input surfaces, submission actions, and request-start traces as observation material for the user’s own judgment.',
+  onboardingPurposeBoundaryHeading: 'What ConnectBits does not decide',
+  onboardingPurposeBoundaryBody:
+    'It does not determine safety, danger, purpose, necessity, legality, or operator and user intent. A presentation is not a conclusion or guarantee.',
+  onboardingStep2Kicker: '2 | Method',
+  onboardingStep2Title: 'Observe occurrence conditions, not content',
+  onboardingStep2Body:
+    'ConnectBits collates limited page actions with request-start metadata on the device when optional permission is granted.',
+  onboardingObserveHeading: 'Observed',
+  onboardingObserve1: 'DOM events such as input start, paste, and standard-form submission',
   onboardingObserve2:
-    'Request-start metadata exposed by the browser, only when the optional permission is granted',
-  onboardingObserve3: 'Presence of a Cookie header; values are not collected',
-  onboardingObserve4:
-    'Origin relation between the page and destination, and temporal proximity to selected actions',
-  onboardingNotObserveHeading: 'Not observed',
-  onboardingNot1: 'Network payloads, form input content, and Cookie values',
-  onboardingNot2: 'Stored-Cookie inventories, Local Storage contents, and IndexedDB contents',
-  onboardingNot3:
-    'Full browsing history, location, camera, microphone, contacts, and file contents',
+    'Destination hostname, HTTP method, and communication mechanism when optional permission is present',
+  onboardingObserve3: 'Presence of the Cookie header name; its value is not read',
+  onboardingObserve4: 'Temporal proximity between page actions and request start',
+  onboardingNotObserveHeading: 'Not observed or stored',
+  onboardingNot1: 'Form input content, network payloads, and Cookie values',
+  onboardingNot2: 'URL paths, queries, and fragments',
+  onboardingNot3: 'Cookie inventories, Local Storage, IndexedDB, and file contents',
   onboardingNot4: 'Communication purpose, operator intent, safety, and legality',
-  onboardingStep3Title: 'Processing conditions and responsibility',
-  onboardingPurpose:
-    'Purpose: make communication events and limited accompanying metadata visible so users can compare and judge for themselves.',
-  onboardingFrequency:
-    'Frequency: observation runs when a relevant event or request occurs on an eligible page. ConnectBits does not periodically scan the entire computer.',
-  onboardingStorage:
-    'Storage: settings, setup-review state, and host display profiles are kept in local extension storage until changed, reset, or the extension is removed. Observation records and settings snapshots are kept in session storage that is cleared by browser restart or extension reload. Exported log files remain until the user deletes them.',
-  onboardingExternal:
-    'External transmission and third-party disclosure: ConnectBits itself does not send or provide observation logs to the developer, an external server, or another party. This statement does not make the same guarantee about communications performed by the site being observed.',
-  onboardingFuture:
-    'Material changes to purpose, storage, or required permissions must be explained and reviewed again. This review is not blanket consent to undisclosed future uses.',
-  onboardingSupport:
-    'Reports: fact-based reports are accepted and receipt may be acknowledged where possible. Individual investigation, fixes, deadlines, and continuing support are not guaranteed. Receipt does not establish liability or a duty to modify.',
-  onboardingStep4Title: 'Review and choose',
-  ackObservation: 'I reviewed the information ConnectBits observes and does not observe.',
-  ackFrequency: 'I reviewed when and how often observation occurs.',
-  ackStorage: 'I reviewed local storage, session storage, and retention after export.',
-  ackExternal:
-    'I reviewed that ConnectBits itself does not externally transmit or disclose observation logs.',
-  ackJudgment: 'I reviewed that ConnectBits does not determine communication purpose or danger.',
-  ackSupport: 'I reviewed the limits of support and response.',
-  ackDecision:
-    'I reviewed that I can choose one of three observation boundaries and change it later.',
+  onboardingMethodFrequency:
+    'Observation occurs when eligible events occur; ConnectBits does not periodically scan the computer.',
+  onboardingMethodStorage:
+    'Settings remain on the device, and observation logs remain in browser session storage.',
+  onboardingMethodTransmission:
+    'ConnectBits itself does not send observation logs to the developer, an external server, or a third party.',
+  onboardingStep3Kicker: '3 | Chrome permission',
+  onboardingStep3Title: 'Separate granted capability from current use',
+  onboardingStep4Kicker: '4 | Responsibility boundary',
+  onboardingStep4Title: 'What ConnectBits must protect and what it cannot take over',
+  onboardingStep4Body:
+    'ConnectBits must keep the observation boundary it describes. It does not provide observation records as proof, diagnosis, or a safety guarantee.',
+  connectBitsResponsibilitiesHeading: 'Boundaries ConnectBits must protect',
+  connectBitsResponsibility1:
+    'Enforce the described collection, storage, and transmission scope in code',
+  connectBitsResponsibility2: 'Disclose what it cannot observe or determine',
+  connectBitsResponsibility3: 'Explain material changes to purpose, permission, or storage again',
+  connectBitsResponsibility4: 'Provide ways to pause observation and revoke optional permission',
+  userBoundariesHeading: 'What cannot be delegated to ConnectBits',
+  userBoundary1: 'Determining another party’s intent, illegality, or danger',
+  userBoundary2: 'High-impact decisions involving life, health, property, or legal matters',
+  userBoundary3: 'Managing files after export',
+  userBoundary4: 'Controlling external communication performed by the observed site',
+  ackJudgment:
+    'I reviewed that ConnectBits does not determine safety, danger, purpose, necessity, or legality.',
+  ackObservationScope:
+    'I reviewed what ConnectBits observes and what it does not observe or store.',
+  ackObservationAbsence: 'I reviewed that no presentation does not mean no communication occurred.',
+  ackPermissionDifference:
+    'I reviewed the difference between Chrome’s permission scope and ConnectBits’ current processing scope.',
+  ackEvidenceBoundary:
+    'I will not determine another party’s intent, illegality, or danger from observation records alone.',
+  ackHighImpactBoundary:
+    'I will not delegate high-impact decisions involving life, health, property, or legal matters to ConnectBits alone.',
+  ackExportBoundary: 'I will manage exported files within my own control.',
   onboardingChoiceIntro: 'Choose an observation method',
   onboardingChangeable: 'You can change this choice at any time.',
   onboardingCoverageAfter:
-    'After setup, Settings & Privacy shows what is observed, what is not currently observed, what is excluded by settings, and what the current mechanism cannot observe.',
+    'After setup, Settings & Privacy lets you revisit the explanation, observation scope, permission state, and personal review notes.',
   allowNetwork: 'Start with standard observation',
   onboardingStandardDetail:
-    'Starts limited page observation and communication-metadata observation such as destination and HTTP method.',
+    'Starts limited page observation and request-start metadata observation. Chrome permission confirmation appears immediately beforehand.',
   startLocalOnly: 'Start without communication-metadata observation',
   onboardingDomOnlyDetail:
-    'Communication metadata is not observed. Limited observation of page actions and display changes continues.',
+    'Starts limited page observation without using the optional Chrome webRequest permission.',
   pauseObservation: 'Do not start observation now',
   onboardingPausedDetail:
     'Keeps the extension installed with observation paused. You can choose later in settings.',
-  permissionMeaning:
-    'ConnectBits does not treat granting permission as consent to its individual judgments. ConnectBits observations and classifications do not guarantee that a communication is safe or appropriate.',
+  permissionDialogKicker: 'Immediately before Chrome confirmation',
+  permissionDialogTitle: 'What ConnectBits currently uses within the broader grant',
+  permissionDialogIntro:
+    'Chrome describes what the permission makes technically possible. The right column states what this ConnectBits version actually executes and stores.',
+  permissionChromeMaximum: 'Maximum capability Chrome grants',
+  permissionConnectBitsActual: 'What ConnectBits currently does',
+  permissionChromeScope: 'Can access webRequest events across all permitted HTTP and HTTPS hosts.',
+  permissionActualScope:
+    'Listens only at request start for XMLHttpRequest/fetch and Beacon/Ping traffic.',
+  permissionChromeUrl:
+    'Can pass the full URL, HTTP method, initiator, and other event metadata to code.',
+  permissionActualUrl:
+    'Reduces URLs to scheme and hostname; paths, queries, and fragments are not stored.',
+  permissionChromeHeaders: 'Can pass request headers to code when a listener asks for them.',
+  permissionActualHeaders:
+    'Checks only for the Cookie header name transiently; header values are not read, stored, or displayed.',
+  permissionChromeBody:
+    'Future code could access submitted content by registering onBeforeRequest with requestBody.',
+  permissionActualBody:
+    'Registers no listener that requests requestBody and does not collect network payloads.',
+  permissionChromeChange:
+    'Future code could add other non-blocking observation within the granted scope.',
+  permissionActualChange:
+    'Does not request webRequestBlocking and does not stop, modify, or redirect traffic.',
+  permissionDialogBrowserUiNote:
+    "The next action opens Chrome's own permission confirmation. This explanation remains on the page, but ConnectBits cannot control the prompt's wording or position. Chrome may not show it again if access was already granted.",
+  permissionDialogChromeSummary:
+    'For permitted HTTP and HTTPS traffic, Chrome can pass complete URLs, request headers, and related metadata to code. Future code could also request requestBody.',
+  permissionDialogActualSummary:
+    'ConnectBits observes request start and reduces URLs to scheme and hostname. It does not store payloads, paths, queries, or Cookie values and does not stop, modify, or redirect traffic.',
+  permissionReviewOptionalReminder:
+    'The personal review note about this difference is optional. Chrome confirmation remains available without the check.',
+  backToChoices: 'Back to choices',
+  showChromePermission: 'Show Chrome permission confirmation',
   onboardingComplete:
-    'Setup review is complete. Reload eligible pages to apply the current settings reliably.',
+    'The observation method was saved. Personal review notes are not used as a condition for ConnectBits to operate.',
   openObservationLog: 'Open observation log',
   openSetupAfter: 'Open settings & privacy',
   statusSaved: 'Settings saved.',
@@ -584,6 +689,12 @@ const EN_MESSAGES: Record<UiMessageKey, string> = {
     'The request-start metadata permission was not granted, so it remains disabled.',
   statusPermissionError:
     'The optional communication-observation permissions could not be changed. The choice was not saved and the existing permission state was preserved.',
+  statusReviewMarkSaveError:
+    'The personal review note could not be stored on this device. This does not affect ConnectBits usage conditions or permission state.',
+  statusReviewMarksReset:
+    'Personal review notes were reset. Observation settings and Chrome permissions were not changed.',
+  statusOnboardingInitializationError:
+    'The local state for this introduction could not be loaded. You may still read the explanation and select an observation method without any checks.',
   statusObservationStandard:
     'Standard observation saved. Limited page observation and communication-metadata observation are active.',
   statusObservationDomOnly:
