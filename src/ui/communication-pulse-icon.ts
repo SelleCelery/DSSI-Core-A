@@ -8,6 +8,7 @@ import {
   type CommunicationPulseMethodShape,
 } from '../core/communication-pulse';
 import type { CommunicationPulseColor, CommunicationPulseOpacity } from '../core/models/settings';
+import { communicationPulseBackgroundOpacity } from './communication-pulse-transparency';
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 
@@ -168,7 +169,10 @@ export function applyCommunicationPulseVisualOptions(
   icon.style.setProperty('--route-stroke', palette.stroke);
   icon.style.setProperty('--route-fill', palette.fill);
   icon.style.setProperty('--route-text', palette.text);
-  icon.style.setProperty('--pulse-opacity', String(options.opacity));
+  icon.style.setProperty(
+    '--pulse-background-opacity',
+    String(communicationPulseBackgroundOpacity(options.opacity)),
+  );
 }
 
 export function createCommunicationPulseIcon(

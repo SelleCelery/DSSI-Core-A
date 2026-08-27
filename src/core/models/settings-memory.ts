@@ -1,6 +1,10 @@
 import type { ConfigurationChangeSource } from './configuration';
-import type { DisplayMemoryReaction, DisplaySettingsBundle } from './display-memory';
-import { isDisplaySettingsPatch } from './display-memory';
+import type {
+  DisplayMemoryReaction,
+  DisplaySessionDraftReaction,
+  DisplaySettingsBundle,
+} from './display-memory';
+import { isDisplaySessionDraftReaction, isDisplaySettingsPatch } from './display-memory';
 import type { DssiSettings } from './settings';
 
 export interface SettingsMemoryReadMessage {
@@ -26,15 +30,27 @@ export interface HostDisplayMemoryWriteMessage {
   patch: Partial<DisplaySettingsBundle>;
 }
 
+export interface SessionDisplayDraftWriteMessage {
+  type: 'DSSI_SESSION_DISPLAY_DRAFT_WRITE';
+  operationId: string;
+  hostname: string;
+  action: 'save' | 'remove';
+  baseRevision: string;
+  patch: Partial<DisplaySettingsBundle>;
+}
+
 export type SettingsMemoryWriteMessage =
   GlobalSettingsMemoryWriteMessage | HostDisplayMemoryWriteMessage;
 
 export type SettingsMemoryMessage = SettingsMemoryReadMessage | SettingsMemoryWriteMessage;
 
+export type DisplayMemoryMessage = SettingsMemoryMessage | SessionDisplayDraftWriteMessage;
+
 export interface SettingsMemoryResponse {
   ok: boolean;
   settings: DssiSettings;
   reaction: DisplayMemoryReaction;
+  sessionDraft?: DisplaySessionDraftReaction;
   operationId?: string;
   reason?: 'conflict' | 'invalid_command' | 'storage_error';
 }
@@ -88,7 +104,32 @@ export function isSettingsMemoryWriteMessage(value: unknown): value is SettingsM
   );
 }
 
+export function isSessionDisplayDraftWriteMessage(
+  value: unknown,
+): value is SessionDisplayDraftWriteMessage {
+  if (
+    !isObject(value) ||
+    value.type !== 'DSSI_SESSION_DISPLAY_DRAFT_WRITE' ||
+    typeof value.operationId !== 'string' ||
+    value.operationId.length === 0 ||
+    typeof value.hostname !== 'string' ||
+    value.hostname.length === 0 ||
+    typeof value.baseRevision !== 'string' ||
+    value.baseRevision.length === 0 ||
+    !isObject(value.patch) ||
+    (value.action !== 'save' && value.action !== 'remove') ||
+    !isDisplaySettingsPatch(value.patch)
+  ) {
+    return false;
+  }
+  return value.action === 'remove' || Object.keys(value.patch).length > 0;
+}
+
 export function isSettingsMemoryResponse(value: unknown): value is SettingsMemoryResponse {
   if (!isObject(value) || typeof value.ok !== 'boolean') return false;
-  return isObject(value.settings) && isObject(value.reaction);
+  return (
+    isObject(value.settings) &&
+    isObject(value.reaction) &&
+    (value.sessionDraft === undefined || isDisplaySessionDraftReaction(value.sessionDraft))
+  );
 }

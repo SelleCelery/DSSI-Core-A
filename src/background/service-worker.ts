@@ -8,7 +8,8 @@ import type { ObservationLogRecord } from '../core/models/observation';
 import {
   isSettingsMemoryReadMessage,
   isSettingsMemoryWriteMessage,
-  type SettingsMemoryMessage,
+  isSessionDisplayDraftWriteMessage,
+  type DisplayMemoryMessage,
 } from '../core/models/settings-memory';
 import { effectiveCueLevel, type DssiSettings, type ViscosityLevel } from '../core/models/settings';
 import { detectCookieHeader } from '../core/cookie-header-detection';
@@ -35,7 +36,11 @@ import { ensureDefaultSettings, loadSettings } from '../storage/settings-store';
 import { captureObservationSettingsSnapshot } from '../storage/settings-snapshot-store';
 import { invalidateHostDisplayProfileCache } from '../storage/host-display-profile-store';
 import { onboardingPresentationRecorded } from '../storage/onboarding-store';
-import { readSettingsMemory, writeSettingsMemory } from '../storage/settings-memory-store';
+import {
+  readSettingsMemory,
+  writeSessionDisplayDraft,
+  writeSettingsMemory,
+} from '../storage/settings-memory-store';
 import {
   appendSessionRecord,
   clearSessionRecords,
@@ -71,7 +76,7 @@ type RuntimeMessage =
   | UserActionPulseMessage
   | ClearLogMessage
   | CountLogMessage
-  | SettingsMemoryMessage;
+  | DisplayMemoryMessage;
 
 interface RecentInputActivity extends InputActivityPulse {
   documentId?: string;
@@ -134,6 +139,10 @@ function enqueueSettingsMemoryWrite(message: Parameters<typeof writeSettingsMemo
     }
     return response;
   });
+}
+
+function enqueueSessionDisplayDraftWrite(message: Parameters<typeof writeSessionDisplayDraft>[0]) {
+  return settingsMemoryQueue.enqueue(() => writeSessionDisplayDraft(message));
 }
 
 function openOnboarding(): Promise<chrome.tabs.Tab> {
@@ -560,6 +569,13 @@ chrome.runtime.onMessage.addListener(
 
     if (isSettingsMemoryWriteMessage(message)) {
       void enqueueSettingsMemoryWrite(message)
+        .then((response) => sendResponse(response))
+        .catch(() => sendResponse({ ok: false, reason: 'storage_error' }));
+      return true;
+    }
+
+    if (isSessionDisplayDraftWriteMessage(message)) {
+      void enqueueSessionDisplayDraftWrite(message)
         .then((response) => sendResponse(response))
         .catch(() => sendResponse({ ok: false, reason: 'storage_error' }));
       return true;

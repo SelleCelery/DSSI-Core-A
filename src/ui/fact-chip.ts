@@ -523,7 +523,7 @@ export class FactChipPresenter {
     move.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
-      const from = (host.dataset.position as FactChipPosition | undefined) ?? this.#position;
+      const from = this.#displayController.commandSnapshot().display.current.factChipPosition;
       const to = nextFactChipPosition(from);
       this.#displayController.updateDraft({ factChipPosition: to });
       const following = nextFactChipPosition(to);

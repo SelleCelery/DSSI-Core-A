@@ -301,9 +301,8 @@ button {
   width: 18px;
   height: 18px;
   border-radius: 4px;
-  background: rgb(32 33 35 / 48%);
+  background: rgb(32 33 35 / var(--pulse-background-opacity, 0.7));
   vertical-align: middle;
-  opacity: var(--pulse-opacity, 0.8);
 }
 
 .stream-glyph .communication-pulse-icon[data-route='dom'] {
@@ -325,6 +324,7 @@ button {
   height: 100%;
   overflow: visible;
   fill: var(--route-fill);
+  fill-opacity: var(--pulse-background-opacity, 0.7);
   stroke: var(--route-stroke);
   stroke-width: 1.55;
   stroke-linecap: round;

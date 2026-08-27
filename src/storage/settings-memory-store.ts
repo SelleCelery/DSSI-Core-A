@@ -1,13 +1,15 @@
 import { legacySettingsFromConfiguration } from '../core/models/configuration';
 import {
   displayBundleWithPatch,
+  displayDraftAgainstBundle,
   displaySettingsBundleFromSettings,
-  isDisplaySettingsBundle,
+  migrateDisplaySettingsBundle,
   type DisplayMemoryReaction,
   type DisplaySettingsBundle,
 } from '../core/models/display-memory';
 import type {
   HostDisplayMemoryWriteMessage,
+  SessionDisplayDraftWriteMessage,
   SettingsMemoryResponse,
   SettingsMemoryWriteMessage,
 } from '../core/models/settings-memory';
@@ -18,12 +20,17 @@ import {
   removeHostDisplayProfile,
 } from './host-display-profile-store';
 import { saveSettings } from './settings-store';
+import {
+  readSessionDisplayDraft,
+  removeSessionDisplayDraft,
+  writeSessionDisplayDraft as persistSessionDisplayDraft,
+} from './session-display-draft-store';
 
 const HOST_DISPLAY_MEMORIES_KEY = 'connectBitsHostDisplayMemories';
 const MAX_HOST_DISPLAY_MEMORIES = 300;
 
 interface HostDisplayMemory {
-  schemaVersion: 1;
+  schemaVersion: 2;
   hostname: string;
   revision: string;
   bundle: DisplaySettingsBundle;
@@ -45,22 +52,23 @@ function normalizeHostname(hostname: string): string {
 }
 
 function normalizeMemory(value: unknown, hostname: string): HostDisplayMemory | undefined {
+  const bundle = isObject(value) ? migrateDisplaySettingsBundle(value.bundle) : undefined;
   if (
     !isObject(value) ||
-    value.schemaVersion !== 1 ||
+    (value.schemaVersion !== 1 && value.schemaVersion !== 2) ||
     typeof value.revision !== 'string' ||
     value.revision.length === 0 ||
     typeof value.updatedAt !== 'number' ||
     !Number.isFinite(value.updatedAt) ||
-    !isDisplaySettingsBundle(value.bundle)
+    bundle === undefined
   ) {
     return undefined;
   }
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     hostname: normalizeHostname(hostname),
     revision: value.revision,
-    bundle: value.bundle,
+    bundle,
     updatedAt: value.updatedAt,
   };
 }
@@ -116,7 +124,7 @@ async function migrateLegacyHostMemory(
   if (!legacy) return undefined;
   const effective = applyHostDisplayProfile(globalSettings, legacy);
   const memory: HostDisplayMemory = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     hostname: normalizeHostname(hostname),
     revision: crypto.randomUUID(),
     bundle: displaySettingsBundleFromSettings(effective),
@@ -143,7 +151,7 @@ async function readGlobalSettings(): Promise<{
   };
 }
 
-export async function readSettingsMemory(hostname?: string): Promise<SettingsMemoryResponse> {
+async function readCommittedSettingsMemory(hostname?: string): Promise<SettingsMemoryResponse> {
   const global = await readGlobalSettings();
   if (hostname === undefined) return { ok: true, ...global };
 
@@ -163,6 +171,17 @@ export async function readSettingsMemory(hostname?: string): Promise<SettingsMem
   };
 }
 
+export async function readSettingsMemory(hostname?: string): Promise<SettingsMemoryResponse> {
+  const committed = await readCommittedSettingsMemory(hostname);
+  if (hostname === undefined) return committed;
+  try {
+    const sessionDraft = await readSessionDisplayDraft(hostname, committed.reaction.revision);
+    return sessionDraft === undefined ? committed : { ...committed, sessionDraft };
+  } catch {
+    return committed;
+  }
+}
+
 async function writeGlobalSettingsMemory(
   message: Extract<SettingsMemoryWriteMessage, { destination: { kind: 'global' } }>,
 ): Promise<SettingsMemoryResponse> {
@@ -175,7 +194,7 @@ async function hostConflictResponse(
   message: HostDisplayMemoryWriteMessage,
 ): Promise<SettingsMemoryResponse> {
   return {
-    ...(await readSettingsMemory(message.destination.hostname)),
+    ...(await readCommittedSettingsMemory(message.destination.hostname)),
     ok: false,
     operationId: message.operationId,
     reason: 'conflict',
@@ -186,7 +205,7 @@ async function writeHostDisplayMemory(
   message: HostDisplayMemoryWriteMessage,
 ): Promise<SettingsMemoryResponse> {
   const hostname = normalizeHostname(message.destination.hostname);
-  const current = await readSettingsMemory(hostname);
+  const current = await readCommittedSettingsMemory(hostname);
   if (current.reaction.revision !== message.baseRevision) {
     return hostConflictResponse(message);
   }
@@ -194,18 +213,49 @@ async function writeHostDisplayMemory(
   if (message.action === 'remove') {
     await removeHostMemory(hostname);
     await removeHostDisplayProfile(hostname);
+    await removeSessionDisplayDraft(hostname).catch(() => undefined);
     return { ...(await readSettingsMemory(hostname)), operationId: message.operationId };
   }
 
   const memory: HostDisplayMemory = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     hostname,
     revision: crypto.randomUUID(),
     bundle: displayBundleWithPatch(current.reaction.bundle, message.patch),
     updatedAt: Date.now(),
   };
   await saveHostMemory(memory);
+  await removeSessionDisplayDraft(hostname).catch(() => undefined);
   return { ...(await readSettingsMemory(hostname)), operationId: message.operationId };
+}
+
+export async function writeSessionDisplayDraft(
+  message: SessionDisplayDraftWriteMessage,
+): Promise<SettingsMemoryResponse> {
+  const hostname = normalizeHostname(message.hostname);
+  const current = await readCommittedSettingsMemory(hostname);
+  if (current.reaction.revision !== message.baseRevision) {
+    return {
+      ...(await readSettingsMemory(hostname)),
+      ok: false,
+      operationId: message.operationId,
+      reason: 'conflict',
+    };
+  }
+
+  if (message.action === 'remove') {
+    await removeSessionDisplayDraft(hostname);
+    return { ...current, operationId: message.operationId };
+  }
+
+  const patch = displayDraftAgainstBundle(current.reaction.bundle, message.patch);
+  if (Object.keys(patch).length === 0) {
+    await removeSessionDisplayDraft(hostname);
+    return { ...current, operationId: message.operationId };
+  }
+
+  const sessionDraft = await persistSessionDisplayDraft(hostname, message.baseRevision, patch);
+  return { ...current, sessionDraft, operationId: message.operationId };
 }
 
 export async function writeSettingsMemory(

@@ -40,13 +40,8 @@ async function bootstrap(): Promise<void> {
   const pulsePresenter = new CommunicationPulsePresenter({
     displayController,
     hostname,
-    position: settings.factChipPosition,
-    durationMs: settings.communicationPulseDurationMs,
     size: settings.communicationPulseSize,
     enabled: settings.enabled && communicationPulseAvailable(settings),
-    domColor: settings.communicationPulseDomColor,
-    webRequestColor: settings.communicationPulseWebRequestColor,
-    opacity: settings.communicationPulseOpacity,
     language,
   });
 
@@ -85,13 +80,8 @@ async function bootstrap(): Promise<void> {
     inputObserver.updateSettings(updated);
     submissionObserver.updateSettings(updated);
     pulsePresenter.update({
-      position: updated.factChipPosition,
-      durationMs: updated.communicationPulseDurationMs,
       size: updated.communicationPulseSize,
       enabled: updated.enabled && communicationPulseAvailable(updated),
-      domColor: updated.communicationPulseDomColor,
-      webRequestColor: updated.communicationPulseWebRequestColor,
-      opacity: updated.communicationPulseOpacity,
       language: resolveUiLanguage(updated.uiLanguage, browserUiLanguage()),
     });
 

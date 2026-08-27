@@ -2,6 +2,7 @@ import type { ConfigurationChangeSource } from '../core/models/configuration';
 import type { DisplaySettingsBundle } from '../core/models/display-memory';
 import {
   isSettingsMemoryResponse,
+  type SessionDisplayDraftWriteMessage,
   type SettingsMemoryResponse,
   type SettingsMemoryWriteMessage,
 } from '../core/models/settings-memory';
@@ -64,6 +65,22 @@ export function removeHostDisplayMemory(
     action: 'remove',
     baseRevision,
     patch: {},
+  };
+  return sendMemoryMessage(message);
+}
+
+export function persistSessionDisplayDraft(
+  hostname: string,
+  baseRevision: string,
+  patch: Partial<DisplaySettingsBundle>,
+): Promise<SettingsMemoryResponse> {
+  const message: SessionDisplayDraftWriteMessage = {
+    type: 'DSSI_SESSION_DISPLAY_DRAFT_WRITE',
+    operationId: crypto.randomUUID(),
+    hostname,
+    action: Object.keys(patch).length === 0 ? 'remove' : 'save',
+    baseRevision,
+    patch,
   };
   return sendMemoryMessage(message);
 }

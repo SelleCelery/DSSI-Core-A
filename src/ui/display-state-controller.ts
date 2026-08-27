@@ -1,5 +1,5 @@
 import {
-  acceptDisplayReaction,
+  acceptConfirmedDisplayState,
   clearDisplayDraftAtRevision,
   createDisplayTransientMemory,
   displayMemorySnapshot,
@@ -14,12 +14,17 @@ import type { DssiSettings } from '../core/models/settings';
 import {
   readSettingsMemory,
   removeHostDisplayMemory,
+  persistSessionDisplayDraft,
   saveHostDisplayPatch,
 } from '../storage/settings-memory-client';
-import { setCommunicationTextVisible, setPulseVisible } from './transient-display-state';
+import {
+  setCommunicationTextVisible,
+  setPulsePaused,
+  setPulseVisible,
+} from './transient-display-state';
 
 export type DisplaySurface = 'communication_pulse' | 'settings_panel' | 'text_chip';
-export type DisplaySynchronization = 'synchronized' | 'writing' | 'error';
+export type DisplaySynchronization = 'synchronized' | 'writing' | 'rendering' | 'error';
 
 export interface DisplayStateView {
   settings: DssiSettings;
@@ -36,20 +41,32 @@ export class DisplayStateController {
   readonly #appliedRevisions = new Map<DisplaySurface, string>();
   #globalSettings: DssiSettings;
   #memory: DisplayTransientMemory;
+  #pendingMemory: DisplayTransientMemory | undefined;
   #readSequence = 0;
+  #sessionCommandSequence = 0;
   #writeQueue: Promise<void> = Promise.resolve();
+  #sessionDraftWriteQueue: Promise<void> = Promise.resolve();
   #synchronization: DisplaySynchronization = 'synchronized';
 
   public constructor(hostname: string, initial: SettingsMemoryResponse) {
     if (!initial.ok) throw new Error(initial.reason ?? 'settings memory unavailable');
     this.#hostname = hostname;
     this.#globalSettings = initial.settings;
-    this.#memory = createDisplayTransientMemory(initial.reaction);
+    this.#memory = createDisplayTransientMemory(initial.reaction, initial.sessionDraft);
     this.#notify();
   }
 
   public snapshot(): DisplayStateView {
-    const display = displayMemorySnapshot(this.#memory);
+    return this.#snapshotFor(this.#memory);
+  }
+
+  /** Returns the latest intended state for calculating the next command only. */
+  public commandSnapshot(): DisplayStateView {
+    return this.#snapshotFor(this.#pendingMemory ?? this.#memory);
+  }
+
+  #snapshotFor(memory: DisplayTransientMemory): DisplayStateView {
+    const display = displayMemorySnapshot(memory);
     return {
       settings: settingsWithDisplayBundle(this.#globalSettings, display.current),
       display,
@@ -66,6 +83,9 @@ export class DisplayStateController {
 
   public acknowledge(surface: DisplaySurface, renderRevision: string): void {
     this.#appliedRevisions.set(surface, renderRevision);
+    if (this.#synchronization === 'rendering' && this.surfacesSynchronized()) {
+      this.#synchronization = 'synchronized';
+    }
   }
 
   public surfacesSynchronized(): boolean {
@@ -76,9 +96,12 @@ export class DisplayStateController {
   }
 
   public updateDraft(patch: Partial<DisplaySettingsBundle>): void {
-    this.#memory = updateDisplayDraft(this.#memory, patch);
-    this.#synchronization = 'synchronized';
+    this.#pendingMemory = updateDisplayDraft(this.#pendingMemory ?? this.#memory, patch);
+    const commandSequence = ++this.#sessionCommandSequence;
+    const command = displayMemorySnapshot(this.#pendingMemory);
+    this.#synchronization = 'writing';
     this.#notify();
+    this.#queueSessionDraftWrite(command, commandSequence);
   }
 
   public refresh(): Promise<DisplayStateView> {
@@ -86,15 +109,17 @@ export class DisplayStateController {
     return readSettingsMemory(this.#hostname).then((response) => {
       if (!response.ok) throw new Error(response.reason ?? 'settings memory unavailable');
       this.#globalSettings = response.settings;
-      this.#memory = acceptDisplayReaction(this.#memory, response.reaction, readSequence);
-      this.#synchronization = 'synchronized';
+      this.#replaceConfirmedState(response, readSequence);
+      this.#synchronization = this.#pendingMemory ? 'writing' : 'rendering';
       this.#notify();
       return this.snapshot();
     });
   }
 
   public saveHostDraft(): Promise<SettingsMemoryResponse> {
+    const sessionBarrier = this.#sessionDraftWriteQueue;
     return this.#enqueueWrite(async () => {
+      await sessionBarrier;
       const before = displayMemorySnapshot(this.#memory);
       const readSequence = ++this.#readSequence;
       const response = await saveHostDisplayPatch(
@@ -106,15 +131,21 @@ export class DisplayStateController {
       if (response.ok) {
         this.#memory = clearDisplayDraftAtRevision(this.#memory, before.draftRevision);
       }
-      this.#memory = acceptDisplayReaction(this.#memory, response.reaction, readSequence);
-      this.#synchronization = response.ok ? 'synchronized' : 'error';
+      this.#replaceConfirmedState(response, readSequence);
+      this.#synchronization = response.ok
+        ? this.#pendingMemory
+          ? 'writing'
+          : 'rendering'
+        : 'error';
       this.#notify();
       return response;
     });
   }
 
   public removeHostMemory(): Promise<SettingsMemoryResponse> {
+    const sessionBarrier = this.#sessionDraftWriteQueue;
     return this.#enqueueWrite(async () => {
+      await sessionBarrier;
       const before = displayMemorySnapshot(this.#memory);
       const readSequence = ++this.#readSequence;
       const response = await removeHostDisplayMemory(this.#hostname, before.committed.revision);
@@ -122,8 +153,13 @@ export class DisplayStateController {
       if (response.ok) {
         this.#memory = clearDisplayDraftAtRevision(this.#memory, before.draftRevision);
       }
-      this.#memory = acceptDisplayReaction(this.#memory, response.reaction, readSequence);
-      this.#synchronization = response.ok ? 'synchronized' : 'error';
+      this.#replaceConfirmedState(response, readSequence);
+      if (response.ok) setPulsePaused(false);
+      this.#synchronization = response.ok
+        ? this.#pendingMemory
+          ? 'writing'
+          : 'rendering'
+        : 'error';
       this.#notify();
       return response;
     });
@@ -146,6 +182,55 @@ export class DisplayStateController {
       () => undefined,
     );
     return result;
+  }
+
+  #queueSessionDraftWrite(snapshot: DisplayMemorySnapshot, commandSequence: number): void {
+    const sessionBarrier = this.#sessionDraftWriteQueue;
+    const persistentWriteBarrier = this.#writeQueue;
+    const operation = Promise.all([sessionBarrier, persistentWriteBarrier]).then(async () => {
+      const rebasedCommand = displayMemorySnapshot(
+        updateDisplayDraft(createDisplayTransientMemory(this.#memory.committed), snapshot.draft),
+      );
+      const response = await persistSessionDisplayDraft(
+        this.#hostname,
+        rebasedCommand.draftBaseRevision,
+        rebasedCommand.draft,
+      );
+      const readSequence = ++this.#readSequence;
+      this.#globalSettings = response.settings;
+      this.#replaceConfirmedState(response, readSequence);
+      const latestCommand = commandSequence === this.#sessionCommandSequence;
+      if (latestCommand) this.#pendingMemory = undefined;
+      this.#synchronization = response.ok ? (latestCommand ? 'rendering' : 'writing') : 'error';
+      this.#notify();
+    });
+    this.#sessionDraftWriteQueue = operation.then(
+      () => undefined,
+      () => {
+        if (commandSequence !== this.#sessionCommandSequence) return;
+        this.#pendingMemory = undefined;
+        this.#synchronization = 'error';
+        this.#notify();
+      },
+    );
+  }
+
+  #replaceConfirmedState(response: SettingsMemoryResponse, readSequence: number): void {
+    const pendingDraft = this.#pendingMemory
+      ? displayMemorySnapshot(this.#pendingMemory).draft
+      : undefined;
+    this.#memory = acceptConfirmedDisplayState(
+      this.#memory,
+      response.reaction,
+      readSequence,
+      response.sessionDraft,
+    );
+    if (pendingDraft !== undefined) {
+      this.#pendingMemory = updateDisplayDraft(
+        createDisplayTransientMemory(this.#memory.committed),
+        pendingDraft,
+      );
+    }
   }
 
   #notify(): void {

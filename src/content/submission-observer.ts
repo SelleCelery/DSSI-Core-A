@@ -86,13 +86,8 @@ export class SubmissionObserver {
     this.#pulsePresenter = new CommunicationPulsePresenter({
       displayController,
       hostname: this.#domainKey,
-      position: settings.factChipPosition,
-      durationMs: settings.communicationPulseDurationMs,
       size: settings.communicationPulseSize,
       enabled: settings.enabled && communicationPulseAvailable(settings),
-      domColor: settings.communicationPulseDomColor,
-      webRequestColor: settings.communicationPulseWebRequestColor,
-      opacity: settings.communicationPulseOpacity,
       language,
     });
     this.#enabled = settings.enabled;
@@ -113,13 +108,8 @@ export class SubmissionObserver {
     this.#networkPulseEnabled = settings.enabled && settings.networkObservationEnabled;
     this.#enabled = settings.enabled;
     this.#pulsePresenter.update({
-      position: settings.factChipPosition,
-      durationMs: settings.communicationPulseDurationMs,
       size: settings.communicationPulseSize,
       enabled: settings.enabled && communicationPulseAvailable(settings),
-      domColor: settings.communicationPulseDomColor,
-      webRequestColor: settings.communicationPulseWebRequestColor,
-      opacity: settings.communicationPulseOpacity,
       language: resolveUiLanguage(settings.uiLanguage, browserUiLanguage()),
     });
   }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  acceptConfirmedDisplayState,
   acceptDisplayReaction,
   clearDisplayDraftAtRevision,
   createDisplayTransientMemory,
@@ -16,6 +17,7 @@ function reaction(revision: string, position: 'right' | 'left' | 'top'): Display
     bundle: {
       communicationPulseEnabled: true,
       communicationTextChipEnabled: false,
+      observationSettingsPanelVisible: true,
       factChipPosition: position,
       communicationPulseDurationMs: 700,
       communicationPulseOpacity: 0.8,
@@ -60,6 +62,87 @@ describe('display transient memory', () => {
     expect(displayMemorySnapshot(memory).current).toMatchObject({
       factChipPosition: 'left',
       communicationTextChipEnabled: true,
+    });
+  });
+
+  it('keeps a current-revision session draft in the display memory', () => {
+    let memory = createDisplayTransientMemory(reaction('g:1', 'right'));
+    memory = updateDisplayDraft(memory, {
+      observationSettingsPanelVisible: false,
+      communicationPulseOpacity: 1,
+    });
+    memory = acceptDisplayReaction(memory, reaction('g:1', 'right'), 2);
+
+    expect(displayMemorySnapshot(memory)).toMatchObject({
+      current: {
+        observationSettingsPanelVisible: false,
+        communicationPulseOpacity: 1,
+      },
+      draft: {
+        observationSettingsPanelVisible: false,
+        communicationPulseOpacity: 1,
+      },
+    });
+  });
+
+  it('restores only a session draft bound to the confirmed revision', () => {
+    const matching = createDisplayTransientMemory(reaction('g:1', 'right'), {
+      revision: 'draft:matching',
+      baseRevision: 'g:1',
+      patch: { communicationPulseOpacity: 1 },
+      updatedAt: 100,
+    });
+    const stale = createDisplayTransientMemory(reaction('g:2', 'right'), {
+      revision: 'draft:stale',
+      baseRevision: 'g:1',
+      patch: { communicationPulseOpacity: 1 },
+      updatedAt: 100,
+    });
+
+    expect(displayMemorySnapshot(matching).current.communicationPulseOpacity).toBe(1);
+    expect(displayMemorySnapshot(stale)).toMatchObject({
+      current: { communicationPulseOpacity: 0.8 },
+      draft: {},
+    });
+  });
+
+  it('drops an unsaved draft if its confirmed base changes', () => {
+    let memory = createDisplayTransientMemory(reaction('g:1', 'right'));
+    memory = updateDisplayDraft(memory, { factChipPosition: 'left' });
+    memory = acceptDisplayReaction(memory, reaction('g:2', 'top'), 2);
+
+    expect(displayMemorySnapshot(memory)).toMatchObject({
+      current: { factChipPosition: 'top' },
+      draft: {},
+      draftBaseRevision: 'g:2',
+    });
+  });
+
+  it('removes draft keys that the user returns to the confirmed value', () => {
+    let memory = createDisplayTransientMemory(reaction('g:1', 'right'));
+    memory = updateDisplayDraft(memory, { communicationPulseOpacity: 1 });
+    memory = updateDisplayDraft(memory, { communicationPulseOpacity: 0.8 });
+
+    expect(displayMemorySnapshot(memory)).toMatchObject({
+      current: { communicationPulseOpacity: 0.8 },
+      draft: {},
+      dirty: false,
+    });
+  });
+
+  it('replaces an optimistic draft with the exact storage-confirmed session state', () => {
+    let memory = createDisplayTransientMemory(reaction('g:1', 'right'));
+    memory = updateDisplayDraft(memory, { factChipPosition: 'left' });
+    memory = acceptConfirmedDisplayState(memory, reaction('g:1', 'right'), 1, {
+      revision: 'draft:confirmed',
+      baseRevision: 'g:1',
+      patch: { communicationPulseOpacity: 1 },
+      updatedAt: 10,
+    });
+
+    expect(displayMemorySnapshot(memory)).toMatchObject({
+      current: { factChipPosition: 'right', communicationPulseOpacity: 1 },
+      draft: { communicationPulseOpacity: 1 },
     });
   });
 });

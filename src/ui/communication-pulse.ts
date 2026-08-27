@@ -26,6 +26,7 @@ import {
   subscribeTransientDisplayState,
   transientDisplayState,
 } from './transient-display-state';
+import { communicationPulseTransparencyPercent } from './communication-pulse-transparency';
 
 const HOST_ID = 'dssi-core-a-communication-pulse-host';
 const MAX_VISIBLE_PULSES = 32;
@@ -36,43 +37,33 @@ interface ActivePulseVisualState extends CommunicationPulseVisualOptions {
   hostname: string;
   position: FactChipPosition;
   durationMs: CommunicationPulseDurationMs;
+  observationSettingsPanelVisible: boolean;
   language: UiLanguage;
   savedProfile: boolean;
   dirty: boolean;
 }
 
-let activePulseVisualState: ActivePulseVisualState | undefined;
-
-function ensureActivePulseVisualState(
+function currentPulseVisualState(
   options: CommunicationPulsePresenterOptions,
 ): ActivePulseVisualState {
   const view = options.displayController.snapshot();
   const display = view.display.current;
-  if (
-    activePulseVisualState === undefined ||
-    activePulseVisualState.hostname !== options.hostname
-  ) {
-    activePulseVisualState = {
-      hostname: options.hostname,
-      domColor: display.communicationPulseDomColor,
-      webRequestColor: display.communicationPulseWebRequestColor,
-      opacity: display.communicationPulseOpacity,
-      position: display.factChipPosition,
-      durationMs: display.communicationPulseDurationMs,
-      language: options.language,
-      savedProfile: view.display.committed.source.kind === 'host',
-      dirty: view.display.dirty,
-    };
-  }
-  activePulseVisualState.language = options.language;
-  activePulseVisualState.domColor = display.communicationPulseDomColor;
-  activePulseVisualState.webRequestColor = display.communicationPulseWebRequestColor;
-  activePulseVisualState.opacity = display.communicationPulseOpacity;
-  activePulseVisualState.position = display.factChipPosition;
-  activePulseVisualState.durationMs = display.communicationPulseDurationMs;
-  activePulseVisualState.savedProfile = view.display.committed.source.kind === 'host';
-  activePulseVisualState.dirty = view.display.dirty;
-  return activePulseVisualState;
+  return {
+    hostname: options.hostname,
+    domColor: display.communicationPulseDomColor,
+    webRequestColor: display.communicationPulseWebRequestColor,
+    opacity: display.communicationPulseOpacity,
+    position: display.factChipPosition,
+    durationMs: display.communicationPulseDurationMs,
+    observationSettingsPanelVisible: display.observationSettingsPanelVisible,
+    language: options.language,
+    savedProfile: view.display.committed.source.kind === 'host',
+    dirty: view.display.dirty,
+  };
+}
+
+function currentPulseCommandBundle(options: CommunicationPulsePresenterOptions) {
+  return options.displayController.commandSnapshot().display.current;
 }
 
 function nextValue<T>(values: readonly T[], current: T): T {
@@ -100,13 +91,8 @@ function colorLabel(color: CommunicationPulseColor, language: UiLanguage): strin
 interface CommunicationPulsePresenterOptions {
   displayController: DisplayStateController;
   hostname: string;
-  position: FactChipPosition;
-  durationMs: CommunicationPulseDurationMs;
   size: CommunicationPulseSize;
   enabled: boolean;
-  domColor: CommunicationPulseColor;
-  webRequestColor: CommunicationPulseColor;
-  opacity: CommunicationPulseOpacity;
   language: UiLanguage;
 }
 
@@ -205,18 +191,20 @@ function showToast(root: ShadowRoot, message: string): void {
   toast.dataset.timer = String(timer);
 }
 
-function refreshPulseVisuals(root: ShadowRoot): void {
-  if (activePulseVisualState === undefined) return;
+function refreshPulseVisuals(root: ShadowRoot, visual: ActivePulseVisualState): void {
   for (const icon of root.querySelectorAll<HTMLElement>('.communication-pulse-icon')) {
     const route = icon.dataset.route;
     if (route !== 'dom' && route !== 'web_request') continue;
-    applyCommunicationPulseVisualOptions(icon, route, activePulseVisualState);
+    applyCommunicationPulseVisualOptions(icon, route, visual);
   }
 }
 
-function refreshControls(root: ShadowRoot): void {
+function refreshControls(root: ShadowRoot, options: CommunicationPulsePresenterOptions): void {
   const state = transientDisplayState();
+  const visual = currentPulseVisualState(options);
   const stream = root.querySelector<HTMLDivElement>('.stream');
+  const controls = root.querySelector<HTMLDivElement>('.controls');
+  const panelLauncher = root.querySelector<HTMLButtonElement>('[data-action="open-panel"]');
   const pause = root.querySelector<HTMLButtonElement>('[data-action="pause"]');
   const visibility = root.querySelector<HTMLButtonElement>('[data-action="visibility"]');
   const text = root.querySelector<HTMLButtonElement>('[data-action="text"]');
@@ -227,7 +215,10 @@ function refreshControls(root: ShadowRoot): void {
   const pin = root.querySelector<HTMLButtonElement>('[data-action="pin"]');
   const host = root.host instanceof HTMLDivElement ? root.host : undefined;
 
-  const language = activePulseVisualState?.language ?? 'ja';
+  const language = visual.language;
+  const panelVisible = visual.observationSettingsPanelVisible;
+  if (controls) controls.hidden = !panelVisible;
+  if (panelLauncher) panelLauncher.hidden = panelVisible;
   if (stream) stream.hidden = !state.pulseVisible;
   if (pause) {
     pause.textContent = state.pulsePaused ? '▶' : 'Ⅱ';
@@ -269,38 +260,39 @@ function refreshControls(root: ShadowRoot): void {
     text.setAttribute('aria-label', text.title);
     text.dataset.active = String(!state.communicationTextVisible);
   }
-  if (activePulseVisualState && domColor) {
+  if (domColor) {
     domColor.textContent = 'D';
     domColor.title = localized(
       language,
-      `DOM観測色：${colorLabel(activePulseVisualState.domColor, language)}（クリックで変更）`,
-      `DOM observation color: ${colorLabel(activePulseVisualState.domColor, language)} (click to change)`,
+      `DOM観測色：${colorLabel(visual.domColor, language)}（クリックで変更）`,
+      `DOM observation color: ${colorLabel(visual.domColor, language)} (click to change)`,
     );
     domColor.setAttribute('aria-label', domColor.title);
-    domColor.dataset.color = activePulseVisualState.domColor;
+    domColor.dataset.color = visual.domColor;
   }
-  if (activePulseVisualState && webRequestColor) {
+  if (webRequestColor) {
     webRequestColor.textContent = 'W';
     webRequestColor.title = localized(
       language,
-      `webRequest観測色：${colorLabel(activePulseVisualState.webRequestColor, language)}（クリックで変更）`,
-      `webRequest observation color: ${colorLabel(activePulseVisualState.webRequestColor, language)} (click to change)`,
+      `webRequest観測色：${colorLabel(visual.webRequestColor, language)}（クリックで変更）`,
+      `webRequest observation color: ${colorLabel(visual.webRequestColor, language)} (click to change)`,
     );
     webRequestColor.setAttribute('aria-label', webRequestColor.title);
-    webRequestColor.dataset.color = activePulseVisualState.webRequestColor;
+    webRequestColor.dataset.color = visual.webRequestColor;
   }
-  if (activePulseVisualState && opacity) {
+  if (opacity) {
     opacity.textContent = 'α';
+    const transparency = communicationPulseTransparencyPercent(visual.opacity);
     opacity.title = localized(
       language,
-      `通信パルス不透明度：${Math.round(activePulseVisualState.opacity * 100)}%（このページで変更）`,
-      `Communication-pulse opacity: ${Math.round(activePulseVisualState.opacity * 100)}% (change for this page)`,
+      `通信パルス背景の透過率：${transparency}%（クリックで変更）`,
+      `Communication-pulse background transparency: ${transparency}% (click to change)`,
     );
     opacity.setAttribute('aria-label', opacity.title);
   }
-  if (activePulseVisualState && move) {
+  if (move) {
     move.textContent = '↻';
-    const next = nextFactChipPosition(activePulseVisualState.position);
+    const next = nextFactChipPosition(visual.position);
     move.title = localized(
       language,
       `通信パルスコンソールを${factChipPositionLabel(next, 'ja')}へ移動`,
@@ -308,11 +300,11 @@ function refreshControls(root: ShadowRoot): void {
     );
     move.setAttribute('aria-label', move.title);
   }
-  if (activePulseVisualState && pin) {
-    pin.replaceChildren(pinIcon(activePulseVisualState.savedProfile));
-    const hostname = activePulseVisualState.hostname;
-    pin.title = activePulseVisualState.savedProfile
-      ? activePulseVisualState.dirty
+  if (pin) {
+    pin.replaceChildren(pinIcon(visual.savedProfile));
+    const hostname = visual.hostname;
+    pin.title = visual.savedProfile
+      ? visual.dirty
         ? localized(
             language,
             `変更した表示設定で ${hostname} の保存内容を上書き`,
@@ -329,30 +321,30 @@ function refreshControls(root: ShadowRoot): void {
           `Save the current display settings for ${hostname}`,
         );
     pin.setAttribute('aria-label', pin.title);
-    pin.dataset.saved = String(activePulseVisualState.savedProfile);
-    pin.dataset.dirty = String(activePulseVisualState.dirty);
+    pin.dataset.saved = String(visual.savedProfile);
+    pin.dataset.dirty = String(visual.dirty);
   }
-  if (host && activePulseVisualState) {
-    host.dataset.profileState = activePulseVisualState.savedProfile
-      ? activePulseVisualState.dirty
+  if (host) {
+    host.dataset.profileState = visual.savedProfile
+      ? visual.dirty
         ? 'saved_profile_with_temporary_changes'
         : 'saved_profile'
-      : activePulseVisualState.dirty
+      : visual.dirty
         ? 'temporary_override'
         : 'global_default';
   }
 }
 
 function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
-  ensureActivePulseVisualState(options);
+  const visual = currentPulseVisualState(options);
   const existing = document.getElementById(HOST_ID);
   if (existing instanceof HTMLDivElement && existing.shadowRoot) {
     const stream = existing.shadowRoot.querySelector<HTMLDivElement>('.stream');
     if (stream) {
       existing.dataset.size = options.size;
       existing.dataset.hostname = options.hostname;
-      applyPulseHostPosition(existing, options.position);
-      refreshControls(existing.shadowRoot);
+      applyPulseHostPosition(existing, visual.position);
+      refreshControls(existing.shadowRoot, options);
       return { host: existing, root: existing.shadowRoot, stream };
     }
   }
@@ -365,7 +357,7 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   host.style.setProperty('position', 'fixed');
   host.style.setProperty('z-index', '2147483646');
   host.style.setProperty('pointer-events', 'none');
-  applyPulseHostPosition(host, options.position);
+  applyPulseHostPosition(host, visual.position);
 
   const root = host.attachShadow({ mode: 'open' });
   const style = document.createElement('style');
@@ -410,6 +402,20 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
       opacity: 0.58;
       transition: opacity 120ms ease;
       pointer-events: auto;
+    }
+    .controls[hidden],
+    .panel-launcher[hidden] {
+      display: none;
+    }
+    .panel-launcher {
+      flex: 0 0 auto;
+      pointer-events: auto;
+      opacity: 0.58;
+      transition: opacity 120ms ease;
+    }
+    .panel-launcher:hover,
+    .panel-launcher:focus-visible {
+      opacity: 1;
     }
     .controls:hover,
     .controls:focus-within {
@@ -536,9 +542,7 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
       transform: scale(0.72);
       transition: opacity 100ms ease, transform 120ms ease;
       border-radius: 4px;
-      background: rgba(32, 33, 35, 0.48);
-      backdrop-filter: blur(2px);
-      -webkit-backdrop-filter: blur(2px);
+      background: transparent;
     }
     .pulse[data-size="medium"] { --pulse-size: 18px; }
     .pulse[data-visible="true"] { opacity: 1; transform: scale(1); }
@@ -546,12 +550,15 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
       --route-stroke: rgba(220, 220, 214, 0.92);
       --route-fill: rgba(92, 94, 96, 0.5);
       --route-text: rgba(248, 248, 244, 0.98);
-      --pulse-opacity: 0.8;
+      --pulse-background-opacity: 0.7;
       position: absolute;
       inset: 0;
       display: block;
       color: var(--route-stroke);
-      opacity: var(--pulse-opacity);
+      border-radius: inherit;
+      background: rgba(32, 33, 35, var(--pulse-background-opacity));
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
     }
     .method-shape {
       position: absolute;
@@ -560,6 +567,7 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
       height: 100%;
       overflow: visible;
       fill: var(--route-fill);
+      fill-opacity: var(--pulse-background-opacity);
       stroke: var(--route-stroke);
       stroke-width: 1.55;
       stroke-linecap: round;
@@ -601,7 +609,7 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
       opacity: 0.9;
     }
     @media (prefers-reduced-motion: reduce) {
-      .pulse, .controls { transition: none; }
+      .pulse, .controls, .panel-launcher { transition: none; }
     }
   `;
 
@@ -618,7 +626,7 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   });
 
   const clear = button(
-    '×',
+    '⌧',
     localized(options.language, '表示中の通信パルスを消去', 'Clear visible communication pulses'),
   );
   clear.dataset.action = 'clear';
@@ -636,7 +644,7 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   );
   visibility.dataset.action = 'visibility';
   visibility.addEventListener('click', () => {
-    const visible = !transientDisplayState().pulseVisible;
+    const visible = !currentPulseCommandBundle(options).communicationPulseEnabled;
     options.displayController.updateDraft({ communicationPulseEnabled: visible });
   });
 
@@ -660,9 +668,9 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   );
   domColor.dataset.action = 'dom-color';
   domColor.addEventListener('click', () => {
-    const visual = ensureActivePulseVisualState(options);
+    const visual = currentPulseCommandBundle(options);
     options.displayController.updateDraft({
-      communicationPulseDomColor: nextValue(PULSE_COLORS, visual.domColor),
+      communicationPulseDomColor: nextValue(PULSE_COLORS, visual.communicationPulseDomColor),
     });
   });
 
@@ -672,21 +680,28 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   );
   webRequestColor.dataset.action = 'webrequest-color';
   webRequestColor.addEventListener('click', () => {
-    const visual = ensureActivePulseVisualState(options);
+    const visual = currentPulseCommandBundle(options);
     options.displayController.updateDraft({
-      communicationPulseWebRequestColor: nextValue(PULSE_COLORS, visual.webRequestColor),
+      communicationPulseWebRequestColor: nextValue(
+        PULSE_COLORS,
+        visual.communicationPulseWebRequestColor,
+      ),
     });
   });
 
   const opacity = button(
     'α',
-    localized(options.language, '通信パルス不透明度を変更', 'Change communication-pulse opacity'),
+    localized(
+      options.language,
+      '通信パルス背景の透過率を変更',
+      'Change communication-pulse background transparency',
+    ),
   );
   opacity.dataset.action = 'opacity';
   opacity.addEventListener('click', () => {
-    const visual = ensureActivePulseVisualState(options);
+    const visual = currentPulseCommandBundle(options);
     options.displayController.updateDraft({
-      communicationPulseOpacity: nextValue(PULSE_OPACITIES, visual.opacity),
+      communicationPulseOpacity: nextValue(PULSE_OPACITIES, visual.communicationPulseOpacity),
     });
   });
 
@@ -700,8 +715,8 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   );
   move.dataset.action = 'move';
   move.addEventListener('click', () => {
-    const visual = ensureActivePulseVisualState(options);
-    const next = nextFactChipPosition(visual.position);
+    const visual = currentPulseCommandBundle(options);
+    const next = nextFactChipPosition(visual.factChipPosition);
     options.displayController.updateDraft({ factChipPosition: next });
   });
 
@@ -780,6 +795,15 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
       );
   });
 
+  const closePanel = button(
+    '×',
+    localized(options.language, '観測設定パネルを閉じる', 'Close observation settings panel'),
+  );
+  closePanel.dataset.action = 'close-panel';
+  closePanel.addEventListener('click', () => {
+    options.displayController.updateDraft({ observationSettingsPanelVisible: false });
+  });
+
   controls.append(
     pause,
     clear,
@@ -791,7 +815,18 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
     move,
     pin,
     reset,
+    closePanel,
   );
+
+  const panelLauncher = button(
+    '⚙',
+    localized(options.language, '観測設定パネルを開く', 'Open observation settings panel'),
+  );
+  panelLauncher.className = 'panel-launcher';
+  panelLauncher.dataset.action = 'open-panel';
+  panelLauncher.addEventListener('click', () => {
+    options.displayController.updateDraft({ observationSettingsPanelVisible: true });
+  });
 
   const stream = document.createElement('div');
   stream.className = 'stream';
@@ -804,41 +839,31 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
 
   const hud = document.createElement('div');
   hud.className = 'hud';
-  hud.append(toast, controls, stream);
+  hud.append(toast, panelLauncher, controls, stream);
 
   root.append(style, hud);
   document.documentElement.append(host);
-  subscribeTransientDisplayState(() => refreshControls(root));
-  refreshControls(root);
+  subscribeTransientDisplayState(() => refreshControls(root, options));
+  refreshControls(root, options);
   return { host, root, stream };
 }
 
 export class CommunicationPulsePresenter {
   readonly #options: CommunicationPulsePresenterOptions;
-  #position: FactChipPosition;
 
   public constructor(options: CommunicationPulsePresenterOptions) {
     this.#options = options;
-    this.#position = options.position;
     options.displayController.subscribe((view) => {
       const display = view.display.current;
-      this.#position = display.factChipPosition;
-      Object.assign(this.#options, {
-        position: display.factChipPosition,
-        durationMs: display.communicationPulseDurationMs,
-        domColor: display.communicationPulseDomColor,
-        webRequestColor: display.communicationPulseWebRequestColor,
-        opacity: display.communicationPulseOpacity,
-      });
       if (this.#options.enabled) ensureHost(this.#options);
       const host = document.getElementById(HOST_ID);
       if (host instanceof HTMLDivElement && host.shadowRoot) {
         applyPulseHostPosition(host, display.factChipPosition);
         host.dataset.memoryRevision = view.renderRevision;
         host.dataset.memorySource = view.display.committed.source.kind;
-        ensureActivePulseVisualState(this.#options);
-        refreshPulseVisuals(host.shadowRoot);
-        refreshControls(host.shadowRoot);
+        const visual = currentPulseVisualState(this.#options);
+        refreshPulseVisuals(host.shadowRoot, visual);
+        refreshControls(host.shadowRoot, this.#options);
       }
       options.displayController.acknowledge('communication_pulse', view.renderRevision);
       options.displayController.acknowledge('settings_panel', view.renderRevision);
@@ -852,12 +877,11 @@ export class CommunicationPulsePresenter {
       host?.remove();
       return;
     }
-    ensureHost({ ...this.#options, position: this.#position });
+    ensureHost(this.#options);
   }
 
   public update(options: Partial<CommunicationPulsePresenterOptions>): void {
     Object.assign(this.#options, options);
-    if (options.position !== undefined) this.#position = options.position;
     this.setEnabled(this.#options.enabled);
   }
 
@@ -875,8 +899,7 @@ export class CommunicationPulsePresenter {
     const state = transientDisplayState();
     if (!state.pulseVisible || state.pulsePaused) return;
 
-    const options = { ...this.#options, position: this.#position };
-    const { stream } = ensureHost(options);
+    const { stream } = ensureHost(this.#options);
     while (stream.childElementCount >= MAX_VISIBLE_PULSES) {
       stream.firstElementChild?.remove();
     }
@@ -887,7 +910,7 @@ export class CommunicationPulsePresenter {
     pulse.dataset.size = this.#options.size;
     pulse.title = communicationPulseAriaLabel(descriptor, this.#options.language);
 
-    const visual = ensureActivePulseVisualState(this.#options);
+    const visual = currentPulseVisualState(this.#options);
     pulse.append(
       createCommunicationPulseIcon(descriptor, {
         domColor: visual.domColor,
@@ -899,10 +922,10 @@ export class CommunicationPulsePresenter {
     stream.append(pulse);
     requestAnimationFrame(() => pulse.setAttribute('data-visible', 'true'));
 
-    if (this.#options.durationMs === 0) return;
+    if (visual.durationMs === 0) return;
     window.setTimeout(() => {
       pulse.setAttribute('data-visible', 'false');
       window.setTimeout(() => pulse.remove(), 140);
-    }, this.#options.durationMs);
+    }, visual.durationMs);
   }
 }

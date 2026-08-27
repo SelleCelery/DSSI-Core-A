@@ -39,6 +39,9 @@ export function setCommunicationTextVisible(visible: boolean): void {
 export function setPulseVisible(visible: boolean): void {
   if (state.pulseVisible === visible) return;
   state.pulseVisible = visible;
+  // A confirmed hidden -> visible transition is an explicit resume signal.
+  // Do not allow the separate playback pause latch to keep the pulse hidden.
+  if (visible) state.pulsePaused = false;
   notify();
 }
 
