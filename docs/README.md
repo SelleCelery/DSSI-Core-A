@@ -13,7 +13,8 @@
 | 製品概要           | [日本語README](../README.ja.md) / [English README](../README.md)                                     | 現行             |
 | 導入               | [日本語の導入・更新手順](./release/INSTALL.ja.md) / [English install guide](./release/INSTALL.en.md) | 現行             |
 | インストーラー境界 | [インストーラー試作仕様](./release/INSTALLER_PROTOTYPE.ja.md)                                        | 実装・受入確認中 |
-| プライバシー       | [Privacy Baseline](../PRIVACY.md)                                                                    | 現行             |
+| 公開工程           | [Public Preview 公開チェックリスト](./release/PUBLICATION_CHECKLIST.ja.md)                           | 受入確認待ち     |
+| プライバシー       | [Privacy Notice](../PRIVACY.md)                                                                      | 現行             |
 | セキュリティ       | [Security Policy](../SECURITY.md)                                                                    | 現行             |
 | 開発予定           | [Development Roadmap](./DEVELOPMENT_ROADMAP.md)                                                      | 現行             |
 

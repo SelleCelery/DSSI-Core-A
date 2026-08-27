@@ -1,14 +1,14 @@
-# ConnectBits / DSSI Core A Privacy Baseline
+# ConnectBits / DSSI Core A Privacy Notice
 
-> Status: Development baseline, not yet the final Chrome Web Store privacy policy.
+> Status: Public Preview privacy notice. A Chrome Web Store submission, if pursued, must use a stable public URL for this notice and keep its dashboard disclosures consistent with the implementation.
 
 ConnectBits is the public implementation developed under DSSI Core A. It exists to strengthen user judgment and must not become a new surveillance layer.
 
 ## Initial data handling
 
-The Sprint 0 build processes and stores only what is required to operate the extension foundation:
+ConnectBits processes and stores only what is required to operate the extension:
 
-- extension settings in `chrome.storage.local`
+- extension settings, display profiles, first-run review state, and tutorial progress in `chrome.storage.local`
 - metadata-only observation records in `chrome.storage.session`
 
 The initial build does not send data to a DSSI-managed server.
@@ -116,3 +116,5 @@ The first-run review stores the displayed-language preference, the current ackno
 The Log Reader accepts a JSON file selected explicitly by the user. It parses and displays that file locally, does not send it to a server, does not automatically save a copy, and does not write back to the selected file. Sorting, filtering, grouping, and observation tips are derived display operations. Observation tips list general technical possibilities and do not establish the actual purpose of an observed site.
 
 UI language selection changes presentation only. The same internal observation values and privacy boundaries apply in Japanese and English.
+
+The first-install tutorial stores its version, first and last presentation times, last displayed frame, and optional completion time in `chrome.storage.local`. It does not store text entered into the fictional examples, because the tutorial does not accept or transmit real input. Closing the tutorial does not cause it to reopen automatically. The saved frame is used only when the user opens the tutorial again. Tutorial state is not transmitted outside the extension.

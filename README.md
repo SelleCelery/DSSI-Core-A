@@ -18,6 +18,7 @@ Public-preview additions in v0.5 include:
 
 - ConnectBits public branding while retaining DSSI Core A as the development lineage
 - Japanese and English interface messages with browser-language or explicit selection
+- a first-install, resumable Japanese usage tutorial using fictional shopping, video, and reading sites
 - a first-run local setup and optional-permission review
 - three reversible observation choices: standard, limited page observation without communication metadata, or paused
 - linked Setup & Privacy, Observation Log, Log Reader, and setup-review pages
@@ -60,7 +61,7 @@ Sprint 3.4 retains the Sprint 3.3 communication-pulse and privacy boundaries whi
 
 See [Japanese installation instructions](./docs/release/INSTALL.ja.md) or [English installation instructions](./docs/release/INSTALL.en.md). After reloading the extension from `chrome://extensions`, reload pages that were already open so the current content script is injected.
 
-The first installation opens a local setup review. After confirming the explanation, the user chooses standard observation, limited page observation without communication metadata, or observation paused. Standard observation requests optional `webRequest` plus the HTTP/HTTPS host access required by that API. The choice can be changed later. Withdrawing communication-metadata observation removes only `webRequest`; the HTTP/HTTPS scope also used by the limited DOM layer is not passed to permission removal.
+The first installation opens a local usage tutorial and then hands off to the setup and permission review. Tutorial progress is stored locally so the user can continue it from the popup or Settings & Privacy after closing the tab. The extension does not repeatedly reopen it. After the explanation, the user chooses standard observation, limited page observation without communication metadata, or observation paused. Standard observation requests optional `webRequest` plus the HTTP/HTTPS host access required by that API. The choice can be changed later. Withdrawing communication-metadata observation removes only `webRequest`; the HTTP/HTTPS scope also used by the limited DOM layer is not passed to permission removal.
 
 ## Requirements
 

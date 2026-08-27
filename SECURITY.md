@@ -34,7 +34,7 @@ Do not include passwords, payment data, private prompts, or other sensitive user
 - Reader rendering must use DOM text nodes rather than untrusted HTML insertion.
 - The first-run setup must request optional network permission only from an explicit user action and must provide an equal path to start without it.
 - UI localization must not alter internal record values or weaken the meaning of privacy-boundary states.
-- Release packaging must include only the built extension, localization messages, icons, and installation note. Source, tests, `node_modules`, local logs, and working archives are excluded.
+- Release packaging must include only the built extension, its local tutorial asset, localization messages, icons, and installation note. Source, tests, `node_modules`, local logs, and working archives are excluded.
 - ConnectBits v0.5 remains a public preview and does not provide automatic update signing, forensic integrity, or evidentiary preservation.
 
 ## Development dependency audit

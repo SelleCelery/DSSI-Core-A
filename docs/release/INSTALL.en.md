@@ -18,13 +18,16 @@ Extract the ZIP to a local working directory. Runtime packages do not include `n
 3. Enable **Developer mode**.
 4. Choose **Load unpacked**.
 5. Select the directory that contains `manifest.json` at its root.
-6. ConnectBits opens its local setup and permission review in a new tab.
-7. Review what is observed, what is excluded, storage, external transmission, judgment boundaries, and support limits.
-8. After reviewing the explanation, choose one of the following:
+6. ConnectBits opens its local usage tutorial in a new tab.
+7. Use the fictional shopping, video, and reading sites to review input-surface chips, communication pulses, and the basic observation-log reading flow.
+8. From the final frame, continue to the purpose, observation boundary, Chrome permission, and responsibility review.
+9. After reviewing the explanation, choose one of the following:
    - start with standard observation;
    - start without communication-metadata observation; or
    - do not start observation now.
-9. Reload pages that were already open.
+10. Reload pages that were already open.
+
+The tutorial does not present a skip button, but its tab can be closed at any time. If it is closed partway through, the last frame is stored locally and used the next time **Tutorial / continue** is opened. The extension does not repeatedly reopen the tutorial, and an update does not show it automatically. After completion, reopening the tutorial starts from the first frame.
 
 Starting without communication metadata and leaving observation paused are normal setup paths. This choice can be changed at any time under **Settings & privacy**. Removing communication-metadata observation withdraws only the optional `webRequest` permission; limited page observation continues when that path remains selected.
 
@@ -41,6 +44,7 @@ Reloading the extension does not guarantee that the new content script is inject
 
 - The ConnectBits toolbar popup opens.
 - **Setup & privacy**, **Observation log**, and **Log Reader** link to each other.
+- The popup and **Settings & privacy** can reopen or continue the tutorial.
 - Communication pulses are available at viscosity Level 2 or higher, or in MAX mode.
 - A JSON export can be loaded read-only in ConnectBits Log Reader.
 - Network payloads, input contents, and Cookie values are absent from observation records.

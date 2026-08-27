@@ -23,14 +23,19 @@ ConnectBitsの最終責任者が、機能名ではなく、データが境界を
 
 ## 2. 初回導入と利用者判断
 
-1. `src/onboarding/onboarding.html`
-2. `src/onboarding/onboarding.ts`
-3. `src/storage/onboarding-store.ts`
-4. `src/i18n/ui.ts`
-5. `src/background/service-worker.ts` の `runtime.onInstalled`
+1. `src/tutorial/video-tutorial.html`
+2. `src/tutorial/video-tutorial.ts`
+3. `src/storage/tutorial-store.ts`
+4. `src/onboarding/onboarding.html`
+5. `src/onboarding/onboarding.ts`
+6. `src/storage/onboarding-store.ts`
+7. `src/i18n/ui.ts`
+8. `src/background/service-worker.ts` の `runtime.onInstalled`
 
 確認する問い：
 
+- 初回だけチュートリアルが開き、更新時に再表示されないか。
+- 途中位置の保存、任意再開、最終場面から権限説明への受け渡しが分離されているか。
 - 開発者の宣言と利用者の確認が分かれているか。
 - 未提示の将来用途へ包括同意を取っていないか。
 - 権限なしで開始できるか。
@@ -153,7 +158,7 @@ ConnectBitsの最終責任者が、機能名ではなく、データが境界を
 
 - source、node_modules、テスト、作業ログが配布物へ混入しないか。
 - manifestとpackageのversionが一致するか。
-- onboarding、Reader、localesが配布物に入るか。
+- tutorial、onboarding、Reader、localesが配布物に入るか。
 - 更新後のページ再読み込みが説明されているか。
 
 ## 推奨する実読解手順

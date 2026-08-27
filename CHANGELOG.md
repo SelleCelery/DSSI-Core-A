@@ -2,6 +2,7 @@
 
 ## Unreleased - Installer and Release Hardening
 
+- Added a first-install, 28-frame tutorial using three fictional sites, production pulse/chip/log renderers, resumable local progress, and a handoff to the existing permission setup.
 - Clarified the fixed local input-surface classification UI, separated Log Reader filter reset from record selection, and moved selected-record details before the timeline.
 - Restored the optional HTTP/HTTPS host-access request required for `webRequest` observation after real-browser acceptance exposed a permission regression.
 - Separated the full enablement request (`webRequest` plus HTTP/HTTPS host access) from withdrawal, which removes only `webRequest` and therefore avoids required-permission removal errors.
