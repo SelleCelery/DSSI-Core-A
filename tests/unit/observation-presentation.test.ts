@@ -140,7 +140,7 @@ describe('observation presentation', () => {
     expect(networkCorrelationLabel(record)).toBe('内容変更操作から2.5秒以内の時間相関');
     expect(pageObservationTimingLabel(record)).toBe('ページ観測開始から5秒以内');
     expect(cookieHeaderDetectionLabel(record)).toBe('存在を検出（値は未取得）');
-    expect(networkPayloadObservationLabel(record)).toBe('要求・取得していない');
+    expect(networkPayloadObservationLabel(record)).toBe('観測対象としていない');
   });
 
   it('uses detection language rather than claiming Cookie absence', () => {

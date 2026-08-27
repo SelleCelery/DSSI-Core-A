@@ -55,6 +55,7 @@ const clearSession = requiredElement<HTMLButtonElement>('#clearSession');
 const status = requiredElement<HTMLElement>('#status');
 const openLog = requiredElement<HTMLButtonElement>('#openLog');
 const openReader = requiredElement<HTMLButtonElement>('#openReader');
+const openTutorial = requiredElement<HTMLButtonElement>('#openTutorial');
 const openOnboarding = requiredElement<HTMLButtonElement>('#openOnboarding');
 const openPulseGuide = requiredElement<HTMLButtonElement>('#openPulseGuide');
 const pulseGuideDialog = requiredElement<HTMLDialogElement>('#pulseGuideDialog');
@@ -256,6 +257,9 @@ openLog.addEventListener('click', () => {
 });
 openReader.addEventListener('click', () => {
   void chrome.tabs.create({ url: chrome.runtime.getURL('reader.html') });
+});
+openTutorial.addEventListener('click', () => {
+  void chrome.tabs.create({ url: chrome.runtime.getURL('video-tutorial.html') });
 });
 openOnboarding.addEventListener('click', () => {
   void chrome.tabs.create({ url: chrome.runtime.getURL('onboarding.html') });

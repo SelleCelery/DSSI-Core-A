@@ -30,7 +30,9 @@ describe('communication pulse descriptors', () => {
       destinationRelation: 'cross_origin',
       bodyObservation: 'not_observed',
     });
-    expect(communicationPulseAriaLabel(pulse)).toContain('通信本文は要求・取得していない');
+    expect(communicationPulseAriaLabel(pulse)).toContain(
+      'ConnectBitsでは通信本文を観測対象としていない',
+    );
   });
 
   it('marks standard form submit as a DOM boundary without a cookie claim', () => {

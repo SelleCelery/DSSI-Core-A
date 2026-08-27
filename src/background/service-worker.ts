@@ -149,10 +149,14 @@ function openOnboarding(): Promise<chrome.tabs.Tab> {
   return chrome.tabs.create({ url: chrome.runtime.getURL('onboarding.html') });
 }
 
+function openTutorial(): Promise<chrome.tabs.Tab> {
+  return chrome.tabs.create({ url: chrome.runtime.getURL('video-tutorial.html') });
+}
+
 chrome.runtime.onInstalled.addListener((details) => {
   void ensureDefaultSettings();
   if (details.reason === 'install') {
-    void openOnboarding();
+    void openTutorial();
     return;
   }
   void onboardingPresentationRecorded()

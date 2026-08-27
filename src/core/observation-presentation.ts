@@ -402,8 +402,8 @@ export function networkPayloadObservationLabel(
 ): string {
   return record.networkPayloadObservation === 'not_requested'
     ? language === 'ja'
-      ? '要求・取得していない'
-      : 'Not requested or collected'
+      ? '観測対象としていない'
+      : "Outside ConnectBits' observation scope"
     : '—';
 }
 

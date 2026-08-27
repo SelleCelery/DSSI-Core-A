@@ -183,7 +183,7 @@ export function communicationPulseAriaLabel(
     communicationPulseDestinationLabel(descriptor.destinationRelation, language),
     communicationPulseCookieLabel(descriptor.cookieState, language),
     language === 'ja'
-      ? '通信本文は要求・取得していない'
-      : 'Network payload not requested or collected',
+      ? 'ConnectBitsでは通信本文を観測対象としていない'
+      : "Network payload is outside ConnectBits' observation scope",
   ].join(separator);
 }

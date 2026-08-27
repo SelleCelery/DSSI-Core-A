@@ -7,10 +7,12 @@ import type { SubmissionDescriptor } from '../core/models/submission';
 import type { UiLanguage } from '../i18n/ui';
 import { browserUiLanguage, resolveUiLanguage } from '../i18n/ui';
 import { inputOriginLabel, surfaceTypeLabel } from '../core/observation-presentation';
+import { calculateFactChipAnchorPlacement } from './fact-chip-anchor';
 import type { DisplayStateController } from './display-state-controller';
 import { transientDisplayState } from './transient-display-state';
 
-const HOST_ID = 'dssi-core-a-fact-chip-host';
+export const FACT_CHIP_HOST_ID = 'dssi-core-a-fact-chip-host';
+const HOST_ID = FACT_CHIP_HOST_ID;
 
 const SURFACE_MESSAGES: Readonly<Record<UiLanguage, Readonly<Record<SurfaceType, string>>>> = {
   ja: {
@@ -69,7 +71,9 @@ type ChipCategory = 'attention' | 'communication';
 
 function applyHostPosition(host: HTMLDivElement, position: FactChipPosition): void {
   host.dataset.position = position;
-  for (const property of ['top', 'right', 'bottom', 'left', 'transform']) {
+  delete host.dataset.anchorPositioned;
+  delete host.dataset.anchorPlacement;
+  for (const property of ['top', 'right', 'bottom', 'left', 'transform', 'width']) {
     host.style.removeProperty(property);
   }
 
@@ -113,6 +117,36 @@ function applyHostPosition(host: HTMLDivElement, position: FactChipPosition): vo
   }
 }
 
+function applyAnchorPosition(host: HTMLDivElement, anchor: Element, chip: HTMLElement): boolean {
+  if (!anchor.isConnected) return false;
+  const anchorRect = anchor.getBoundingClientRect();
+  const chipRect = chip.getBoundingClientRect();
+  const calculatePlacement = (chipHeight: number) =>
+    calculateFactChipAnchorPlacement({
+      anchorLeft: anchorRect.left,
+      anchorTop: anchorRect.top,
+      anchorBottom: anchorRect.bottom,
+      anchorWidth: anchorRect.width,
+      chipHeight,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+    });
+  let placement = calculatePlacement(chipRect.height);
+  host.dataset.anchorPositioned = 'true';
+  host.style.setProperty('position', 'fixed');
+  host.style.setProperty('width', `${placement.width}px`);
+  for (const property of ['right', 'bottom', 'transform']) host.style.removeProperty(property);
+  const settledHeight = chip.getBoundingClientRect().height;
+  if (Math.abs(settledHeight - chipRect.height) > 0.5) {
+    placement = calculatePlacement(settledHeight);
+  }
+  host.dataset.anchorPlacement = placement.placement;
+  host.style.setProperty('left', `${placement.left}px`);
+  host.style.setProperty('top', `${placement.top}px`);
+  host.style.setProperty('width', `${placement.width}px`);
+  return true;
+}
+
 function ensureHost(initialPosition: FactChipPosition): ChipHost {
   const existing = document.getElementById(HOST_ID);
   if (existing instanceof HTMLDivElement && existing.shadowRoot) {
@@ -150,6 +184,7 @@ function ensureHost(initialPosition: FactChipPosition): ChipHost {
       pointer-events: none;
     }
     .chip[data-category="communication"] { padding-right: 58px; }
+    :host([data-anchor-positioned="true"]) .chip { width: 100%; }
     .chip[data-visible="true"] { opacity: 1; transform: translateY(0); }
     .title { display: block; margin-bottom: 2px; font-weight: 600; }
     .detail { color: rgba(255, 255, 255, 0.68); }
@@ -230,6 +265,7 @@ export class FactChipPresenter {
   #diagnosticAggregate: DiagnosticNetworkAggregate | undefined;
   #position: FactChipPosition;
   #language: UiLanguage;
+  #anchorCleanup: (() => void) | undefined;
   readonly #displayController: DisplayStateController;
 
   public constructor(
@@ -257,12 +293,13 @@ export class FactChipPresenter {
     return transientDisplayState().communicationTextVisible;
   }
 
-  public show(surfaceType: SurfaceType, viscosityLevel: ViscosityLevel): void {
+  public show(surfaceType: SurfaceType, viscosityLevel: ViscosityLevel, anchor?: Element): void {
     this.#render(
       SURFACE_MESSAGES[this.#language][surfaceType],
       detailForCurrentPage(this.#language),
       viscosityLevel,
       'attention',
+      anchor,
     );
   }
 
@@ -303,6 +340,7 @@ export class FactChipPresenter {
     inputOrigin: InputOrigin,
     surfaceType: SurfaceType,
     viscosityLevel: ViscosityLevel,
+    anchor?: Element,
   ): void {
     this.#render(
       inputOriginLabel(inputOrigin, this.#language),
@@ -311,6 +349,7 @@ export class FactChipPresenter {
         : `Observed as ${surfaceTypeLabel(surfaceType, this.#language)}. Input content was not collected.`,
       viscosityLevel,
       'attention',
+      anchor,
     );
   }
 
@@ -344,8 +383,8 @@ export class FactChipPresenter {
           : 'Request start observed near a content edit';
     const detail =
       this.#language === 'ja'
-        ? `${mechanismLabel(descriptor.mechanism, this.#language)} · ${descriptor.method} · ${relation}${host} · ${cookie}。通信本文は要求・取得せず、入力内容との因果関係も確認していません。`
-        : `${mechanismLabel(descriptor.mechanism, this.#language)} · ${descriptor.method} · ${relation}${host} · ${cookie}. Network payloads were not requested or collected, and no causal relation to input content was established.`;
+        ? `${mechanismLabel(descriptor.mechanism, this.#language)} · ${descriptor.method} · ${relation}${host} · ${cookie}。ConnectBitsでは通信本文を観測対象としておらず、入力内容との因果関係も確認していません。`
+        : `${mechanismLabel(descriptor.mechanism, this.#language)} · ${descriptor.method} · ${relation}${host} · ${cookie}. Network payloads are outside ConnectBits' observation scope, and no causal relation to input content was established.`;
     this.#render(title, detail, viscosityLevel, 'communication');
   }
 
@@ -486,9 +525,13 @@ export class FactChipPresenter {
     detailText: string,
     viscosityLevel: ViscosityLevel,
     category: ChipCategory,
+    anchor?: Element,
   ): void {
     const { root, host } = ensureHost(this.#position);
     root.querySelector('.chip')?.remove();
+    this.#anchorCleanup?.();
+    this.#anchorCleanup = undefined;
+    if (anchor === undefined) applyHostPosition(host, this.#position);
 
     const chip = document.createElement('div');
     chip.className = 'chip';
@@ -566,13 +609,36 @@ export class FactChipPresenter {
 
     chip.append(title, detail, controls);
     root.append(chip);
-    requestAnimationFrame(() => chip.setAttribute('data-visible', 'true'));
+    if (anchor !== undefined) {
+      const reposition = (): void => {
+        if (!applyAnchorPosition(host, anchor, chip)) {
+          chip.setAttribute('data-visible', 'false');
+        }
+      };
+      window.addEventListener('resize', reposition);
+      document.addEventListener('scroll', reposition, true);
+      this.#anchorCleanup = () => {
+        window.removeEventListener('resize', reposition);
+        document.removeEventListener('scroll', reposition, true);
+      };
+      requestAnimationFrame(() => {
+        reposition();
+        chip.setAttribute('data-visible', 'true');
+      });
+    } else {
+      requestAnimationFrame(() => chip.setAttribute('data-visible', 'true'));
+    }
 
     if (this.#hideTimer !== undefined) window.clearTimeout(this.#hideTimer);
     const duration = viscosityLevel === 1 ? 4000 : viscosityLevel === 2 ? 6500 : 9000;
     this.#hideTimer = window.setTimeout(() => {
       chip.setAttribute('data-visible', 'false');
-      window.setTimeout(() => chip.remove(), 180);
+      window.setTimeout(() => {
+        chip.remove();
+        if (root.querySelector('.chip') !== null) return;
+        this.#anchorCleanup?.();
+        this.#anchorCleanup = undefined;
+      }, 180);
     }, duration);
   }
 }

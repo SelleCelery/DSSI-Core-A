@@ -28,7 +28,7 @@ import {
 } from './transient-display-state';
 import { communicationPulseTransparencyPercent } from './communication-pulse-transparency';
 
-const HOST_ID = 'dssi-core-a-communication-pulse-host';
+export const COMMUNICATION_PULSE_HOST_ID = 'dssi-core-a-communication-pulse-host';
 const MAX_VISIBLE_PULSES = 32;
 const PULSE_COLORS: readonly CommunicationPulseColor[] = ['magenta', 'cyan', 'yellow', 'neutral'];
 const PULSE_OPACITIES: readonly CommunicationPulseOpacity[] = [1, 0.8, 0.6, 0.4];
@@ -337,7 +337,7 @@ function refreshControls(root: ShadowRoot, options: CommunicationPulsePresenterO
 
 function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   const visual = currentPulseVisualState(options);
-  const existing = document.getElementById(HOST_ID);
+  const existing = document.getElementById(COMMUNICATION_PULSE_HOST_ID);
   if (existing instanceof HTMLDivElement && existing.shadowRoot) {
     const stream = existing.shadowRoot.querySelector<HTMLDivElement>('.stream');
     if (stream) {
@@ -350,7 +350,7 @@ function ensureHost(options: CommunicationPulsePresenterOptions): PulseHost {
   }
 
   const host = document.createElement('div');
-  host.id = HOST_ID;
+  host.id = COMMUNICATION_PULSE_HOST_ID;
   host.dataset.size = options.size;
   host.dataset.hostname = options.hostname;
   host.style.setProperty('all', 'initial');
@@ -856,7 +856,7 @@ export class CommunicationPulsePresenter {
     options.displayController.subscribe((view) => {
       const display = view.display.current;
       if (this.#options.enabled) ensureHost(this.#options);
-      const host = document.getElementById(HOST_ID);
+      const host = document.getElementById(COMMUNICATION_PULSE_HOST_ID);
       if (host instanceof HTMLDivElement && host.shadowRoot) {
         applyPulseHostPosition(host, display.factChipPosition);
         host.dataset.memoryRevision = view.renderRevision;
@@ -872,7 +872,7 @@ export class CommunicationPulsePresenter {
 
   public setEnabled(enabled: boolean): void {
     this.#options.enabled = enabled;
-    const host = document.getElementById(HOST_ID);
+    const host = document.getElementById(COMMUNICATION_PULSE_HOST_ID);
     if (!enabled) {
       host?.remove();
       return;

@@ -18,6 +18,7 @@ await build({
     logs: resolve(root, 'src/logs/logs.ts'),
     reader: resolve(root, 'src/reader/reader.ts'),
     onboarding: resolve(root, 'src/onboarding/onboarding.ts'),
+    'tutorial-video': resolve(root, 'src/tutorial/video-tutorial.ts'),
   },
   outdir: dist,
   bundle: true,
@@ -35,6 +36,8 @@ const copyTargets = [
   ['src/logs/logs.html', 'logs.html'],
   ['src/reader/reader.html', 'reader.html'],
   ['src/onboarding/onboarding.html', 'onboarding.html'],
+  ['src/tutorial/video-tutorial.html', 'video-tutorial.html'],
+  ['src/tutorial/video-tutorial.css', 'video-tutorial.css'],
   ['src/ui/base.css', 'base.css'],
 ];
 
@@ -43,6 +46,7 @@ for (const [source, target] of copyTargets) {
 }
 
 await cp(resolve(root, 'assets/icons'), resolve(dist, 'icons'), { recursive: true });
+await cp(resolve(root, 'assets/tutorial'), resolve(dist, 'tutorial'), { recursive: true });
 await cp(resolve(root, 'src/_locales'), resolve(dist, '_locales'), { recursive: true });
 
 const manifestPath = resolve(dist, 'manifest.json');

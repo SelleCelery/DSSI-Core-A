@@ -30,6 +30,7 @@ const recentEmpty = requiredElement<HTMLElement>('#recentEmpty');
 const openLog = requiredElement<HTMLButtonElement>('#openLog');
 const openReader = requiredElement<HTMLButtonElement>('#openReader');
 const openOptions = requiredElement<HTMLButtonElement>('#openOptions');
+const openTutorial = requiredElement<HTMLButtonElement>('#openTutorial');
 const openOnboarding = requiredElement<HTMLButtonElement>('#openOnboarding');
 
 let language: UiLanguage = 'ja';
@@ -147,6 +148,9 @@ openReader.addEventListener('click', () => {
   void chrome.tabs.create({ url: chrome.runtime.getURL('reader.html') });
 });
 openOptions.addEventListener('click', () => void chrome.runtime.openOptionsPage());
+openTutorial.addEventListener('click', () => {
+  void chrome.tabs.create({ url: chrome.runtime.getURL('video-tutorial.html') });
+});
 openOnboarding.addEventListener('click', () => {
   void chrome.tabs.create({ url: chrome.runtime.getURL('onboarding.html') });
 });

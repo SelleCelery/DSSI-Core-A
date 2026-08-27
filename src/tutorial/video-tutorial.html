@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ConnectBits — 三つの架空サイトで観測表示を見る</title>
+    <link rel="stylesheet" href="base.css" />
+    <link rel="stylesheet" href="video-tutorial.css" />
+  </head>
+  <body class="dssi-page tutorial-page">
+    <main class="tutorial-app">
+      <header class="tutorial-topbar">
+        <h1>ConnectBits</h1>
+        <span id="tutorialContext">架空例｜買い物・動画・読み物</span>
+      </header>
+
+      <div class="tutorial-progress">
+        <span id="stepText">場面 1 / 28</span>
+        <progress id="progress" max="28" value="1"></progress>
+        <span id="clock">--:--:--</span>
+      </div>
+
+      <section
+        id="tutorialShell"
+        class="tutorial-shell"
+        aria-label="買い物、動画、読み物サイトで観測表示を見るチュートリアル"
+      >
+        <div id="stage" class="tutorial-stage"></div>
+        <aside class="tutorial-side">
+          <p id="kicker" class="tutorial-kicker"></p>
+          <h2 id="heading"></h2>
+          <div id="narration" class="tutorial-narration" aria-live="polite"></div>
+          <div class="tutorial-controls">
+            <button id="next" class="tutorial-next" type="button"></button>
+            <div class="tutorial-subcontrols">
+              <button id="back" class="quiet-button" type="button">一つ戻る</button>
+              <button id="restart" class="quiet-button" type="button">最初から</button>
+            </div>
+          </div>
+        </aside>
+      </section>
+      <p id="tutorialRenderNote" class="tutorial-render-note">
+        通信パルス、入力面チップ、簡易ストリームは、ConnectBits本体と同じ描画コードを使っています。
+      </p>
+    </main>
+    <script type="module" src="tutorial-video.js"></script>
+  </body>
+</html>

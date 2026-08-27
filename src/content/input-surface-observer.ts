@@ -207,7 +207,7 @@ export class InputSurfaceObserver {
     const cuePresented = inputOrigin !== undefined && cueLevel === 3;
 
     if (cuePresented && inputOrigin !== undefined) {
-      this.#presenter.showInputOrigin(inputOrigin, classification.surfaceType, cueLevel);
+      this.#presenter.showInputOrigin(inputOrigin, classification.surfaceType, cueLevel, surface);
     }
 
     void this.#sendRecord(
@@ -275,7 +275,7 @@ export class InputSurfaceObserver {
     const classification = this.#classificationFor(surface);
     const cueLevel = effectiveCueLevel(this.#settings);
     if (shouldPresentFocusCue(cueLevel, classification.surfaceType)) {
-      this.#presenter.show(classification.surfaceType, cueLevel);
+      this.#presenter.show(classification.surfaceType, cueLevel, surface);
     }
   };
 
